@@ -1,0 +1,15 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Shareds.DTOs.Chapter
+{
+    public class ChapterUpdateDto
+    {
+        public string? title { get; set; }
+        public string? content { get; set; }
+        public int? chapter_number { get; set; }
+    }
+}

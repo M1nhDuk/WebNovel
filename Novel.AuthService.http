@@ -1,0 +1,6 @@
+@Novel.AuthService_HostAddress = http://localhost:5049
+
+GET {{Novel.AuthService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
