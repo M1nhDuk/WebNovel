@@ -6,6 +6,6 @@
         public string statusName { get; set; }
 
         //Thiết lập quan hệ giữa các bảng
-        public ICollection<Novel> Novels { get; set; } = new List<Novel>();
+        public ICollection<NovelSeries> NovelSeries { get; set; } = new List<NovelSeries>();
     }
 }

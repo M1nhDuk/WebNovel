@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Shareds.DTOs.Novel
 {
-    public class NovelUpdateDto
+    public class NovelReorder
     {
-        public string? title { get; set; }
-        public string? cover_images { get; set; }
-
+        public int novel_Id {  get; set; }
+        public string title { get; set; }
+        public int novel_number { get; set; }
     }
 }

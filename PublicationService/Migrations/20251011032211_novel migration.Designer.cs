@@ -12,7 +12,7 @@ using NovelService.Data;
 namespace NovelService.Migrations
 {
     [DbContext(typeof(NovelDbContext))]
-    [Migration("20250923142420_novel migration")]
+    [Migration("20251011032211_novel migration")]
     partial class novelmigration
     {
         /// <inheritdoc />
@@ -62,7 +62,10 @@ namespace NovelService.Migrations
                         .HasColumnType("datetime(6)")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
 
-                    b.Property<int>("novelID")
+                    b.Property<int?>("novelID")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("series_Id")
                         .HasColumnType("int");
 
                     b.Property<string>("title")
@@ -79,6 +82,10 @@ namespace NovelService.Migrations
                         .IsUnique()
                         .HasDatabaseName("IX_Chapter_Novel_ChapterNumber");
 
+                    b.HasIndex("series_Id", "chapter_number")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Chapter_Series_ChapterNumber");
+
                     b.ToTable("Chapters");
                 });
 
@@ -89,6 +96,49 @@ namespace NovelService.Migrations
                         .HasColumnType("int");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("novel_Id"));
+
+                    b.Property<string>("cover_images")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("longtext")
+                        .HasDefaultValue("/images/cover/default_cover.jpg");
+
+                    b.Property<int>("novel_number")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("series_Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("title")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("varchar(250)");
+
+                    b.Property<DateTime>("updated_at")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlComputedColumn(b.Property<DateTime>("updated_at"));
+
+                    b.HasKey("novel_Id");
+
+                    b.HasIndex("series_Id", "novel_number")
+                        .IsUnique()
+                        .HasDatabaseName("IX_NovelSeries_Novel_ChapterNumber");
+
+                    b.ToTable("Novels");
+                });
+
+            modelBuilder.Entity("NovelService.Models.NovelSeries", b =>
+                {
+                    b.Property<int>("series_Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("series_Id"));
+
+                    b.Property<int?>("ClassicSeriesseries_Id")
+                        .HasColumnType("int");
 
                     b.Property<string>("artist")
                         .HasColumnType("longtext");
@@ -105,9 +155,11 @@ namespace NovelService.Migrations
                         .HasDefaultValue("/images/cover/default_cover.jpg");
 
                     b.Property<DateTime>("created_at")
-                        .ValueGeneratedOnAdd()
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("datetime(6)")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlComputedColumn(b.Property<DateTime>("created_at"));
 
                     b.Property<string>("description")
                         .IsRequired()
@@ -116,13 +168,17 @@ namespace NovelService.Migrations
                     b.Property<string>("note")
                         .HasColumnType("longtext");
 
-                    b.Property<int>("status_id")
-                        .HasColumnType("int");
-
-                    b.Property<string>("title")
+                    b.Property<string>("series_title")
                         .IsRequired()
                         .HasMaxLength(250)
                         .HasColumnType("varchar(250)");
+
+                    b.Property<int>("status_id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("type")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime>("updated_at")
                         .ValueGeneratedOnAddOrUpdate()
@@ -140,13 +196,17 @@ namespace NovelService.Migrations
                     b.Property<int>("word_count")
                         .HasColumnType("int");
 
-                    b.HasKey("novel_Id");
+                    b.HasKey("series_Id");
+
+                    b.HasIndex("ClassicSeriesseries_Id");
 
                     b.HasIndex("category_id");
 
                     b.HasIndex("status_id");
 
-                    b.ToTable("Novels");
+                    b.ToTable("novel_series", (string)null);
+
+                    b.UseTptMappingStrategy();
                 });
 
             modelBuilder.Entity("NovelService.Models.NovelStatus", b =>
@@ -174,7 +234,7 @@ namespace NovelService.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("novelTagId"));
 
-                    b.Property<int>("novelID")
+                    b.Property<int>("series_Id")
                         .HasColumnType("int");
 
                     b.Property<int>("tagID")
@@ -184,7 +244,7 @@ namespace NovelService.Migrations
 
                     b.HasIndex("tagID");
 
-                    b.HasIndex("novelID", "tagID")
+                    b.HasIndex("series_Id", "tagID")
                         .IsUnique();
 
                     b.ToTable("Novel_Tags");
@@ -207,30 +267,75 @@ namespace NovelService.Migrations
                     b.ToTable("Tags");
                 });
 
+            modelBuilder.Entity("NovelService.Models.ClassicSeries", b =>
+                {
+                    b.HasBaseType("NovelService.Models.NovelSeries");
+
+                    b.Property<string>("ISBN_10")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ISBN_13")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("edition")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("publish_date")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("publisher")
+                        .HasColumnType("longtext");
+
+                    b.ToTable("classic_series", (string)null);
+                });
+
             modelBuilder.Entity("NovelService.Models.Chapter", b =>
                 {
                     b.HasOne("NovelService.Models.Novel", "Novel")
                         .WithMany("Chapters")
                         .HasForeignKey("novelID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("NovelService.Models.NovelSeries", "TS")
+                        .WithMany("Chapters")
+                        .HasForeignKey("series_Id")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Novel");
+
+                    b.Navigation("TS");
                 });
 
             modelBuilder.Entity("NovelService.Models.Novel", b =>
                 {
+                    b.HasOne("NovelService.Models.NovelSeries", "NovelSeries")
+                        .WithMany("Novel")
+                        .HasForeignKey("series_Id")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("NovelSeries");
+                });
+
+            modelBuilder.Entity("NovelService.Models.NovelSeries", b =>
+                {
+                    b.HasOne("NovelService.Models.ClassicSeries", "ClassicSeries")
+                        .WithMany()
+                        .HasForeignKey("ClassicSeriesseries_Id");
+
                     b.HasOne("NovelService.Models.Category", "category")
-                        .WithMany("Novels")
+                        .WithMany("NovelSeries")
                         .HasForeignKey("category_id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("NovelService.Models.NovelStatus", "status")
-                        .WithMany("Novels")
+                        .WithMany("NovelSeries")
                         .HasForeignKey("status_id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("ClassicSeries");
 
                     b.Navigation("category");
 
@@ -239,9 +344,9 @@ namespace NovelService.Migrations
 
             modelBuilder.Entity("NovelService.Models.NovelTag", b =>
                 {
-                    b.HasOne("NovelService.Models.Novel", "Novel")
+                    b.HasOne("NovelService.Models.NovelSeries", "NovelSeries")
                         .WithMany("NovelTags")
-                        .HasForeignKey("novelID")
+                        .HasForeignKey("series_Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -251,26 +356,42 @@ namespace NovelService.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Novel");
+                    b.Navigation("NovelSeries");
 
                     b.Navigation("Tag");
                 });
 
+            modelBuilder.Entity("NovelService.Models.ClassicSeries", b =>
+                {
+                    b.HasOne("NovelService.Models.NovelSeries", null)
+                        .WithOne()
+                        .HasForeignKey("NovelService.Models.ClassicSeries", "series_Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("NovelService.Models.Category", b =>
                 {
-                    b.Navigation("Novels");
+                    b.Navigation("NovelSeries");
                 });
 
             modelBuilder.Entity("NovelService.Models.Novel", b =>
                 {
                     b.Navigation("Chapters");
+                });
+
+            modelBuilder.Entity("NovelService.Models.NovelSeries", b =>
+                {
+                    b.Navigation("Chapters");
+
+                    b.Navigation("Novel");
 
                     b.Navigation("NovelTags");
                 });
 
             modelBuilder.Entity("NovelService.Models.NovelStatus", b =>
                 {
-                    b.Navigation("Novels");
+                    b.Navigation("NovelSeries");
                 });
 
             modelBuilder.Entity("NovelService.Models.Tag", b =>

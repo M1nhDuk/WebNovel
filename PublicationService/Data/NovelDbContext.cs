@@ -2,6 +2,7 @@
 using NovelService.Models;
 using static System.Net.Mime.MediaTypeNames;
 using System;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 namespace NovelService.Data
 {
@@ -11,17 +12,18 @@ namespace NovelService.Data
         {
 
         }
-
+        public DbSet<NovelSeries> Novel_Series { get; set; }
         public DbSet<Novel> Novels { get; set; }
         public DbSet<Chapter> Chapters { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<NovelTag> Novel_Tags { get; set; }
         public DbSet<NovelStatus> Novel_Statuses { get; set; }
         public DbSet<Tag> Tags { get; set; }
+        public DbSet<ClassicSeries> ClassicSeries { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            //Relationship
+            //Mapping
 
             // Novel - Chapter : 1 -> many
             modelBuilder.Entity<Novel>()
@@ -30,28 +32,45 @@ namespace NovelService.Data
                 .HasForeignKey(c => c.novelID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Novel - Category : many -> one
-            modelBuilder.Entity<Novel>()
+            //NovelSeries - Novel: 1 -> many
+            modelBuilder.Entity<NovelSeries>()
+                .HasMany(n => n.Novel)
+                .WithOne(c => c.NovelSeries)
+                .HasForeignKey(c => c.series_Id)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            //NovelSeries - Chapter: 1 -> many
+            modelBuilder.Entity<Chapter>()
+                .HasOne(c => c.TS)
+                .WithMany(c => c.Chapters)
+                .HasForeignKey(c => c.series_Id)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
+            // NovelSeries - Category : many -> one
+            modelBuilder.Entity<NovelSeries>()
                 .HasOne(n => n.category)
-                .WithMany(c => c.Novels)
+                .WithMany(c => c.NovelSeries)
                 .HasForeignKey(c => c.category_id)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Novel - NovelStatus : many -> one
-            modelBuilder.Entity<Novel>()
+            // NovelSeries - NovelStatus : many -> one
+            modelBuilder.Entity<NovelSeries>()
                 .HasOne(n => n.status)
-                .WithMany(c => c.Novels)
+                .WithMany(c => c.NovelSeries)
                 .HasForeignKey(n => n.status_id)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // NovelTag (join table) cấu hình
             modelBuilder.Entity<NovelTag>()
                 .HasKey(c => c.novelTagId);
+            
             modelBuilder.Entity<NovelTag>()
-                .HasOne(nt => nt.Novel)
+                .HasOne(nt => nt.NovelSeries)
                 .WithMany(n => n.NovelTags)
-                .HasForeignKey(nt => nt.novelID)
+                .HasForeignKey(nt => nt.series_Id)
                 .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<NovelTag>()
                 .HasOne(nt => nt.Tag)
                 .WithMany(t => t.NovelTags)
@@ -60,14 +79,63 @@ namespace NovelService.Data
 
             // Ngăn duplicate (1 novel - 1 tag chỉ 1 lần)
             modelBuilder.Entity<NovelTag>()
-                .HasIndex(nt => new { nt.novelID, nt.tagID })
+                .HasIndex(nt => new { nt.series_Id, nt.tagID })
                 .IsUnique();
 
-            modelBuilder.Entity<Novel>()
+            modelBuilder.Entity<NovelSeries>()
                 .Property(n => n.uploader_id)
                 .IsRequired();
 
+
+
+            // Map base series
+            modelBuilder.Entity<NovelSeries>().ToTable("novel_series");
+            modelBuilder.Entity<NovelSeries>().Property(s => s.type).HasConversion<string>();
+
+            // Map derived ClassicSeries -> separate table (TPT)
+            modelBuilder.Entity<ClassicSeries>().ToTable("classic_series");
+
+            // Indexes for uniqueness per parent
+            modelBuilder.Entity<Chapter>()
+                .HasIndex(c => new { c.novelID, c.chapter_number })
+                .HasDatabaseName("IX_Chapter_Novel_ChapterNumber")
+                .IsUnique();
+
+            modelBuilder.Entity<Chapter>()
+                .HasIndex(c => new { c.series_Id, c.chapter_number })
+                .HasDatabaseName("IX_Chapter_Series_ChapterNumber")
+                .IsUnique();
+
+
             //Ràng buộc
+
+            //NovelService
+            modelBuilder.Entity<NovelSeries>(entity =>
+            {
+                entity.HasKey(c => c.series_Id);
+
+                entity.Property(c => c.series_Id);
+                
+                
+                entity.Property(c => c.series_title)
+                .IsRequired()
+                .HasMaxLength(250);
+
+                entity.Property<string>(c => c.description)
+               .IsRequired();
+
+                entity.Property(c => c.updated_at)
+                   .HasDefaultValueSql("CURRENT_TIMESTAMP(6)")
+                   .ValueGeneratedOnAddOrUpdate();
+
+                entity.Property(c => c.created_at)
+                   .HasDefaultValueSql("CURRENT_TIMESTAMP(6)")
+                   .ValueGeneratedOnAddOrUpdate();
+
+                entity.Property(c => c.cover_images)
+               .HasDefaultValue("/images/cover/default_cover.jpg");
+
+            });
 
             //Novel
             modelBuilder.Entity<Novel>(entity =>
@@ -82,14 +150,12 @@ namespace NovelService.Data
                 .IsRequired()
                 .HasMaxLength(250);
 
-                entity.Property<string>(c => c.description)
-                .IsRequired();
+          
 
-                entity.Property(c => c.created_at)
-                 .HasColumnType("datetime(6)")
-                 .HasDefaultValueSql("CURRENT_TIMESTAMP(6)")
-                 .ValueGeneratedOnAdd()
-                 .IsRequired();
+
+                entity.HasIndex(c => new { c.series_Id, c.novel_number })
+                   .IsUnique()
+                   .HasDatabaseName("IX_NovelSeries_Novel_ChapterNumber");
 
                 entity.Property(c => c.updated_at)
                     .HasDefaultValueSql("CURRENT_TIMESTAMP(6)")
@@ -121,6 +187,10 @@ namespace NovelService.Data
                 entity.HasIndex(c => new { c.novelID, c.chapter_number })
                 .IsUnique()
                 .HasDatabaseName("IX_Chapter_Novel_ChapterNumber");
+
+                entity.HasIndex(c => new { c.series_Id, c.chapter_number })
+                .HasDatabaseName("IX_Chapter_Series_ChapterNumber")
+                .IsUnique();
 
                 entity.Property(c => c.created_at)
                  .HasColumnType("datetime(6)")
@@ -173,7 +243,65 @@ namespace NovelService.Data
             });
         }
 
-            
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            ValidateChapterParents();
+            ValidateNovelSeriesRules();
+            return base.SaveChangesAsync(cancellationToken);
+        }
+
+        private void ValidateChapterParents()
+        {
+            var entries = ChangeTracker.Entries<Chapter>()
+                .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified)
+                .Select(e => e.Entity);
+
+            foreach (var c in entries)
+            {
+                var hasNovel = c.novelID.HasValue;
+                var hasSeries = c.series_Id.HasValue;
+                if (hasNovel == hasSeries)
+                    throw new InvalidOperationException("Chapter must have exactly one parent: novelID xor series_Id.");
+
+                if (hasSeries)
+                {
+                    var series = this.Novel_Series.Find(c.series_Id.Value);
+                    if (series != null && series.type != type.TRADITIONAL)
+                        throw new InvalidOperationException("Cannot add a chapter directly to a non-TRADITIONAL series.");
+                }
+
+                if (hasNovel)
+                {
+                    var novel = this.Novels.Find(c.novelID.Value);
+                    if (novel != null && novel.series_Id.HasValue)
+                    {
+                        var parentSeries = this.Novel_Series.Find(novel.series_Id.Value);
+                        if (parentSeries != null && parentSeries.type == type.TRADITIONAL)
+                            throw new InvalidOperationException("Cannot add chapter to a Novel that belongs to a TRADITIONAL series.");
+                    }
+                }
+            }
+        }
+
+        private void ValidateNovelSeriesRules()
+        {
+            var novelEntries = ChangeTracker.Entries<Novel>()
+                .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified)
+                .Select(e => e.Entity);
+
+            foreach (var n in novelEntries)
+            {
+                if (n.series_Id.HasValue)
+                {
+                    var series = this.Novel_Series.Find(n.series_Id.Value);
+                    if (series != null && series.type == type.TRADITIONAL)
+                        throw new InvalidOperationException("Cannot create or attach a Novel under a TRADITIONAL series.");
+                }
+            }
+        }
+
+
+
     }
 
 
