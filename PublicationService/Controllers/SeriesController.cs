@@ -131,10 +131,10 @@ namespace NovelService.Controllers
                 return Ok(result);
             }
 
-//------------------------------------------------------------------------------------------------------
+            //------------------------------------------------------------------------------------------------------
             //Classic Series
 
-            [HttpPost]
+            [HttpPost("classic")]
             public async Task<ActionResult<ClassicSeriesDetailDto>> CreateClassicSeries([FromBody] CreateTraditionalSeriesDto dto)
             {
                 try

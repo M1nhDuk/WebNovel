@@ -10,8 +10,7 @@ namespace NovelService.Service.Interfaces
 
         Task<ClassicSeriesDetailDto?> GetByIdAsync(int seriesId);
 
-        Task<ChapterDetailDto> CreateChapterForCSAsync(int seriesId, ChapterCreateDto dto);
-
+  
 
     }
 }

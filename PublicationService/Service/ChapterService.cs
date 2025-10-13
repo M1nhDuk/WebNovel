@@ -24,85 +24,94 @@ namespace NovelService.Service
         }
 
         //TẠO CHAPTER (liên kết đến novel tồn tại) + update counts
-        public async Task<ChapterDetailDto> CreateChapterAsync(int novel_Id, ChapterCreateDto dto)
+        public async Task<ChapterDetailDto> CreateChapterAsync(ChapterCreateDto dto)
         {
-            if (novel_Id <= 0) throw new ArgumentException("Novel Id required");
             if (dto == null) throw new ArgumentNullException(nameof(dto));
             if (string.IsNullOrWhiteSpace(dto.title)) throw new InvalidOperationException("Title required");
 
-            
-            if (dto.novelID.HasValue && dto.novelID.Value != novel_Id)
-                throw new InvalidOperationException("novelId mismatch");
+            var hasNovelParent = dto.novelID.HasValue;
+            var hasSeriesParent = dto.series_id.HasValue;
+            if (hasNovelParent == hasSeriesParent) // Nếu cả hai đều true hoặc cả hai đều false
+            {
+                throw new InvalidOperationException("Chapter must belong to exactly one Novel OR one Series.");
+            }
 
             using var tx = await _context.Database.BeginTransactionAsync();
             try
             {
-                var novel = await _context.Novels
-                      .Include(n => n.NovelSeries) // để dễ cập nhật series sau đó
-                      .FirstOrDefaultAsync(n => n.novel_Id == novel_Id);
+                NovelSeries parentSeries = null;
+                int chapterNumber;
 
-                if (novel == null)
-                    throw new InvalidOperationException($"Novel {dto.novelID} not found");
-
-                //Check series type
-                if (novel.series_Id.HasValue)
-                {
-                    var parentSeries = await _context.Novel_Series.FindAsync(novel.series_Id.Value);
-                    if (parentSeries != null && parentSeries.type == type.TRADITIONAL)
-                        throw new InvalidOperationException("Cannot add chapter to novel belonging to a TRADITIONAL series");
-                }
-
-                // tính word count
+                // --- Logic tính word count (giữ nguyên) ---
                 int wordCount = 0;
                 if (!string.IsNullOrWhiteSpace(dto.content))
                     wordCount = dto.content.Split((char[])null, StringSplitOptions.RemoveEmptyEntries).Length;
 
-                // xác định chapter number
-                int chapterNumber;
-                if (dto.chapter_number <= 0)
+                // 3. Xử lý tùy theo loại cha
+                if (hasNovelParent)
                 {
-                    var max = await _context.Chapters.Where(c => c.novelID == novel_Id)
-                        .MaxAsync(c => (int?)c.chapter_number) ?? 0;
+                    var novel = await _context.Novels
+                        .Include(n => n.NovelSeries)
+                        .FirstOrDefaultAsync(n => n.novel_Id == dto.novelID.Value);
 
+                    if (novel == null) throw new InvalidOperationException($"Novel {dto.novelID} not found");
+
+                    if (novel.NovelSeries?.type == type.TRADITIONAL)
+                        throw new InvalidOperationException("Cannot add chapter to a Novel that belongs to a TRADITIONAL series.");
+
+                    if (novel.series_Id.HasValue)
+                    {
+                        parentSeries = novel.NovelSeries;
+                    }
+
+                    // Xác định số chương cho novel
+                    var max = await _context.Chapters.Where(c => c.novelID == dto.novelID.Value).MaxAsync(c => (int?)c.chapter_number) ?? 0;
                     chapterNumber = max + 1;
                 }
-                else
+                else // hasSeriesParent is true
                 {
-                    var exists = await _context.Chapters.AnyAsync(c => c.novelID == novel_Id && c.chapter_number == dto.chapter_number);
+                    var series = await _context.Novel_Series.FindAsync(dto.series_id.Value);
 
-                    if (exists) throw new InvalidOperationException($"Chapter number {dto.chapter_number} already exists for novel {novel_Id}");
-                    chapterNumber = dto.chapter_number;
+                    if (series == null) throw new InvalidOperationException($"Series {dto.series_id} not found");
+
+                    if (series.type != type.TRADITIONAL)
+                        throw new InvalidOperationException("A chapter can only be directly added to a TRADITIONAL series.");
+
+                    parentSeries = series;
+
+                    // Xác định số chương cho series
+                    var max = await _context.Chapters.Where(c => c.series_Id == dto.series_id.Value).MaxAsync(c => (int?)c.chapter_number) ?? 0;
+                    chapterNumber = max + 1;
                 }
 
+
+                // 4. Tạo Chapter 
                 var chapter = new Chapter
                 {
-                    novelID = novel_Id,
-                    series_Id = novel.series_Id,
+                    novelID = dto.novelID,
+                    series_Id = dto.series_id, // Gán trực tiếp series_Id nếu nó là cha
                     title = dto.title,
                     content = dto.content,
                     chapter_number = chapterNumber,
                     word_count = wordCount,
                     created_at = DateTime.UtcNow
                 };
-
                 _context.Chapters.Add(chapter);
-                await _context.SaveChangesAsync();
 
-                if (novel.series_Id.HasValue)
+                // 5. Cập nhật word_count cho series cha 
+                if (parentSeries != null)
                 {
-                    var series = novel.NovelSeries ?? await _context.Novel_Series.FindAsync(novel.series_Id.Value);
-                    if (series != null)
-                    {
-                        series.word_count += wordCount;
-                        series.updated_at = DateTime.UtcNow;
-                      
-                        await _context.SaveChangesAsync();
-                    }
+                    parentSeries.word_count += wordCount;
+                    parentSeries.updated_at = DateTime.UtcNow;
+                    _context.Novel_Series.Update(parentSeries);
                 }
 
+                // 6. Lưu tất cả thay đổi
+                await _context.SaveChangesAsync();
                 await tx.CommitAsync();
 
-                return new ChapterDetailDto
+                // Trả về DTO (Logic chung)
+                return new ChapterDetailDto 
                 {
                     chapter_id = chapter.chapter_id,
                     novelID = chapter.novelID,
@@ -112,22 +121,19 @@ namespace NovelService.Service
                     chapter_number = chapter.chapter_number,
                     word_count = chapter.word_count,
                     created_at = chapter.created_at
-                };
 
-            }
-            catch (DbUpdateException dbEx)
-            {
-                await tx.RollbackAsync();
-                _logger.LogError(dbEx, "CreateChapterForNovelAsync DB error");
-                throw new InvalidOperationException("Failed to create chapter (DB conflict).");
+                };
             }
             catch (Exception ex)
             {
                 await tx.RollbackAsync();
-                _logger.LogError(ex, "CreateChapterForNovelAsync failed");
+                _logger.LogError(ex, "CreateChapterAsync failed");
                 throw;
             }
-            
+
+
+
+
         }
         
 

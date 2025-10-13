@@ -27,13 +27,47 @@ namespace NovelService.Controllers
         }
 
 
-        //POST (Chapter thuộc novel)
-        [HttpPost("novels/{novel_Id:int}/chapters")]
-        public async Task<IActionResult> CreateChapter(int novel_Id, [FromBody] ChapterCreateDto dto)
+        // Flow 1: Tạo Chapter cho một Novel (Series -> Novel -> Chapter)
+        [HttpPost("series/{seriesId:int}/novels/{novelId:int}/chapters")]
+        public async Task<IActionResult> CreateChapterForNovel([FromRoute] int seriesId, [FromRoute] int novelId, [FromBody] ChapterCreateDto dto)
         {
-            var result = await _chapterService.CreateChapterAsync(novel_Id, dto);
-            return Ok(result);
+            try
+            {
+                // Gán novelID từ URL vào DTO trước khi gửi xuống service
+                dto.novelID = novelId;
+                dto.series_id = null; 
+
+                var result = await _chapterService.CreateChapterAsync(dto);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create chapter for novel {NovelId}", novelId);
+                return BadRequest(new { message = ex.Message });
+            }
         }
+
+        // Flow 2: Tạo Chapter cho một Classic Series (ClassicSeries -> Chapter)
+        [HttpPost("series/{seriesId:int}/chapters")]
+        public async Task<IActionResult> CreateChapterForClassicSeries([FromRoute] int seriesId, [FromBody] ChapterCreateDto dto)
+        {
+            try
+            {
+                // Gán series_id từ URL vào DTO
+                dto.series_id = seriesId;
+                dto.novelID = null; // Đảm bảo novelID là null
+
+                var result = await _chapterService.CreateChapterAsync(dto);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create chapter for series {SeriesId}", seriesId);
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+
 
 
         //Put
@@ -62,6 +96,8 @@ namespace NovelService.Controllers
             }
         }
 
+
+        //Get
         [HttpGet("{id}")]
         public async Task<ActionResult<ChapterDetailDto>> GetChapterById(int id)
         {
@@ -72,6 +108,8 @@ namespace NovelService.Controllers
         }
 
 
+
+        //Delete
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteChapterById(int id)
         {
@@ -106,16 +144,7 @@ namespace NovelService.Controllers
             return Ok("Reorder success");
         }
 
-        //-------------------------------------------------------------------------------------------------------
 
-        //POST(Chapter trực thuộc series)
-
-        // tạo chapter cho traditional series
-        [HttpPost("series/{seriesId:int}/chapters")]
-        public async Task<IActionResult> CreateForSeries(int seriesId, [FromBody] ChapterCreateDto dto)
-        {
-            var result = await _classicService.CreateChapterForCSAsync(seriesId, dto);
-            return Ok(result);
-        }
+   
     }
 }

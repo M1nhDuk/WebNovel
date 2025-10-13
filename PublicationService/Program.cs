@@ -28,6 +28,7 @@ builder.Services.AddAutoMapper(typeof(Mapping));
 builder.Services.AddScoped<INovelSeriesService, NovelSeriesService>();
 builder.Services.AddScoped<INovelService, NovelService.Service.NovelService>();
 builder.Services.AddScoped<IChapterService, NovelService.Service.ChapterService>();
+builder.Services.AddScoped<IClassicSeries, ClassicSeriesService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
