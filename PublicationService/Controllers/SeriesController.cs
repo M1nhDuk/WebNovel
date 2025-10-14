@@ -72,7 +72,7 @@ namespace NovelService.Controllers
                 }
             }
 
-
+            //Get
             [HttpGet("{id}")]
             public async Task<ActionResult<NovelSeriesDetailDto>> GetByIdAsync(int id)
             {
@@ -83,6 +83,7 @@ namespace NovelService.Controllers
             }
 
 
+            //Delete
             [HttpDelete("{id}")]
             public async Task<IActionResult> DeleteSeries(int id)
             {
@@ -120,7 +121,6 @@ namespace NovelService.Controllers
             }
 
 
-
             [HttpGet("search")]
             public async Task<IActionResult> SearchSeries(
            [FromQuery] string keyword,
@@ -131,7 +131,7 @@ namespace NovelService.Controllers
                 return Ok(result);
             }
 
-            //------------------------------------------------------------------------------------------------------
+     //--------------------------------------------------------------------------------------------------------------------------------
             //Classic Series
 
             [HttpPost("classic")]
@@ -150,6 +150,26 @@ namespace NovelService.Controllers
                     return BadRequest(new { message = ex.Message });
                 }
             }
+
+            [HttpPut("{id}/classic")]
+            public async Task<IActionResult> UpdateClassicSeries(int id, [FromBody] UpdateClassicSeriesDto dto)
+            {
+                try
+                {
+                    int uploaderId = 1; 
+                    var result = await _classicSeries.UpdateClassicSeriesAsync(id, dto, uploaderId);
+                    if (result == null)
+                        return NotFound(new { message = "Classic Series not found or you are not authorized." });
+
+                    return Ok(result);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "UpdateClassicSeries failed for id={Id}", id);
+                    return BadRequest(new { message = ex.Message });
+                }
+            }
+
 
         }
     }

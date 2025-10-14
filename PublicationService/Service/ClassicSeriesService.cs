@@ -78,9 +78,29 @@ namespace NovelService.Service
             }
         }
 
+        //Update
+        public async Task<ClassicSeriesDetailDto?> UpdateClassicSeriesAsync(int seriesId, UpdateClassicSeriesDto dto, int uploaderId)
+        {
+            var series = await _context.ClassicSeries.FindAsync(seriesId);
+            if (series == null)
+                throw new InvalidOperationException("Classic Series not found.");
 
-       
-       
+           // if (series.uploader_id != uploaderId) throw new UnauthorizedAccessException(...);
+
+            series.ISBN_10 = dto.ISBN_10 ?? series.ISBN_10;
+            series.ISBN_13 = dto.ISBN_13 ?? series.ISBN_13;
+            series.publisher = dto.publisher ?? series.publisher;
+            series.publish_date = dto.publish_date ?? series.publish_date;
+            series.edition = dto.edition ?? series.edition;
+            series.updated_at = DateTime.UtcNow;
+
+            _context.ClassicSeries.Update(series);
+            await _context.SaveChangesAsync();
+
+            return await GetByIdAsync(seriesId);
+        }
+
+
 
         public async Task<ClassicSeriesDetailDto?> GetByIdAsync(int id)
         {

@@ -8,6 +8,7 @@ using Shareds.DTOs.Chapter;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Shareds.DTOs;
+using Shareds.DTOs.ClassicSeries;
 
 namespace NovelService.Service
 {
@@ -172,53 +173,55 @@ namespace NovelService.Service
         //View(Get)
         public async Task<NovelSeriesDetailDto?> GetByIdAsync(int id)
         {
-            var s = await _context.Novel_Series
-                .Include(x => x.Novel)
-                .Include(x => x.status)
-                .Include(x => x.NovelTags)
-                    .ThenInclude(nt => nt.Tag)
-                .Include(x => x.Novel)
-                    .ThenInclude(n => n.Chapters)
-                .FirstOrDefaultAsync(x => x.series_Id == id);
+            var seriesBase = await _context.Novel_Series.FindAsync(id);
 
-            if (s == null) return null;
 
-            return new NovelSeriesDetailDto
+            if (seriesBase == null)
             {
-                series_Id = s.series_Id,
-                series_title = s.series_title,
-                author = s.author,
-                artist = s.artist,
-                description = s.description,
-                cover_images = s.cover_images,
-                word_count = s.word_count,
-                views = s.views,
-                note = s.note,
-                created_at = s.created_at,
-                updated_at = s.updated_at,
-                uploader_id = s.uploader_id,
-                
+                return null;
+            }
 
-                // category + status
-                category_id = s.category_id,
-                categoryName = s.category?.category_name,
-                status_id = s.status_id,
-                statusName = s.status?.statusName,
+            if (seriesBase.type == type.TRADITIONAL)
+            {
+                var ts = await _context.ClassicSeries
+                    .Include(x => x.Chapters)
+                    .Include(x => x.status)
+                    .Include(x => x.category)
+                    .Include(x => x.NovelTags)
+                        .ThenInclude(nt => nt.Tag)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.series_Id == id);
 
-                // tags: chỉ lấy tên
-                Tags = s.NovelTags.Select(t => t.Tag.tagName).ToList(),
+                if (ts == null) return null;
 
-
-                Novels = s.Novel.OrderBy(n => n.novel_number).Select(n => new NovelDetailDto
+                return new ClassicSeriesDetailDto
                 {
-                    series_Id = n.series_Id,
-                    novel_Id = n.novel_Id,
-                    title = n.title,
-                    novel_number = n.novel_number,
-                    cover_images = n.cover_images,
-                   
-                    // map chapter
-                    Chapters = n.Chapters.OrderBy(c => c.chapter_number).Select(c => new ChapterDetailDto
+                    series_Id = ts.series_Id,
+                    series_title = ts.series_title,
+                    author = ts.author,
+                    artist = ts.artist,
+                    description = ts.description,
+                    cover_images = ts.cover_images,
+                    word_count = ts.word_count,
+                    views = ts.views,
+                    note = ts.note,
+                    created_at = ts.created_at,
+                    category_id = ts.category_id,
+                    categoryName = ts.category?.category_name,
+                    status_id = ts.status_id,
+                    statusName = ts.status?.statusName,
+                    Tags = ts.NovelTags.Select(t => t.Tag.tagName).ToList(),
+
+                    uploader_id = ts.uploader_id,
+
+                    // Các trường riêng của ClassicSeries
+                    ISBN_10 = ts.ISBN_10,
+                    ISBN_13 = ts.ISBN_13,
+                    publisher = ts.publisher,
+                    publish_date = ts.publish_date,
+                    edition = ts.edition,
+
+                    Chapters = ts.Chapters.OrderBy(c => c.chapter_number).Select(c => new ChapterDetailDto
                     {
                         novelID = c.novelID,
                         chapter_id = c.chapter_id,
@@ -227,12 +230,74 @@ namespace NovelService.Service
                         word_count = c.word_count,
                         created_at = c.created_at,
                         content = c.content,
+                    }).ToList()
+                };
+            }
+            else
+            {
+                var s = await _context.Novel_Series
+                     .Include(x => x.status)
+                    .Include(x => x.category)
+                    .Include(x => x.NovelTags)
+                        .ThenInclude(nt => nt.Tag)
+                    .Include(x => x.Novel) // Include danh sách Novel
+                        .ThenInclude(n => n.Chapters) // Include chapter của từng Novel
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.series_Id == id);
+
+                if (s == null) return null;
+
+                return new NovelSeriesDetailDto
+                {
+                    series_Id = s.series_Id,
+                    series_title = s.series_title,
+                    author = s.author,
+                    artist = s.artist,
+                    description = s.description,
+                    cover_images = s.cover_images,
+                    word_count = s.word_count,
+                    views = s.views,
+                    note = s.note,
+                    created_at = s.created_at,
+                    updated_at = s.updated_at,
+                    uploader_id = s.uploader_id,
+
+
+                    // category + status
+                    category_id = s.category_id,
+                    categoryName = s.category?.category_name,
+                    status_id = s.status_id,
+                    statusName = s.status?.statusName,
+
+                    // tags: chỉ lấy tên
+                    Tags = s.NovelTags.Select(t => t.Tag.tagName).ToList(),
+
+
+                    Novels = s.Novel.OrderBy(n => n.novel_number).Select(n => new NovelDetailDto
+                    {
+                        series_Id = n.series_Id,
+                        novel_Id = n.novel_Id,
+                        title = n.title,
+                        novel_number = n.novel_number,
+                        cover_images = n.cover_images,
+
+                        // map chapter
+                        Chapters = n.Chapters.OrderBy(c => c.chapter_number).Select(c => new ChapterDetailDto
+                        {
+                            novelID = c.novelID,
+                            chapter_id = c.chapter_id,
+                            title = c.title,
+                            chapter_number = c.chapter_number,
+                            word_count = c.word_count,
+                            created_at = c.created_at,
+                            content = c.content,
+
+                        }).ToList()
+
 
                     }).ToList()
-
-
-                }).ToList()
-            };
+                };
+            }     
         }
 
         //View all
@@ -338,7 +403,12 @@ namespace NovelService.Service
             if (filter.TagId is { Count: > 0 })
                 query = query.Where(s => s.NovelTags.Any(nt => filter.TagId.Contains(nt.tagID)));
 
-            
+            if (!string.IsNullOrEmpty(filter.Type) && Enum.TryParse<type>(filter.Type, true, out var seriesType))
+            {
+                query = query.Where(s => s.type == seriesType);
+            }
+
+
             return query;
         }
 

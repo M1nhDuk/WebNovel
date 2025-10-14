@@ -142,13 +142,16 @@ namespace NovelService.Service
         public async Task<ChapterDetailDto?> UpdateChapterAsync(int chapter_id, ChapterUpdateDto dto, int uploader_id) // chưa check quyền quản tri (uploaderID)
         {
 
-            var chapter = await _context.Chapters.Include(c => c.Novel)
-                .ThenInclude(n => n.NovelSeries)
+            var chapter = await _context.Chapters
+                 .Include(c => c.Novel)
+                    .ThenInclude(n => n.NovelSeries)
+                .Include(c => c.TS)
                 .FirstOrDefaultAsync(c => c.chapter_id == chapter_id);
 
             if (chapter == null)
                 throw new InvalidOperationException("Chapter not found");
 
+            bool contentChanged = false;
             if (!string.IsNullOrWhiteSpace(dto.title))
                 chapter.title = dto.title;
 
@@ -156,25 +159,31 @@ namespace NovelService.Service
             {
                 chapter.content = dto.content;
                 chapter.word_count = dto.content.Split((char[])null, StringSplitOptions.RemoveEmptyEntries).Length;
-
-                await _context.SaveChangesAsync();
+                contentChanged = true;
             }
 
-            //cập nhật word_count của cả series
-            if (chapter.Novel?.NovelSeries != null)
+
+
+            // Nếu nội dung thay đổi, cập nhật lại word_count của series cha
+            if (contentChanged)
             {
-                var total_wordCount = await _context.Chapters
-                        .Where(c => c.Novel!.series_Id == chapter.Novel.series_Id)
+                // Xác định parentSeries (dùng toán tử ?? "null-coalescing")
+                var parentSeries = chapter.Novel?.NovelSeries ?? chapter.TS;
+
+                if (parentSeries != null)
+                {
+                    // Tính lại tổng word count của TẤT CẢ chapter thuộc series
+                    var totalWordCount = await _context.Chapters
+                        .Where(c => (c.Novel != null && c.Novel.series_Id == parentSeries.series_Id) || c.series_Id == parentSeries.series_Id)
                         .SumAsync(c => c.word_count);
 
-                chapter.Novel.NovelSeries.word_count = total_wordCount;
-                chapter.Novel.NovelSeries.updated_at = DateTime.UtcNow;
-
-                _context.Novel_Series.Update(chapter.Novel.NovelSeries);
-
-                // _context.Chapters.Update(chapter);
-                await _context.SaveChangesAsync();
+                    parentSeries.word_count = totalWordCount;
+                    parentSeries.updated_at = DateTime.UtcNow;
+                    _context.Novel_Series.Update(parentSeries);
+                }
             }
+
+            await _context.SaveChangesAsync();
             return await GetChapterById(chapter.chapter_id);
         }
 
@@ -200,30 +209,33 @@ namespace NovelService.Service
         //Delete
         public async Task<bool> DeleteChapterById(int id, int uploaderId) // chưa check quyền quản tri (uploaderID)
         {
-            var chapter = await _context.Chapters.Include(c => c.Novel).FirstOrDefaultAsync(c => c.chapter_id == id);
+            var chapter = await _context.Chapters
+                .Include(c => c.Novel)
+                    .ThenInclude(n => n.NovelSeries)
+                .Include(c => c.TS)
+                .FirstOrDefaultAsync(c => c.chapter_id == id);
+
             if (chapter == null) return false;
 
-            var series = await _context.Novel_Series.FirstOrDefaultAsync(s => s.series_Id == chapter.Novel!.series_Id);
+            var parentSeries = chapter.Novel?.NovelSeries ?? chapter.TS;
 
             using var tx = await _context.Database.BeginTransactionAsync();
 
             try
             {
-                if (series != null)
+                // Trừ word_count khỏi series cha
+                if (parentSeries != null)
                 {
-                    series.word_count = Math.Max(0, series.word_count - chapter.word_count);
-                    series.updated_at = DateTime.UtcNow;
-
-                    _context.Novel_Series.Update(series);
+                    parentSeries.word_count = Math.Max(0, parentSeries.word_count - chapter.word_count);
+                    parentSeries.updated_at = DateTime.UtcNow;
+                    _context.Novel_Series.Update(parentSeries);
                 }
 
                 _context.Chapters.Remove(chapter);
                 await _context.SaveChangesAsync();
 
-
                 await tx.CommitAsync();
                 return true;
-
             }
             catch (Exception ex)
             {
@@ -236,11 +248,38 @@ namespace NovelService.Service
         //Reorder
         public async Task<bool> ReorderChapterAsync(ReorderChaptersRequest request)
         {
-     
-            var chapters = await _context.Chapters
-                .Where(c => c.novelID == request.novel_Id)
-                .OrderBy(c => c.chapter_number)
-                .ToListAsync();
+            var hasNovelParent = request.novel_Id.HasValue;
+            var hasSeriesParent = request.series_Id.HasValue;
+
+            if (hasNovelParent == hasSeriesParent)
+            {
+                throw new InvalidOperationException("Reorder request must be for exactly one Novel OR one Series.");
+            }
+
+            List<Chapter> chapters;
+
+            if(hasNovelParent)
+            {
+                chapters = await _context.Chapters
+                   .Where(c => c.novelID == request.novel_Id)
+                   .OrderBy(c => c.chapter_number)
+                   .ToListAsync();
+            }
+            else
+            {
+                // Kiểm tra xem series có phải là TRADITIONAL không (nếu muốn chặt chẽ hơn)
+                var series = await _context.Novel_Series.FindAsync(request.series_Id.Value);
+                if (series == null || series.type != type.TRADITIONAL)
+                {
+                    return false; // Hoặc ném lỗi
+                }
+
+                chapters = await _context.Chapters
+                    .Where(c => c.series_Id == request.series_Id)
+                    .OrderBy(c => c.chapter_number)
+                    .ToListAsync();
+            }
+                       
 
             if (!chapters.Any()) return false;
 

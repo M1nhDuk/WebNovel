@@ -9,6 +9,7 @@ namespace Shareds.DTOs.Chapter
     public class ReorderChaptersRequest
     {
         public int? novel_Id { get; set; }
+        public int? series_Id { get; set; }
         public List<ChapterOrderItem> Chapters { get; set; } = new();
     }
 
