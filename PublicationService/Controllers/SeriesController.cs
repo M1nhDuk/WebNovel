@@ -16,7 +16,7 @@ namespace NovelService.Controllers
     namespace NovelService.Controllers
     {
         [ApiController]
-        [Route("api/[controller]")]
+        [Route("api")]
         public class SeriesController : ControllerBase
         {
             private readonly IClassicSeries _classicSeries;
@@ -30,7 +30,8 @@ namespace NovelService.Controllers
                 _logger = logger;
             }
 
-            [HttpPost]
+
+            [HttpPost("series")]
             public async Task<ActionResult<NovelSeriesDetailDto>> CreateSeries([FromBody] CreateSeriesDto dto)
             {
                 try
@@ -48,7 +49,7 @@ namespace NovelService.Controllers
             }
 
             // PUT: api/series/{id}
-            [HttpPut("{id}")]
+            [HttpPut("series/{id:int}")]
             public async Task<IActionResult> UpdateSeries(int id, [FromBody] UpdateNovelService dto)
             {
                 try
@@ -73,7 +74,7 @@ namespace NovelService.Controllers
             }
 
             //Get
-            [HttpGet("{id}")]
+            [HttpGet("series/{id:int}")]
             public async Task<ActionResult<NovelSeriesDetailDto>> GetByIdAsync(int id)
             {
                 var series = await _seriesService.GetByIdAsync(id);
@@ -84,7 +85,7 @@ namespace NovelService.Controllers
 
 
             //Delete
-            [HttpDelete("{id}")]
+            [HttpDelete("series/{id:int}")]
             public async Task<IActionResult> DeleteSeries(int id)
             {
                 try
@@ -121,7 +122,7 @@ namespace NovelService.Controllers
             }
 
 
-            [HttpGet("search")]
+            [HttpGet("series/search")]
             public async Task<IActionResult> SearchSeries(
            [FromQuery] string keyword,
            [FromQuery] int pageNumber = 1,
@@ -131,10 +132,10 @@ namespace NovelService.Controllers
                 return Ok(result);
             }
 
-     //--------------------------------------------------------------------------------------------------------------------------------
+            //--------------------------------------------------------------------------------------------------------------------------------
             //Classic Series
 
-            [HttpPost("classic")]
+            [HttpPost("series/classic")]
             public async Task<ActionResult<ClassicSeriesDetailDto>> CreateClassicSeries([FromBody] CreateTraditionalSeriesDto dto)
             {
                 try
@@ -151,7 +152,7 @@ namespace NovelService.Controllers
                 }
             }
 
-            [HttpPut("{id}/classic")]
+            [HttpPut("series/{id:int}/classic")]
             public async Task<IActionResult> UpdateClassicSeries(int id, [FromBody] UpdateClassicSeriesDto dto)
             {
                 try

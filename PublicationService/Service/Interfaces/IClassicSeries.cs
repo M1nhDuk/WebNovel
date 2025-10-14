@@ -11,6 +11,6 @@ namespace NovelService.Service.Interfaces
         Task<ClassicSeriesDetailDto?> GetByIdAsync(int seriesId);
 
         Task<ClassicSeriesDetailDto?> UpdateClassicSeriesAsync(int seriesId, UpdateClassicSeriesDto dto, int uploaderId);
-
+        
     }
 }

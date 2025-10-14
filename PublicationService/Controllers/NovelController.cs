@@ -51,7 +51,7 @@ namespace PublicationService.Controllers
             }
         }
 
-        [HttpPut("id")]
+        [HttpPut("{novel_Id:int}")]
         public async Task<IActionResult>UpdateNovel(int id, [FromBody] NovelUpdateDto dto)
         {
             if (dto == null)

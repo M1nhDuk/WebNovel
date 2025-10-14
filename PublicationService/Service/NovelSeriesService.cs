@@ -47,7 +47,7 @@ namespace NovelService.Service
                     cover_images = dto.cover_images,
                     type = type.Series,
                     note = dto.note,
-                    uploader_id = uploaderId,                              // <-- lấy từ service khác (NOT dto)
+                    uploader_id = uploaderId,                              // <-- lấy từ service khác 
                     category_id = dto.category_id ?? throw new ArgumentNullException(nameof(dto.category_id)),
                     status_id = dto.status_id,
                     views = 0,
