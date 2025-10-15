@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NovelService.Data;
 using NovelService.Models;
@@ -8,16 +9,19 @@ using Shareds.DTOs.ClassicSeries;
 using Shareds.DTOs.Novel;
 using Shareds.DTOs.NovelSeries;
 
+
 namespace NovelService.Service
 {
     public class ClassicSeriesService: IClassicSeries
     {
         private readonly NovelDbContext _context;
         private readonly ILogger<ClassicSeriesService> _logger;
+        private readonly INovelSeriesService _novelSeriesService;
 
-        public ClassicSeriesService(NovelDbContext context, ILogger<ClassicSeriesService> logger)
+        public ClassicSeriesService(NovelDbContext context, INovelSeriesService novelSeriesService, ILogger<ClassicSeriesService> logger)
         {
             _context = context;
+            _novelSeriesService = novelSeriesService;
             _logger = logger;
         }
 
@@ -67,8 +71,14 @@ namespace NovelService.Service
 
                 await tx.CommitAsync();
 
-                return await GetByIdAsync(ts.series_Id) ?? throw new InvalidOperationException("Failed to return created traditional series");
-    
+                // Gọi GetByIdAsync từ NovelSeriesService đã được tiêm vào
+                var createdDto = await _novelSeriesService.GetByIdAsync(ts.series_Id);
+
+                // Ép kiểu an toàn về DTO của ClassicSeries để trả về
+                return createdDto as ClassicSeriesDetailDto;
+
+
+
             }
             catch (Exception ex)
             {
@@ -81,71 +91,42 @@ namespace NovelService.Service
         //Update
         public async Task<ClassicSeriesDetailDto?> UpdateClassicSeriesAsync(int seriesId, UpdateClassicSeriesDto dto, int uploaderId)
         {
-            var series = await _context.ClassicSeries.FindAsync(seriesId);
+            var series = await _context.ClassicSeries
+                .Include(s => s.NovelTags) 
+                .FirstOrDefaultAsync(s => s.series_Id == seriesId);
+
             if (series == null)
-                throw new InvalidOperationException("Classic Series not found.");
+            {
+                _logger.LogWarning("ClassicSeries with id {SeriesId} not found.", seriesId);
+                return null;
+            }
 
-           // if (series.uploader_id != uploaderId) throw new UnauthorizedAccessException(...);
+            if (series.uploader_id != uploaderId)
+            {
+                _logger.LogWarning("User {UploaderId} is not authorized to update series {SeriesId}.", uploaderId, seriesId);
+                throw new UnauthorizedAccessException("You are not authorized to update this series.");
+            }
 
+            // 1. Cập nhật các thuộc tính chung bằng cách truyền thẳng DTO
+            await _novelSeriesService.UpdateSeriesAsync(seriesId, dto, uploaderId);
+
+            // 2. Cập nhật các thuộc tính riêng của ClassicSeries
             series.ISBN_10 = dto.ISBN_10 ?? series.ISBN_10;
             series.ISBN_13 = dto.ISBN_13 ?? series.ISBN_13;
             series.publisher = dto.publisher ?? series.publisher;
             series.publish_date = dto.publish_date ?? series.publish_date;
             series.edition = dto.edition ?? series.edition;
-            series.updated_at = DateTime.UtcNow;
 
-            _context.ClassicSeries.Update(series);
             await _context.SaveChangesAsync();
 
-            return await GetByIdAsync(seriesId);
+            var updatedDto = await _novelSeriesService.GetByIdAsync(seriesId);
+
+            return updatedDto as ClassicSeriesDetailDto;
         }
 
 
 
-        public async Task<ClassicSeriesDetailDto?> GetByIdAsync(int id)
-        {
-            var ts = await _context.ClassicSeries
-                .Include(x => x.Chapters)
-                .Include(x => x.status)
-                .Include(x => x.category)
-                .Include(x => x.NovelTags)
-                    .ThenInclude(nt => nt.Tag)
-                .FirstOrDefaultAsync(x => x.series_Id == id);
 
-            if (ts == null) return null;
-
-            return new ClassicSeriesDetailDto
-            {
-                series_Id = ts.series_Id,
-                series_title = ts.series_title,
-                author = ts.author,
-                artist = ts.artist,
-                description = ts.description,
-                cover_images = ts.cover_images,
-                word_count = ts.word_count,
-                views = ts.views,
-                note = ts.note,
-                created_at = ts.created_at,
-                updated_at = ts.updated_at,
-                uploader_id = ts.uploader_id,
-                ISBN_10 = ts.ISBN_10,
-                ISBN_13 = ts.ISBN_13,
-                publisher = ts.publisher,
-                publish_date = ts.publish_date,
-                edition = ts.edition,
-                
-
-                // category + status
-                category_id = ts.category_id,
-                categoryName = ts.category?.category_name,
-                status_id = ts.status_id,
-                statusName = ts.status?.statusName,
-
-                // tags: chỉ lấy tên
-                Tags = ts.NovelTags.Select(t => t.Tag.tagName).ToList(),
-
-
-            };
-        }
     }
-}
+    }
+

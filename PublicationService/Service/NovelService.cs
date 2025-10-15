@@ -151,7 +151,7 @@ namespace NovelService.Service
 
 
 
-        //Delete(Cập nhật lại novel_number sau khi xóa)
+        //Delete
         public async Task<bool> DeleteNovelAsync(int id, int uploader_Id) // chưa check quyền quản tri (uploaderID)
         {
             var novel = await _context.Novels

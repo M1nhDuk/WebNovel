@@ -170,7 +170,7 @@ namespace NovelService.Service
 
 
 
-        //View(Get)
+        //View(Get) dùng chung cho cả 2 type
         public async Task<NovelSeriesDetailDto?> GetByIdAsync(int id)
         {
             var seriesBase = await _context.Novel_Series.FindAsync(id);
