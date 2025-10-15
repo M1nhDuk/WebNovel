@@ -34,7 +34,6 @@ namespace NovelService.Service
             if (string.IsNullOrWhiteSpace(dto.title)) throw new InvalidOperationException("Enter title");
 
 
-
             using var tx = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -82,8 +81,12 @@ namespace NovelService.Service
         }
 
         //Update 
-        public async Task<NovelDetailDto?> UpdateNovelAsync(int novel_Id, NovelUpdateDto dto, int uploader_id)
+        public async Task<NovelDetailDto?> UpdateNovelAsync(int novel_Id, NovelUpdateDto dto, int uploader_id, int series_Id)
         {
+            // kiểm tra series tồn tại
+            var series = await _context.Novel_Series.FirstOrDefaultAsync(s => s.series_Id == dto.series_Id);
+            if (series == null) throw new InvalidOperationException("Series not found");
+
             var novel = await _context.Novels.FirstOrDefaultAsync(n => n.novel_Id == novel_Id);
 
             if (novel == null)
@@ -97,19 +100,19 @@ namespace NovelService.Service
 
             novel.updated_at = DateTime.Now;
 
-            // _context.Novels.Update(novel);
 
             await _context.SaveChangesAsync();
 
-            return await GetNovelByID(novel.novel_Id);
+            return await GetNovelByID(series_Id, novel.novel_Id);
         }
 
         //Read by id
-        public async Task<NovelDetailDto?> GetNovelByID(int id )
+        public async Task<NovelDetailDto?> GetNovelByID(int id, int series_Id )
         {
+
             var n = await _context.Novels.Include(x => x.Chapters)
                 .Include(x => x.NovelSeries)
-                .FirstOrDefaultAsync(x => x.novel_Id == id);
+                .FirstOrDefaultAsync(x => x.novel_Id == id && x.series_Id == series_Id);
 
             if (n == null) return null;
 
@@ -152,12 +155,12 @@ namespace NovelService.Service
 
 
         //Delete
-        public async Task<bool> DeleteNovelAsync(int id, int uploader_Id) // chưa check quyền quản tri (uploaderID)
+        public async Task<bool> DeleteNovelAsync(int id, int uploader_Id, int series_Id) // chưa check quyền quản tri (uploaderID)
         {
             var novel = await _context.Novels
                 .Include(n => n.Chapters)
                 .Include(n => n.NovelSeries)
-                .FirstOrDefaultAsync(n => n.novel_Id == id);
+                .FirstOrDefaultAsync(n => n.novel_Id == id && n.series_Id == series_Id);
 
             if (novel == null)
                 throw new InvalidOperationException("Novel not found");
@@ -220,7 +223,6 @@ namespace NovelService.Service
                 finalPos[n.novel_id] = n.new_position;
             }
 
-            //Fill remaining positions with chapters not in deltas, preserving their relative order
             int cursor = 1;
             foreach (var novel in novels)
             {

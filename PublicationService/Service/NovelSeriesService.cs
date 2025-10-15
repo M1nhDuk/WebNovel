@@ -55,7 +55,7 @@ namespace NovelService.Service
                 };
 
                 _context.Novel_Series.Add(series);
-                await _context.SaveChangesAsync(); // đảm bảo series id được sinh
+                await _context.SaveChangesAsync(); 
 
                 int totalSeriesWordCount = 0;
                 series.word_count = totalSeriesWordCount;
@@ -85,7 +85,7 @@ namespace NovelService.Service
             if (series == null)
                 throw new InvalidOperationException("Series not found");
 
-            // Optional: kiểm tra quyền, chỉ uploader mới được sửa
+            //kiểm tra quyền
             if (series.uploader_id != uploaderId)
                 throw new UnauthorizedAccessException("You are not allowed to update this series");
 
@@ -142,7 +142,6 @@ namespace NovelService.Service
             _context.Novel_Series.Update(series);
             await _context.SaveChangesAsync();
 
-            // trả về DTO chi tiết mới
             return await GetByIdAsync(series.series_Id);
         }
 
@@ -158,7 +157,7 @@ namespace NovelService.Service
             if (series == null)
                 throw new InvalidOperationException("Series not found");
 
-            // (Nếu muốn kiểm tra quyền sở hữu của uploader)
+            //kiểm tra quyền
             if (series.uploader_id != uploader_Id)
                 throw new UnauthorizedAccessException("You are not allowed to delete this series");
 
@@ -210,8 +209,8 @@ namespace NovelService.Service
                     categoryName = ts.category?.category_name,
                     status_id = ts.status_id,
                     statusName = ts.status?.statusName,
+                    type = "TRADITIONAL",
                     Tags = ts.NovelTags.Select(t => t.Tag.tagName).ToList(),
-
                     uploader_id = ts.uploader_id,
 
                     // Các trường riêng của ClassicSeries
@@ -261,7 +260,7 @@ namespace NovelService.Service
                     created_at = s.created_at,
                     updated_at = s.updated_at,
                     uploader_id = s.uploader_id,
-
+                    type = "Series",
 
                     // category + status
                     category_id = s.category_id,

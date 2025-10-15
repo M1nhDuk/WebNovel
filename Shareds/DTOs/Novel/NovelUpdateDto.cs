@@ -8,6 +8,7 @@ namespace Shareds.DTOs.Novel
 {
     public class NovelUpdateDto
     {
+        public int series_Id {  get; set; }
         public string? title { get; set; }
         public string? cover_images { get; set; }
 

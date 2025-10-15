@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using NovelService.Controllers.NovelService.Controllers;
 using NovelService.Data;
 using NovelService.Models;
@@ -27,11 +28,6 @@ namespace PublicationService.Controllers
         [HttpPost]
         public async Task<ActionResult<NovelDetailDto>> CreateNovel(int series_Id, [FromBody] CreateNovelDto dto)
         {
-            var series = await _context.Novel_Series.FindAsync(series_Id);
-            if (series == null)
-            {
-                return NotFound(new { message = $"Series {series_Id} not found" });
-            }
 
             if (dto == null)
                 return BadRequest("Invalid request data");
@@ -52,14 +48,15 @@ namespace PublicationService.Controllers
         }
 
         [HttpPut("{novel_Id:int}")]
-        public async Task<IActionResult>UpdateNovel(int id, [FromBody] NovelUpdateDto dto)
+        public async Task<IActionResult>UpdateNovel(int id, [FromBody] NovelUpdateDto dto, [FromRoute] int series_Id)
         {
+            
             if (dto == null)
                 return BadRequest("Invalid request data");
             try
             {
                 int uploaderId = 1;
-                var result = await _novelService.UpdateNovelAsync(id, dto, uploaderId);
+                var result = await _novelService.UpdateNovelAsync(id, dto, uploaderId, series_Id );
                 if (result == null)
                     return NotFound(new { message = "Novel not found" });
 
@@ -80,7 +77,8 @@ namespace PublicationService.Controllers
         [HttpGet("{novel_Id:int}")]
         public async Task<ActionResult<NovelDetailDto>> GetNovelById([FromRoute] int series_Id, [FromRoute] int novel_Id)
         {
-            var novel = await _novelService.GetNovelByID(novel_Id);
+            var novel = await _novelService.GetNovelByID(novel_Id, series_Id);
+
             if (novel == null) return BadRequest(new { message = "Novel not found" });
 
             if (novel.series_Id != series_Id) return BadRequest(new { message = "Series id not found" }); 
@@ -96,7 +94,7 @@ namespace PublicationService.Controllers
             try
             {
                 int uploader_Id = 1;
-                var delete = await _novelService.DeleteNovelAsync(novel_Id, uploader_Id);
+                var delete = await _novelService.DeleteNovelAsync(novel_Id, uploader_Id, series_Id);
 
                 
                 if (!delete)
@@ -122,6 +120,4 @@ namespace PublicationService.Controllers
         }
 
     }
-
-
 }

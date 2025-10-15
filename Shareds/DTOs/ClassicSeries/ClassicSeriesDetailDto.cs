@@ -15,7 +15,7 @@ namespace Shareds.DTOs.ClassicSeries
         public string? publisher { get; set; }
         public DateTime? publish_date { get; set; }
         public string? edition { get; set; }
-
+        public string type { get; set; }
         public List<ChapterDetailDto> Chapters { get; set; } = new();
     }
 }

@@ -64,17 +64,14 @@ namespace NovelService.Service
                 _context.ClassicSeries.Add(ts);
                 await _context.SaveChangesAsync();
 
-                // update derived word_count, etc. (nếu cần)
                 ts.word_count = 0;
                 _context.Novel_Series.Update(ts);
                 await _context.SaveChangesAsync();
 
                 await tx.CommitAsync();
 
-                // Gọi GetByIdAsync từ NovelSeriesService đã được tiêm vào
                 var createdDto = await _novelSeriesService.GetByIdAsync(ts.series_Id);
 
-                // Ép kiểu an toàn về DTO của ClassicSeries để trả về
                 return createdDto as ClassicSeriesDetailDto;
 
 
@@ -107,10 +104,10 @@ namespace NovelService.Service
                 throw new UnauthorizedAccessException("You are not authorized to update this series.");
             }
 
-            // 1. Cập nhật các thuộc tính chung bằng cách truyền thẳng DTO
+            //Cập nhật các thuộc tính chung bằng cách truyền thẳng DTO
             await _novelSeriesService.UpdateSeriesAsync(seriesId, dto, uploaderId);
 
-            // 2. Cập nhật các thuộc tính riêng của ClassicSeries
+            //Cập nhật các thuộc tính riêng của ClassicSeries
             series.ISBN_10 = dto.ISBN_10 ?? series.ISBN_10;
             series.ISBN_13 = dto.ISBN_13 ?? series.ISBN_13;
             series.publisher = dto.publisher ?? series.publisher;

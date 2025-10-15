@@ -6,6 +6,7 @@ using Shareds.DTOs.Novel;
 
 using AutoMapper;
 using Shareds.DTOs.Chapter;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace NovelService.Service
 {
@@ -27,11 +28,12 @@ namespace NovelService.Service
         public async Task<ChapterDetailDto> CreateChapterAsync(ChapterCreateDto dto)
         {
             if (dto == null) throw new ArgumentNullException(nameof(dto));
+
             if (string.IsNullOrWhiteSpace(dto.title)) throw new InvalidOperationException("Title required");
 
             var hasNovelParent = dto.novelID.HasValue;
             var hasSeriesParent = dto.series_id.HasValue;
-            if (hasNovelParent == hasSeriesParent) // Nếu cả hai đều true hoặc cả hai đều false
+            if (hasNovelParent == hasSeriesParent) 
             {
                 throw new InvalidOperationException("Chapter must belong to exactly one Novel OR one Series.");
             }
@@ -42,12 +44,12 @@ namespace NovelService.Service
                 NovelSeries parentSeries = null;
                 int chapterNumber;
 
-                // --- Logic tính word count (giữ nguyên) ---
+                // --- Logic tính word count  ---
                 int wordCount = 0;
                 if (!string.IsNullOrWhiteSpace(dto.content))
                     wordCount = dto.content.Split((char[])null, StringSplitOptions.RemoveEmptyEntries).Length;
 
-                // 3. Xử lý tùy theo loại cha
+               
                 if (hasNovelParent)
                 {
                     var novel = await _context.Novels
@@ -64,7 +66,7 @@ namespace NovelService.Service
                         parentSeries = novel.NovelSeries;
                     }
 
-                    // Xác định số chương cho novel
+                    //Index cho novel
                     var max = await _context.Chapters.Where(c => c.novelID == dto.novelID.Value).MaxAsync(c => (int?)c.chapter_number) ?? 0;
                     chapterNumber = max + 1;
                 }
@@ -79,17 +81,17 @@ namespace NovelService.Service
 
                     parentSeries = series;
 
-                    // Xác định số chương cho series
+                    //Index cho series chapter
                     var max = await _context.Chapters.Where(c => c.series_Id == dto.series_id.Value).MaxAsync(c => (int?)c.chapter_number) ?? 0;
                     chapterNumber = max + 1;
                 }
 
 
-                // 4. Tạo Chapter 
+                
                 var chapter = new Chapter
                 {
                     novelID = dto.novelID,
-                    series_Id = dto.series_id, // Gán trực tiếp series_Id nếu nó là cha
+                    series_Id = dto.series_id, 
                     title = dto.title,
                     content = dto.content,
                     chapter_number = chapterNumber,
@@ -98,7 +100,7 @@ namespace NovelService.Service
                 };
                 _context.Chapters.Add(chapter);
 
-                // 5. Cập nhật word_count cho series cha 
+                //Cập nhật word_count cho series  
                 if (parentSeries != null)
                 {
                     parentSeries.word_count += wordCount;
@@ -106,11 +108,10 @@ namespace NovelService.Service
                     _context.Novel_Series.Update(parentSeries);
                 }
 
-                // 6. Lưu tất cả thay đổi
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
 
-                // Trả về DTO (Logic chung)
+
                 return new ChapterDetailDto 
                 {
                     chapter_id = chapter.chapter_id,
@@ -130,23 +131,28 @@ namespace NovelService.Service
                 _logger.LogError(ex, "CreateChapterAsync failed");
                 throw;
             }
-
-
-
-
         }
         
 
         //Update
-
-        public async Task<ChapterDetailDto?> UpdateChapterAsync(int chapter_id, ChapterUpdateDto dto, int uploader_id) // chưa check quyền quản tri (uploaderID)
+        public async Task<ChapterDetailDto?> UpdateChapterAsync(int chapter_id, ChapterUpdateDto dto, int uploader_id, int? novelId = null, int? seriesId = null) // chưa check quyền quản tri (uploaderID)
         {
-
-            var chapter = await _context.Chapters
-                 .Include(c => c.Novel)
-                    .ThenInclude(n => n.NovelSeries)
+            var query = _context.Chapters
+                .Include(c => c.Novel).ThenInclude(n => n.NovelSeries)
                 .Include(c => c.TS)
-                .FirstOrDefaultAsync(c => c.chapter_id == chapter_id);
+                .AsQueryable();
+
+
+            if (novelId.HasValue)
+            {
+                query = query.Where(c => c.novelID == novelId.Value);
+            }
+            else if (seriesId.HasValue)
+            {
+                query = query.Where(c => c.series_Id == seriesId.Value);
+            }
+
+            var chapter = await query.FirstOrDefaultAsync(c => c.chapter_id == chapter_id);
 
             if (chapter == null)
                 throw new InvalidOperationException("Chapter not found");
@@ -167,12 +173,12 @@ namespace NovelService.Service
             // Nếu nội dung thay đổi, cập nhật lại word_count của series cha
             if (contentChanged)
             {
-                // Xác định parentSeries (dùng toán tử ?? "null-coalescing")
+                // Xác định parentSeries
                 var parentSeries = chapter.Novel?.NovelSeries ?? chapter.TS;
 
                 if (parentSeries != null)
                 {
-                    // Tính lại tổng word count của TẤT CẢ chapter thuộc series
+                    // Tính lại tổng word count của tất cả chapter thuộc series
                     var totalWordCount = await _context.Chapters
                         .Where(c => (c.Novel != null && c.Novel.series_Id == parentSeries.series_Id) || c.series_Id == parentSeries.series_Id)
                         .SumAsync(c => c.word_count);
@@ -187,13 +193,24 @@ namespace NovelService.Service
             return await GetChapterById(chapter.chapter_id);
         }
 
-
-
         //View
-        public async Task<ChapterDetailDto?> GetChapterById(int chapter_id)
+        public async Task<ChapterDetailDto?> GetChapterById(int chapter_id, int? novelId = null, int? seriesId = null)
         {
-            var c = await _context.Chapters.FirstOrDefaultAsync(c => c.chapter_id == chapter_id);
+            var query = _context.Chapters.AsQueryable();
+
+            if (novelId.HasValue)
+            {
+                query = query.Where(c => c.novelID == novelId.Value);
+            } 
+            else if (seriesId.HasValue)
+            {
+                query = query.Where(c => c.series_Id == seriesId.Value);
+            }
+
+            var c = await query.FirstOrDefaultAsync(c => c.chapter_id == chapter_id);
+
             if (c == null) return null;
+
             return new ChapterDetailDto
             {
                 novelID = c.novelID,
@@ -207,13 +224,23 @@ namespace NovelService.Service
         }
 
         //Delete
-        public async Task<bool> DeleteChapterById(int id, int uploaderId) // chưa check quyền quản tri (uploaderID)
+        public async Task<bool> DeleteChapterById(int id, int uploaderId, int? novelId = null, int? seriesId = null) // chưa check quyền quản tri (uploaderID)
         {
-            var chapter = await _context.Chapters
-                .Include(c => c.Novel)
-                    .ThenInclude(n => n.NovelSeries)
+            var query = _context.Chapters
+                .Include(c => c.Novel).ThenInclude(n => n.NovelSeries)
                 .Include(c => c.TS)
-                .FirstOrDefaultAsync(c => c.chapter_id == id);
+                .AsQueryable();
+
+            if (novelId.HasValue)
+            {
+                query = query.Where(c => c.novelID == novelId.Value);
+            }
+            else if (seriesId.HasValue)
+            {
+                query = query.Where(c => c.series_Id == seriesId.Value);
+            }
+
+            var chapter = await query.FirstOrDefaultAsync(c => c.chapter_id == id);
 
             if (chapter == null) return false;
 
@@ -267,7 +294,7 @@ namespace NovelService.Service
             }
             else
             {
-                // Kiểm tra xem series có phải là TRADITIONAL không (nếu muốn chặt chẽ hơn)
+                // Kiểm tra xem series có phải là TRADITIONAL không 
                 var series = await _context.Novel_Series.FindAsync(request.series_Id.Value);
                 if (series == null || series.type != type.TRADITIONAL)
                 {
@@ -307,9 +334,9 @@ namespace NovelService.Service
                 finalPos[c.chapter_id] = c.new_position;
             }
 
-            
 
-            //Fill remaining positions with chapters not in deltas, preserving their relative order
+
+            //Điền các vị trí còn lại bằng các chương không có delta, giữ nguyên thứ tự của các chương 
             int cursor = 1;
             foreach (var chapter in chapters)
             {

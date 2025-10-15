@@ -1,4 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using NovelService.Data;
+using NovelService.Models;
 using NovelService.Service.Interfaces;
 using Shareds.DTOs.Chapter;
 using System;
@@ -11,17 +14,20 @@ namespace NovelService.Controllers
     public class ChapterController : ControllerBase
     {
         private readonly IChapterService _chapterService;
+        private readonly NovelDbContext _context;
         private readonly ILogger<ChapterController> _logger;
 
-        public ChapterController(IChapterService chapterService, ILogger<ChapterController> logger)
+        public ChapterController(IChapterService chapterService, NovelDbContext context, ILogger<ChapterController> logger)
         {
             _chapterService = chapterService;
+            _context = context;
             _logger = logger;
         }
 
         // === FLOW 1: SERIES -> NOVEL -> CHAPTER ===
 
-        [HttpPost("series/{seriesId:int}/novels/{novelId:int}/chapters")]
+        //   [HttpPost("series/{seriesId:int}/novels/{novelId:int}/chapters")]
+        [HttpPost("novels/{novelId:int}/chapters")]
         public async Task<IActionResult> CreateChapterForNovel([FromRoute] int novelId, [FromBody] ChapterCreateDto dto)
         {
             try
@@ -40,31 +46,61 @@ namespace NovelService.Controllers
 
 
         //Update
-        [HttpPut("series/{seriesId:int}/novels/{novelId:int}/chapters/{chapterId:int}")]
-        public async Task<IActionResult> UpdateChapterForNovel([FromRoute] int chapterId, [FromBody] ChapterUpdateDto dto)
+        //  [HttpPut("series/{seriesId:int}/novels/{novelId:int}/chapters/{chapterId:int}")]
+        [HttpPut("novels/{novelId:int}/chapters/{chapterId:int}")]
+        public async Task<IActionResult> UpdateChapterForNovel(int novelId, [FromRoute] int chapterId, [FromBody] ChapterUpdateDto dto)
         {
-            return await UpdateChapterInternal(chapterId, dto);
+            try
+            {
+                int uploaderId = 1; 
+                var result = await _chapterService.UpdateChapterAsync(chapterId, dto, uploaderId, novelId: novelId);
+                if (result == null) return NotFound(new { message = "Chapter not found within this novel." });
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Update chapter failed for novelId={novelId}, chapterId={chapterId}", novelId, chapterId);
+                return BadRequest(new { message = ex.Message });
+            }
+
+
         }
 
 
         //Get(View)
-        [HttpGet("series/{seriesId:int}/novels/{novelId:int}/chapters/{chapterId:int}")]
-        public async Task<ActionResult<ChapterDetailDto>> GetChapterByIdForNovel([FromRoute] int chapterId)
+        //[HttpGet("series/{seriesId:int}/novels/{novelId:int}/chapters/{chapterId:int}")]
+        [HttpGet("novels/{novelId:int}/chapters/{chapterId:int}")]
+        public async Task<ActionResult<ChapterDetailDto>> GetChapterByIdForNovel(int novelId, [FromRoute] int chapterId)
         {
-            return await GetChapterByIdInternal(chapterId);
+            var result = await _chapterService.GetChapterById(chapterId, novelId: novelId);
+            if (result == null) return NotFound(new { message = "Chapter not found within this novel." });
+            return Ok(result);
         }
 
 
         //Delete
-        [HttpDelete("series/{seriesId:int}/novels/{novelId:int}/chapters/{chapterId:int}")]
-        public async Task<IActionResult> DeleteChapterForNovel([FromRoute] int chapterId)
+        // [HttpDelete("series/{seriesId:int}/novels/{novelId:int}/chapters/{chapterId:int}")]
+        [HttpDelete("novels/{novelId:int}/chapters/{chapterId:int}")]
+        public async Task<IActionResult> DeleteChapterForNovel(int novelId, [FromRoute] int chapterId)
         {
-            return await DeleteChapterByIdInternal(chapterId);
+            try
+            {
+                int uploaderId = 1; // Lấy từ token
+                var deleted = await _chapterService.DeleteChapterById(chapterId, uploaderId, novelId: novelId);
+                if (!deleted) return NotFound(new { message = "Chapter not found within this novel." });
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Delete chapter failed for novelId={novelId}, chapterId={chapterId}", novelId, chapterId);
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
 
         //Reorder
-        [HttpPost("series/{seriesId:int}/novels/{novelId:int}/chapters/reorder")]
+        // [HttpPost("series/{seriesId:int}/novels/{novelId:int}/chapters/reorder")]
+        [HttpPost("novels/{novelId:int}/chapters/reorder")]
         public async Task<IActionResult> ReorderChaptersForNovel([FromRoute] int novelId, [FromBody] ReorderChaptersRequest request)
         {
             request.novel_Id = novelId;
@@ -81,6 +117,7 @@ namespace NovelService.Controllers
         [HttpPost("series/{seriesId:int}/chapters")]
         public async Task<IActionResult> CreateChapterForClassicSeries([FromRoute] int seriesId, [FromBody] ChapterCreateDto dto)
         {
+            
             try
             {
                 dto.series_id = seriesId;
@@ -98,25 +135,51 @@ namespace NovelService.Controllers
 
         //Get(View)
         [HttpGet("series/{seriesId:int}/chapters/{chapterId:int}")]
-        public async Task<ActionResult<ChapterDetailDto>> GetChapterByIdForSeries([FromRoute] int chapterId)
+        public async Task<ActionResult<ChapterDetailDto>> GetChapterByIdForSeries(int seriesId, [FromRoute] int chapterId)
         {
-            return await GetChapterByIdInternal(chapterId);
+
+            var result = await _chapterService.GetChapterById(chapterId, seriesId: seriesId);
+            if (result == null) return NotFound(new { message = "Chapter not found within this series." });
+            return Ok(result);
+
         }
 
 
         //Update
         [HttpPut("series/{seriesId:int}/chapters/{chapterId:int}")]
-        public async Task<IActionResult> UpdateChapterForSeries([FromRoute] int chapterId, [FromBody] ChapterUpdateDto dto)
+        public async Task<IActionResult> UpdateChapterForSeries(int seriesId, [FromRoute] int chapterId, [FromBody] ChapterUpdateDto dto)
         {
-            return await UpdateChapterInternal(chapterId, dto);
+            try
+            {
+                int uploaderId = 1;
+                var result = await _chapterService.UpdateChapterAsync(chapterId, dto, uploaderId, seriesId: seriesId);
+                if (result == null) return NotFound(new { message = "Chapter not found within this series." });
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Update chapter failed for seriesId={seriesId}, chapterId={chapterId}", seriesId, chapterId);
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
 
         //Delete
         [HttpDelete("series/{seriesId:int}/chapters/{chapterId:int}")]
-        public async Task<IActionResult> DeleteChapterForSeries([FromRoute] int chapterId)
+        public async Task<IActionResult> DeleteChapterForSeries([FromRoute] int chapterId, int seriesId)
         {
-            return await DeleteChapterByIdInternal(chapterId);
+            try
+            {
+                int uploaderId = 1;
+                var deleted = await _chapterService.DeleteChapterById(chapterId, uploaderId, seriesId: seriesId);
+                if (!deleted) return NotFound(new { message = "Chapter not found within this series." });
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Delete chapter failed for seriesId={seriesId}, chapterId={chapterId}", seriesId, chapterId);
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
 
@@ -129,48 +192,6 @@ namespace NovelService.Controllers
             var result = await _chapterService.ReorderChapterAsync(request);
             if (!result) return BadRequest("Cannot reorder chapters for this series.");
             return Ok("Chapters reordered successfully.");
-        }
-
-        // === PRIVATE HELPER METHODS ===
-
-        private async Task<IActionResult> UpdateChapterInternal(int chapterId, ChapterUpdateDto dto)
-        {
-            if (dto == null) return BadRequest("Invalid request data");
-            try
-            {
-                int uploaderId = 1;
-                var result = await _chapterService.UpdateChapterAsync(chapterId, dto, uploaderId);
-                if (result == null) return NotFound(new { message = "Chapter not found" });
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Update Chapter failed for id={Id}", chapterId);
-                return BadRequest(new { message = ex.Message });
-            }
-        }
-
-        private async Task<ActionResult<ChapterDetailDto>> GetChapterByIdInternal(int chapterId)
-        {
-            var chapter = await _chapterService.GetChapterById(chapterId);
-            if (chapter == null) return NotFound();
-            return Ok(chapter);
-        }
-
-        private async Task<IActionResult> DeleteChapterByIdInternal(int chapterId)
-        {
-            try
-            {
-                int uploaderId = 1;
-                var deleted = await _chapterService.DeleteChapterById(chapterId, uploaderId);
-                if (!deleted) return NotFound(new { message = "Chapter not found" });
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Delete Chapter failed for id={Id}", chapterId);
-                return BadRequest(new { message = ex.Message });
-            }
         }
     }
 }
