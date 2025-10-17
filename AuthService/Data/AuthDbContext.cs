@@ -1,6 +1,4 @@
-﻿
-
-using AuthService.Model.Entities;
+﻿using AuthService.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace AuthService.Data
@@ -9,7 +7,7 @@ namespace AuthService.Data
     {
         public AuthDbContext(DbContextOptions<AuthDbContext> options) : base(options)
         {
-
+                
         }
 
         public DbSet<User> Users { get; set; }

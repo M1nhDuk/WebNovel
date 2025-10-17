@@ -85,9 +85,7 @@ namespace NovelService.Service
                     var max = await _context.Chapters.Where(c => c.series_Id == dto.series_id.Value).MaxAsync(c => (int?)c.chapter_number) ?? 0;
                     chapterNumber = max + 1;
                 }
-
-
-                
+         
                 var chapter = new Chapter
                 {
                     novelID = dto.novelID,

@@ -1,33 +1,48 @@
+using AuthService.Models;
+using AuthService.Services.Interface;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Shareds.DTOs;
 
 namespace AuthService.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController : ControllerBase
+    public class AuthController(IAutheService autheService) : ControllerBase
     {
-        private static readonly string[] Summaries = new[]
+        [HttpPost("register")]
+        public async Task<ActionResult<User>> Register(UserDto request)
         {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
-
-        private readonly ILogger<AuthController> _logger;
-
-        public AuthController(ILogger<AuthController> logger)
-        {
-            _logger = logger;
+            var user = await autheService.RegisterAsync(request);
+            if(request is null)
+            {
+                return BadRequest("User name already exist");
+            }
+            return Ok(user);
         }
 
-        [HttpGet]
-        public IEnumerable<WeatherForecast> Get()
+        [HttpPost("login")]
+        public async Task<ActionResult<string>>Login(UserDto request)
         {
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
+            var token = await autheService.LoginAsync(request);
+            if (token is null)
+                return BadRequest("Invalid username or password");
+            return Ok(token);
+        }
+
+        //endpoint
+        [Authorize]
+        [HttpGet]
+        public IActionResult AuthenticantedOnlyEndPoint()
+        {
+            return Ok("You are authenticated");
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("admin-only")]
+        public IActionResult AdminOnlyEndPoint()
+        {
+            return Ok("You are admin");
         }
     }
 }
