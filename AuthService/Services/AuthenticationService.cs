@@ -15,21 +15,31 @@ namespace AuthService.Services
 {
     public class AuthenticationService(AuthDbContext context, IConfiguration configuration) : IAutheService
     {
-        public async Task<string?> LoginAsync(UserDto request)
+        public async Task<TokenResponseDto?> LoginAsync(UserDto request)
         {
-            var user = await context.Users.FirstOrDefaultAsync(u => u.Username == request.UserName );
+            var user = await context.Users.FirstOrDefaultAsync(u => u.Username == request.UserName);
             if (user is null)
             {
                 return null;
             }
 
-            if(new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password) == PasswordVerificationResult.Failed)
+            if (new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password) == PasswordVerificationResult.Failed)
             {
-                return null ;
+                return null;
 
             }
 
-            return CreateToken(user);   
+
+            return await CreateTokenResponse(user);
+        }
+
+        private async Task<TokenResponseDto> CreateTokenResponse(User? user)
+        {
+            return new TokenResponseDto
+            {
+                AccessToken = CreateToken(user),
+                RefreshToken = await GenerateAndSaveRefreshToken(user)
+            };
         }
 
         public async Task<User?> RegisterAsync(UserDto request)
@@ -62,7 +72,7 @@ namespace AuthService.Services
             };
 
             var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(configuration.GetValue<string>("AppSettings: Token)")!));
+                 Encoding.UTF8.GetBytes(configuration.GetValue<string>("AppSettings:Token")!));
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
 
@@ -75,6 +85,29 @@ namespace AuthService.Services
             );
 
             return new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);  
+        }
+
+
+        public async Task<TokenResponseDto?> RefreshTokenAsync(RefreshTokenRequestDto request)
+        {
+            var user = await ValidateRefreshTokenAsync(request.UserId, request.RefreshToken);
+            if(user is null)
+            {
+                return null;
+            }
+
+            return await CreateTokenResponse(user);
+        }
+
+
+        private async Task<User?> ValidateRefreshTokenAsync(Guid userId, string  refreshToken)
+        {
+            var user = await context.Users.FindAsync(userId);
+            if (user is null || user.RefreshToken != refreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+            {
+                return null;
+            }
+            return user;
         }
 
 

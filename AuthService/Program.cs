@@ -1,21 +1,25 @@
-using AuthService.Data;
-using AuthService.Services.Interface;
-using Microsoft.EntityFrameworkCore;
+﻿using AuthService.Data;
 using AuthService.Services;
-using System;
+using AuthService.Services.Interface;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using Microsoft.OpenApi.Models; // <-- Thêm using này
 using Scalar.AspNetCore;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+// Cấu hình Swagger/OpenAPI một cách tường minh hơn
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "AuthService API", Version = "v1" });
+});
+
 
 // Take connection string from appsettings.json
 var connectionString = builder.Configuration.GetConnectionString("MySqlConnection");
@@ -47,14 +51,14 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "AuthService API V1");
+    });
     app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

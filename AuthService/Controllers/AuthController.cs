@@ -3,6 +3,7 @@ using AuthService.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shareds.DTOs;
+using System.Data;
 
 namespace AuthService.Controllers
 {
@@ -22,13 +23,26 @@ namespace AuthService.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<string>>Login(UserDto request)
+        public async Task<ActionResult<TokenResponseDto>>Login(UserDto request)
         {
-            var token = await autheService.LoginAsync(request);
-            if (token is null)
+            var result = await autheService.LoginAsync(request);
+            if (result is null)
                 return BadRequest("Invalid username or password");
-            return Ok(token);
+            return Ok(result);
         }
+
+
+        [HttpPost("refresh-token")]
+        public async Task<ActionResult<TokenResponseDto>> RefreshToken(RefreshTokenRequestDto request)
+        {
+            var result = await autheService.RefreshTokenAsync(request);
+            if (request is null || result.AccessToken is null || result.RefreshToken is null)
+                return Unauthorized("Invalid Refresh Token");
+
+            return Ok(result);
+
+        }
+
 
         //endpoint
         [Authorize]
