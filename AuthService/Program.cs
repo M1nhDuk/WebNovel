@@ -26,6 +26,7 @@ var connectionString = builder.Configuration.GetConnectionString("MySqlConnectio
 
 builder.Services.AddScoped<IAutheService, AuthenticationService>();
 builder.Services.AddTransient<IEmailService, EmailService>();
+builder.Services.AddHostedService<CleanupUnverifiedUsersService>();
 
 builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));

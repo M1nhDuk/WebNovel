@@ -122,7 +122,8 @@ namespace AuthService.Services
                 Username = request.UserName,
                 Email = request.Email,
                 IsEmailConfirmed = false,
-                EmailConfirmationToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64))
+                EmailConfirmationToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)),
+                Created_At = DateTime.UtcNow
             };
 
             var hashedPassword = new PasswordHasher<User>().HashPassword(user, request.Password);
