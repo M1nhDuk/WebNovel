@@ -270,6 +270,18 @@ namespace AuthService.Services
             await context.SaveChangesAsync();
 
             return true;
+
+        }
+        // --- Thêm phương thức mới ---
+        public async Task<string?> GetEmailFromResetTokenAsync(string token)
+        {
+            // Tìm user có token hợp lệ và chưa hết hạn
+            var user = await context.Users.AsNoTracking().FirstOrDefaultAsync(u =>
+                u.PasswordResetToken == token &&
+                u.ResetTokenExpires > DateTime.UtcNow);
+
+           
+            return user?.Email;
         }
     }
 }

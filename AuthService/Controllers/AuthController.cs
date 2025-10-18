@@ -95,5 +95,27 @@ namespace AuthService.Controllers
 
             return Ok("Reset password successfully");
         }
+
+
+        // --- Thêm endpoint m?i ---
+        [HttpGet("get-email-from-token")]
+        public async Task<IActionResult> GetEmailFromResetToken([FromQuery] string token)
+        {
+            if (string.IsNullOrEmpty(token))
+            {
+                return BadRequest("Token is required.");
+            }
+
+            var email = await autheService.GetEmailFromResetTokenAsync(token);
+
+            if (email == null)
+            {
+                // Tr? v? l?i n?u token không h?p l? ho?c ?ã h?t h?n
+                return BadRequest("Invalid or expired token.");
+            }
+
+            // Tr? v? ??i t??ng JSON ch?a email
+            return Ok(new { email });
+        }
     }
 }

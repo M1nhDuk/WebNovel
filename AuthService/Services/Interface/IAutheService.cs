@@ -13,6 +13,7 @@ namespace AuthService.Services.Interface
         Task<bool> ConfirmEmailAsync(Guid userId, string token);
         Task ForgotPasswordAsync(string email);
         Task<bool> ResetPasswordAsync(ResetPasswordDto resetPasswordDto);
+        Task<string?> GetEmailFromResetTokenAsync(string token);
     }
 }
 
