@@ -15,7 +15,7 @@ namespace AuthService.Controllers
         public async Task<ActionResult<User>> Register(UserDto request)
         {
             var user = await autheService.RegisterAsync(request);
-            if(request is null)
+            if(user is null)
             {
                 return BadRequest("Username or email is already in use.");
             }

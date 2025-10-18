@@ -19,15 +19,11 @@ namespace AuthService.Services
     {
         public async Task<TokenResponseDto?> LoginAsync(UserDto request)
         {
-            var user = await context.Users.FirstOrDefaultAsync(u => u.Username == request.UserName);
-            if (string.IsNullOrEmpty(request.UserName))
+            var user = await context.Users.FirstOrDefaultAsync(u => u.Username == request.UserName || u.Email == request.UserName);
+
+            if (string.IsNullOrEmpty(request.UserName) || user is null)
             {
                 return null;
-            }
-
-            if(!user.IsEmailConfirmed)
-            {
-                throw new Exception("Unvalid Email, check your email to verify");
             }
 
             if(string.IsNullOrEmpty(request.Password))
@@ -38,8 +34,13 @@ namespace AuthService.Services
             if (new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password) == PasswordVerificationResult.Failed)
             {
                 return null;
-
             }
+
+            if (!user.IsEmailConfirmed)
+            {
+                throw new Exception("Unvalid Email, check your email to verify");
+            }
+
             return await CreateTokenResponse(user);
         }
 
