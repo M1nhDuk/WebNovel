@@ -25,6 +25,7 @@ builder.Services.AddSwaggerGen(c =>
 var connectionString = builder.Configuration.GetConnectionString("MySqlConnection");
 
 builder.Services.AddScoped<IAutheService, AuthenticationService>();
+builder.Services.AddTransient<IEmailService, EmailService>();
 
 builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));

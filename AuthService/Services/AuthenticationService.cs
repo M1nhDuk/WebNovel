@@ -5,20 +5,32 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.IdentityModel.Tokens.Experimental;
 using Shareds.DTOs;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
 namespace AuthService.Services
 {
-    public class AuthenticationService(AuthDbContext context, IConfiguration configuration) : IAutheService
+    public class AuthenticationService(AuthDbContext context, IConfiguration configuration, IEmailService emailService) : IAutheService
     {
         public async Task<TokenResponseDto?> LoginAsync(UserDto request)
         {
             var user = await context.Users.FirstOrDefaultAsync(u => u.Username == request.UserName);
-            if (user is null)
+            if (string.IsNullOrEmpty(request.UserName))
+            {
+                return null;
+            }
+
+            if(!user.IsEmailConfirmed)
+            {
+                throw new Exception("Unvalid Email, check your email to verify");
+            }
+
+            if(string.IsNullOrEmpty(request.Password))
             {
                 return null;
             }
@@ -28,8 +40,6 @@ namespace AuthService.Services
                 return null;
 
             }
-
-
             return await CreateTokenResponse(user);
         }
 
@@ -44,23 +54,108 @@ namespace AuthService.Services
 
         public async Task<User?> RegisterAsync(UserDto request)
         {
-           if (await context.Users.AnyAsync(u => u.Username == request.UserName))
+            var validationErrors = new List<string>();
+
+            //User name
+            if (string.IsNullOrWhiteSpace(request.UserName) || request.UserName.Length <= 5)
             {
-                return null;
+                validationErrors.Add("User name must be at least 6 character");
             }
 
-            var user = new User();
-            var hashedPassword = new PasswordHasher<User>().HashPassword(user, request.Password);
 
-            user.Username = request.UserName;
+            //Email
+            if (string.IsNullOrWhiteSpace(request.Email))
+            {
+                validationErrors.Add("Enter your email");
+            }
+            else
+            {
+                try
+                {
+                    var mailAddress = new MailAddress(request.Email);
+                    if (!request.Email.EndsWith("@gmail.com", StringComparison.OrdinalIgnoreCase))
+                    {
+                        validationErrors.Add("Enter valid email format");
+                    }
+                }
+                catch (FormatException)
+                {
+                    validationErrors.Add("Invalid email format");
+                }
+            }
+
+
+            //Password
+            if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length <= 5)
+            {
+                validationErrors.Add("Password must be at least 6 character");
+            }
+            else if (request.Password != request.ConfirmPassword)
+            {
+                validationErrors.Add("Password not match");
+            }
+
+            if (validationErrors.Any())
+            {
+                 throw new Exception(string.Join("\n", validationErrors));         
+            }
+
+            //Check trong db
+            if (await context.Users.AnyAsync(u => u.Username.ToLower() == request.UserName.ToLower()))
+            {
+                validationErrors.Add("Username already exist");
+            }
+
+            if (await context.Users.AnyAsync(u => u.Email.ToLower() == request.Email.ToLower()))
+            {
+                validationErrors.Add("Email have been used");
+            }
+
+            if (validationErrors.Any())
+            {
+                throw new Exception(string.Join("\n", validationErrors));
+            }
+
+            var user = new User()
+            {
+                Username = request.UserName,
+                Email = request.Email,
+                IsEmailConfirmed = false,
+                EmailConfirmationToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64))
+            };
+
+            var hashedPassword = new PasswordHasher<User>().HashPassword(user, request.Password);
             user.PasswordHash = hashedPassword;
 
             context.Users.Add(user); 
             await context.SaveChangesAsync();
 
+            var confirmationLink = $"https://localhost:7154/api/Auth/confirm-email?userId={user.UserId}&token={Uri.EscapeDataString(user.EmailConfirmationToken)}";
+            var emailBody = $"<p>Vui lòng nhấp vào liên kết dưới đây để hoàn tất:</p><p><a href='{confirmationLink}'>Kích hoạt tài khoản</a></p>";
+
+            await emailService.SendEmailAsync(user.Email, "Xác thực tài khoản", emailBody);
+
             return user;
-           
         }
+
+
+        // Thêm hàm mới ConfirmEmailAsync
+        public async Task<bool> ConfirmEmailAsync(Guid userId, string token)
+        {
+            var user = await context.Users.FirstOrDefaultAsync(u => u.UserId == userId && u.EmailConfirmationToken == token);
+
+            if (user == null)
+            {
+                return false; 
+            }
+
+            user.IsEmailConfirmed = true;
+            user.EmailConfirmationToken = null; // Vô hiệu hóa token sau khi dùng
+            await context.SaveChangesAsync();
+
+            return true;
+        }
+
 
         private string CreateToken(User user)
         {

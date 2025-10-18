@@ -17,10 +17,23 @@ namespace AuthService.Controllers
             var user = await autheService.RegisterAsync(request);
             if(request is null)
             {
-                return BadRequest("User name already exist");
+                return BadRequest("Username or email is already in use.");
             }
             return Ok(user);
         }
+
+        [HttpGet("confirm-email")]
+        public async Task<IActionResult> ConfirmEmail(Guid userId, string token)
+        {
+            var success = await autheService.ConfirmEmailAsync(userId, token);
+            if (success)
+            {
+                return Ok("Account verification successful!");
+            }
+            return BadRequest("The authentication link is invalid or has expired.");
+        }
+
+
 
         [HttpPost("login")]
         public async Task<ActionResult<TokenResponseDto>>Login(UserDto request)

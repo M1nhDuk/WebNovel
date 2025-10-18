@@ -9,5 +9,6 @@ namespace AuthService.Services.Interface
         Task<User?> RegisterAsync(UserDto request);
         Task <TokenResponseDto?> LoginAsync( UserDto request);
         Task<TokenResponseDto?> RefreshTokenAsync(RefreshTokenRequestDto request);
+        Task<bool> ConfirmEmailAsync(Guid userId, string token);
     }
 }
