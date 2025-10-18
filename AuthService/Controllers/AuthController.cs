@@ -3,6 +3,7 @@ using AuthService.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shareds.DTOs;
+using Shareds.DTOs.AuthService;
 using System.Data;
 
 namespace AuthService.Controllers
@@ -36,7 +37,7 @@ namespace AuthService.Controllers
 
 
         [HttpPost("login")]
-        public async Task<ActionResult<TokenResponseDto>>Login(UserDto request)
+        public async Task<ActionResult<TokenResponseDto>>Login(LoginDto request)
         {
             var result = await autheService.LoginAsync(request);
             if (result is null)
@@ -70,6 +71,29 @@ namespace AuthService.Controllers
         public IActionResult AdminOnlyEndPoint()
         {
             return Ok("You are admin");
+        }
+
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+        {
+  
+            await autheService.ForgotPasswordAsync(dto.Email);
+
+            return Ok("Email have been sent to your ib!");
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
+        {
+            var result = await autheService.ResetPasswordAsync(resetPasswordDto);
+
+            if (!result)
+            {
+                return BadRequest("Invalid Token.");
+            }
+
+            return Ok("Reset password successfully");
         }
     }
 }
