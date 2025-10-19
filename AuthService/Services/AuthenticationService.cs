@@ -42,16 +42,30 @@ namespace AuthService.Services
                 throw new Exception("Unvalid Email, check your email to verify");
             }
 
-            return await CreateTokenResponse(user);
+            return await CreateTokenResponse(user, request.RememberMe);
         }
 
-        private async Task<TokenResponseDto> CreateTokenResponse(User? user)
+        private async Task<TokenResponseDto> CreateTokenResponse(User? user, bool rememberMe = false)
         {
             return new TokenResponseDto
             {
                 AccessToken = CreateToken(user),
-                RefreshToken = await GenerateAndSaveRefreshToken(user)
+                RefreshToken = await GenerateAndSaveRefreshToken(user, rememberMe)
             };
+        }
+
+        public async  Task LogOutAsync(Guid userId)
+        {
+            var user = await context.Users.FindAsync(userId);
+            if (user is null) 
+            {
+                return;
+            }
+
+            user.RefreshToken = null;
+            user.RefreshTokenExpiryTime = null;
+
+            await context.SaveChangesAsync();
         }
 
         public async Task<User?> RegisterAsync(UserDto request)
@@ -188,6 +202,7 @@ namespace AuthService.Services
         public async Task<TokenResponseDto?> RefreshTokenAsync(RefreshTokenRequestDto request)
         {
             var user = await ValidateRefreshTokenAsync(request.UserId, request.RefreshToken);
+
             if (user is null)
             {
                 return null;
@@ -204,7 +219,10 @@ namespace AuthService.Services
             {
                 return null;
             }
+
             return user;
+
+         
         }
 
 
@@ -216,11 +234,23 @@ namespace AuthService.Services
             return Convert.ToBase64String(randomNumber);
         }
 
-        private async Task<string> GenerateAndSaveRefreshToken(User user)
+        private async Task<string> GenerateAndSaveRefreshToken(User user, bool rememberMe)
         {
             var refreshToken = GenerateRefreshToken();
             user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+
+            if (rememberMe)
+            {
+                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(30); // Thời hạn dài
+            }
+
+            else
+            {
+                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(1); // Thời hạn ngắn
+            }
+
+
+           // user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
             await context.SaveChangesAsync();
             return refreshToken;
         }
@@ -272,7 +302,7 @@ namespace AuthService.Services
             return true;
 
         }
-        // --- Thêm phương thức mới ---
+        //Email Reset Password
         public async Task<string?> GetEmailFromResetTokenAsync(string token)
         {
             // Tìm user có token hợp lệ và chưa hết hạn
@@ -282,6 +312,23 @@ namespace AuthService.Services
 
            
             return user?.Email;
+        }
+
+
+        //Log out
+        public async Task LogoutAsync(Guid userId)
+        {
+            var user = await context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return;
+            }
+
+            // Xóa refresh token để vô hiệu hóa phiên đăng nhập
+            user.RefreshToken = null;
+            user.RefreshTokenExpiryTime = null;
+
+            await context.SaveChangesAsync();
         }
     }
 }

@@ -14,6 +14,7 @@ namespace AuthService.Services.Interface
         Task ForgotPasswordAsync(string email);
         Task<bool> ResetPasswordAsync(ResetPasswordDto resetPasswordDto);
         Task<string?> GetEmailFromResetTokenAsync(string token);
+        Task LogoutAsync(Guid userId);
     }
 }
 

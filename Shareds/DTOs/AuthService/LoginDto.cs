@@ -17,5 +17,7 @@ namespace Shareds.DTOs.AuthService
         [Required(ErrorMessage = "Password required")]
         [MinLength(6, ErrorMessage = "Require at least 6 character")]
         public string Password { get; set; } = string.Empty;
+
+        public bool RememberMe { get; set; } = false;
     }
 }

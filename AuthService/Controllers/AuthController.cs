@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Shareds.DTOs;
 using Shareds.DTOs.AuthService;
 using System.Data;
+using System.Security.Claims;
+
 
 namespace AuthService.Controllers
 {
@@ -97,7 +99,7 @@ namespace AuthService.Controllers
         }
 
 
-        // --- Thêm endpoint m?i ---
+        
         [HttpGet("get-email-from-token")]
         public async Task<IActionResult> GetEmailFromResetToken([FromQuery] string token)
         {
@@ -109,13 +111,26 @@ namespace AuthService.Controllers
             var email = await autheService.GetEmailFromResetTokenAsync(token);
 
             if (email == null)
-            {
-                // Tr? v? l?i n?u token không h?p l? ho?c ?ã h?t h?n
+            {                
                 return BadRequest("Invalid or expired token.");
             }
 
-            // Tr? v? ??i t??ng JSON ch?a email
             return Ok(new { email });
+        }
+
+        //Logout
+        [Authorize] 
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
+            {
+                return Unauthorized(); 
+            }
+
+            await autheService.LogoutAsync(userId);
+            return Ok("Logged out successfully.");
         }
     }
 }
