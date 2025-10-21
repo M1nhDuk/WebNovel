@@ -132,5 +132,8 @@ namespace AuthService.Controllers
             await autheService.LogoutAsync(userId);
             return Ok("Logged out successfully.");
         }
+
+
+
     }
 }

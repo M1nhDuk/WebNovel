@@ -45,6 +45,8 @@ namespace AuthService.Services
             return await CreateTokenResponse(user, request.RememberMe);
         }
 
+
+        //Create Token
         private async Task<TokenResponseDto> CreateTokenResponse(User? user, bool rememberMe = false)
         {
             return new TokenResponseDto
@@ -54,6 +56,8 @@ namespace AuthService.Services
             };
         }
 
+
+        //Log out
         public async  Task LogOutAsync(Guid userId)
         {
             var user = await context.Users.FindAsync(userId);
@@ -68,6 +72,8 @@ namespace AuthService.Services
             await context.SaveChangesAsync();
         }
 
+
+        //Register
         public async Task<User?> RegisterAsync(UserDto request)
         {
             var validationErrors = new List<string>();
@@ -138,7 +144,8 @@ namespace AuthService.Services
                 Email = request.Email,
                 IsEmailConfirmed = false,
                 EmailConfirmationToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)),
-                Created_At = DateTime.UtcNow
+                Created_At = DateTime.UtcNow,
+                Avatar = "/images/default_avatar.png"
             };
 
             var hashedPassword = new PasswordHasher<User>().HashPassword(user, request.Password);
@@ -148,7 +155,9 @@ namespace AuthService.Services
             await context.SaveChangesAsync();
 
             var confirmationLink = $"https://localhost:7154/api/Auth/confirm-email?userId={user.UserId}&token={Uri.EscapeDataString(user.EmailConfirmationToken)}";
-            var emailBody = $"<p>Vui lòng nhấp vào liên kết dưới đây để hoàn tất:</p><p><a href='{confirmationLink}'>Kích hoạt tài khoản</a></p>";
+
+            var emailBody = $"<p>Vui lòng nhấp vào liên kết dưới đây để hoàn tất:</p>" +
+                            $"<p><a href='{confirmationLink}'>Kích hoạt tài khoản</a></p>";
 
             await emailService.SendEmailAsync(user.Email, "Xác thực tài khoản", emailBody);
 
@@ -302,6 +311,8 @@ namespace AuthService.Services
             return true;
 
         }
+
+
         //Email Reset Password
         public async Task<string?> GetEmailFromResetTokenAsync(string token)
         {

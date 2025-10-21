@@ -10,7 +10,6 @@ namespace Shareds.DTOs.AuthService
     public class LoginDto
     {
         [Required(ErrorMessage = "Username  required")]
-        [MinLength(6, ErrorMessage = "Require at least 6 character")]
         public string Username { get; set; } = string.Empty;
 
 
