@@ -12,22 +12,35 @@ namespace AuthService.Controllers
     [Authorize]
     public class UserController : ControllerBase
     {
+        private readonly ILogger _logger;
         private readonly AuthDbContext _context;
         private readonly IWebHostEnvironment _environment;
-
-        public UserController(AuthDbContext context, IWebHostEnvironment environment)
+        private const long MaxFileSize = 15 * 1024 * 1024; //15mb
+        public UserController(AuthDbContext context, IWebHostEnvironment environment, ILogger logger)
         {
             _context = context;
             _environment = environment;
+            _logger = logger;
         }
 
         [HttpPost("avatar")]
+        [RequestSizeLimit(MaxFileSize + 1024 * 1024)]
         public async Task<IActionResult> UploadAvatar(IFormFile file)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if( file == null ||file.Length == 0) 
+            {
+                return BadRequest("No file found");
+            }
+
+            if ( file.Length > MaxFileSize )
+            {
+                return BadRequest($"File size exceeds the limit of {MaxFileSize / 1024 / 1024}MB.");
+            }
+
+           var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
             {
-                return Unauthorized();
+              return Unauthorized();
             }
 
             var user = await _context.Users.FindAsync(Guid.Parse(userId));
@@ -36,6 +49,12 @@ namespace AuthService.Controllers
                 return NotFound("User not found.");
             }
 
+
+            //Save avatar cũ
+            var oldAvatarUrl = user.Avatar;
+            var oldThumbnailUrl = user.AvatarThumbnail;
+
+
             var uploads = Path.Combine(_environment.WebRootPath, "uploads");
             if (!Directory.Exists(uploads))
             {
@@ -43,16 +62,17 @@ namespace AuthService.Controllers
             }
 
             var extension = Path.GetExtension(file.FileName).ToLower();
+
             if (!new[] { ".jpg", ".jpeg", ".png", ".gif" }.Contains(extension))
             {
                 return BadRequest("Invalid file type for avatar. Only JPG, PNG, and GIF are allowed.");
             }
 
-            // Tạo tên file duy nhất cho phiên bản chính (300x300)
+            // ngăn tên file trùng lặp khi upload file (300x300)
             var mainAvatarFileName = $"{Guid.NewGuid()}_main{extension}";
             var mainAvatarFilePath = Path.Combine(uploads, mainAvatarFileName);
 
-            // Tạo tên file duy nhất cho phiên bản thumbnail (46x46)
+            
             var thumbnailAvatarFileName = $"{Guid.NewGuid()}_thumb{extension}";
             var thumbnailAvatarFilePath = Path.Combine(uploads, thumbnailAvatarFileName);
 
@@ -85,6 +105,37 @@ namespace AuthService.Controllers
 
             await _context.SaveChangesAsync();
 
+            try
+            {
+                // Xóa file avatar  cũ
+                if (!string.IsNullOrEmpty(oldAvatarUrl))
+                {
+                    // Trích xuất tên file từ URL đầy đủ
+                    var oldAvatarFileName = Path.GetFileName(new Uri(oldAvatarUrl).LocalPath);
+                    var oldAvatarPath = Path.Combine(uploads, oldAvatarFileName);
+                    if (System.IO.File.Exists(oldAvatarPath))
+                    {
+                        System.IO.File.Delete(oldAvatarPath);
+                    }
+                }
+
+                // Xóa file thumbnail cũ
+                if (!string.IsNullOrEmpty(oldThumbnailUrl))
+                {
+                    var oldThumbnailFileName = Path.GetFileName(new Uri(oldThumbnailUrl).LocalPath);
+                    var oldThumbnailPath = Path.Combine(uploads, oldThumbnailFileName);
+                    if (System.IO.File.Exists(oldThumbnailPath))
+                    {
+                        System.IO.File.Delete(oldThumbnailPath);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to delete old avatar files.");
+            }
+         
+
             return Ok(new
             {
                 avatarUrl = user.Avatar,
@@ -93,11 +144,23 @@ namespace AuthService.Controllers
         }
 
         [HttpPost("background")]
+        [RequestSizeLimit(MaxFileSize + 1024 * 1024)]
         public async Task<IActionResult> UploadBackGroundImage(IFormFile file)
         {
-            // Kích thước mong muốn cho ảnh nền là 1200x300
-            // Logic này giữ nguyên như trước
+    
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("No file found");
+            }
+
+            if (file.Length > MaxFileSize)
+            {
+                return BadRequest($"File size exceeds the limit of {MaxFileSize / 1024 / 1024}MB.");
+            }
+
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+
             if (userId == null)
             {
                 return Unauthorized();
@@ -110,6 +173,8 @@ namespace AuthService.Controllers
                 return NotFound("User not found.");
             }
 
+            var oldBackgroundUrl = user.BackgroundImage;
+
             var uploads = Path.Combine(_environment.WebRootPath, "uploads");
             if (!Directory.Exists(uploads))
             {
@@ -117,6 +182,9 @@ namespace AuthService.Controllers
             }
 
             var extension = Path.GetExtension(file.FileName).ToLower();
+
+            
+            //Check valid file type
             if (!(new[] { ".jpg", ".jpeg", ".png" }.Contains(extension)))
             {
                 return BadRequest("Invalid file type for background image. Only JPG and PNG are allowed.");
@@ -125,6 +193,7 @@ namespace AuthService.Controllers
 
             var fileName = $"{Guid.NewGuid()}{extension}";
             var filePath = Path.Combine(uploads, fileName);
+
 
             using (var image = await Image.LoadAsync(file.OpenReadStream()))
             {
@@ -136,8 +205,27 @@ namespace AuthService.Controllers
                 await image.SaveAsync(filePath);
             }
 
+
             user.BackgroundImage = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
             await _context.SaveChangesAsync();
+
+            try
+            {
+                // Xóa file avatar  cũ
+                if (!string.IsNullOrEmpty(oldBackgroundUrl))
+                {
+                    // Trích xuất tên file từ URL đầy đủ
+                    var oldBackgroundFileName = Path.GetFileName(new Uri(oldBackgroundUrl).LocalPath);
+                    var oldBackgroundPath = Path.Combine(uploads, oldBackgroundFileName);
+                    if (System.IO.File.Exists(oldBackgroundPath))
+                    {
+                        System.IO.File.Delete(oldBackgroundPath);
+                    }
+                }
+            } catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to delete old avatar files.");
+            }
 
             return Ok(new { url = user.BackgroundImage });
         }
