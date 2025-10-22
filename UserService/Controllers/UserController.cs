@@ -142,7 +142,7 @@ namespace UserService.Controllers
             }
         }
 
-        // Helper map (chuy?n vào private)
+        // Helper map 
         private UserSettingDto MapToDto(UserSetting settings)
         {
             return new UserSettingDto

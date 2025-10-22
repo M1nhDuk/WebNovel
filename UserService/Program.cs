@@ -49,7 +49,7 @@ builder.Services.AddSwaggerGen(options =>
         Type = SecuritySchemeType.Http, 
         Scheme = "Bearer", // Tên scheme là Bearer
         BearerFormat = "JWT",
-        In = ParameterLocation.Header, // Token n?m trong Header
+        In = ParameterLocation.Header, 
         Description = "Enter 'Bearer' + your token "
     });
 
