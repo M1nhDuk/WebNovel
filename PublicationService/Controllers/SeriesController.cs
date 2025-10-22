@@ -9,6 +9,8 @@ using Shareds.DTOs.ClassicSeries;
 using Shareds.DTOs.NovelSeries;
 using System;
 using System.Security.Claims;
+using SixLabors.ImageSharp.Processing;
+using Microsoft.EntityFrameworkCore; // <-- Thêm
 
 namespace NovelService.Controllers
 {
@@ -22,12 +24,21 @@ namespace NovelService.Controllers
             private readonly IClassicSeries _classicSeries;
             private readonly INovelSeriesService _seriesService;
             private readonly ILogger<SeriesController> _logger;
+            private readonly NovelDbContext _context; 
+            private readonly IWebHostEnvironment _environment;
 
-            public SeriesController(IClassicSeries classicSeries, INovelSeriesService novelSeriesService, ILogger<SeriesController> logger)
+            private const long MaxFileSize = 15 * 1024 * 1024; // 15MB
+            public SeriesController(IClassicSeries classicSeries, 
+                INovelSeriesService novelSeriesService, 
+                ILogger<SeriesController> logger, 
+                NovelDbContext context,
+                IWebHostEnvironment environment)
             {
                 _classicSeries = classicSeries;
                 _seriesService = novelSeriesService;
                 _logger = logger;
+                _context = context; 
+                _environment = environment; 
             }
 
 
