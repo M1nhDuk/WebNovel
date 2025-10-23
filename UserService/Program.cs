@@ -4,6 +4,9 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using UserService.Data;
 using Microsoft.OpenApi.Models;
+using UserService.Services.Interfaces;
+using UserService.UserSettingService.Interface;
+using UserService.UserSettingService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +14,9 @@ var connectionString = builder.Configuration.GetConnectionString("MySqlConnectio
 
 builder.Services.AddDbContext<UserDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+
+builder.Services.AddScoped<IUserFavoriteService, UserFavoriteService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // Thêm Authentication (JWT)
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -27,6 +33,39 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 Encoding.UTF8.GetBytes(builder.Configuration["AppSettings:Token"]!)),
             ValidateIssuerSigningKey = true
         };
+
+        option.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                // Ghi log l?i chi ti?t vào Console khi xác th?c th?t b?i
+                Console.WriteLine("----- JWT Authentication Failed -----");
+                Console.WriteLine("Exception: " + context.Exception.ToString()); // In toàn b? exception
+                Console.WriteLine("-------------------------------------");
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+
+                Console.WriteLine("----- JWT Token Validated -----");
+                Console.WriteLine("User: " + context.Principal?.Identity?.Name);
+                Console.WriteLine("-----------------------------");
+                return Task.CompletedTask;
+            },
+            OnChallenge = context =>
+            {
+
+                Console.WriteLine("----- JWT Challenge Triggered -----");
+                if (context.AuthenticateFailure != null)
+                {
+                    Console.WriteLine("AuthenticateFailure: " + context.AuthenticateFailure.Message);
+                }
+                Console.WriteLine("Error: " + context.Error);
+                Console.WriteLine("ErrorDescription: " + context.ErrorDescription);
+                Console.WriteLine("---------------------------------");
+                return Task.CompletedTask;
+            }
+        };
     });
 
 
@@ -38,22 +77,19 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
-//builder.Services.AddSwaggerGen();
 
 builder.Services.AddSwaggerGen(options =>
 {
-    // Thêm ??nh ngh?a b?o m?t (Security Definition)
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
         Type = SecuritySchemeType.Http, 
-        Scheme = "Bearer", // Tên scheme là Bearer
+        Scheme = "Bearer", 
         BearerFormat = "JWT",
         In = ParameterLocation.Header, 
         Description = "Enter 'Bearer' + your token "
     });
 
-    // Thêm yêu c?u b?o m?t (Security Requirement)
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -81,7 +117,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication();
+app.UseAuthentication(); 
+
 app.UseAuthorization();
 
 app.MapControllers();

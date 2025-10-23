@@ -256,7 +256,7 @@ namespace AuthService.Services
 
             else
             {
-                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(1); // Thời hạn ngắn
+                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(2); // Thời hạn ngắn
             }
 
 
