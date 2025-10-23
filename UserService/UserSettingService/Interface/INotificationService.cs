@@ -10,5 +10,6 @@ namespace UserService.Services.Interfaces
         Task<int> GetUnreadCountAsync(Guid userId);
         Task<bool> MarkAsReadAsync(Guid userId, Guid notificationId);
         Task<bool> MarkAllAsReadAsync(Guid userId);
+        Task<int> RemoveNotificationsAsync(Guid userId, List<Guid> notificationIds);
     }
 }

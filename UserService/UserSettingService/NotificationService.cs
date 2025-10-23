@@ -98,6 +98,37 @@ namespace UserService.UserSettingService
             return true;
         }
 
+        public async Task<int> RemoveNotificationsAsync(Guid userId, List<Guid> notificationIds)
+        {
+
+            if (notificationIds == null || !notificationIds.Any())
+            {
+                return 0; 
+            }
+
+            // Tìm tất cả thông báo của user này
+            // VÀ có NotificationId nằm trong danh sách được cung cấp
+            var notificationsToDelete = await _context.Notification
+                .Where(n => n.UserId == userId && notificationIds.Contains(n.NotificationsId))
+                .ToListAsync();
+
+            if (!notificationsToDelete.Any())
+            {
+                _logger.LogWarning("User {UserId} not found any notify to clear", userId);
+                return 0; 
+            }
+
+            
+            _context.Notification.RemoveRange(notificationsToDelete);
+
+          
+            var deletedCount = await _context.SaveChangesAsync();
+
+            _logger.LogInformation("User {UserId} delete notify {Count} successfully.", userId, deletedCount);
+
+            return deletedCount; 
+        }
+
 
         private NotificationDto MapToDto(Notification n)
         {

@@ -12,10 +12,12 @@ namespace UserService.Controllers
     public class NotificationController : ControllerBase
     {
         private readonly INotificationService _notificationService;
+        private readonly ILogger<NotificationController> _logger;
 
-        public NotificationController(INotificationService notificationService)
+        public NotificationController(INotificationService notificationService , ILogger<NotificationController> logger)
         {
             _notificationService = notificationService;
+            _logger = logger;
         }
 
         private Guid GetUserIdFromToken()
@@ -90,6 +92,45 @@ namespace UserService.Controllers
             catch (UnauthorizedAccessException ex)
             {
                 return Unauthorized(new { message = ex.Message });
+            }
+        }
+
+        [HttpDelete("batch-delete")]
+        public async Task<IActionResult> RemoveSelectedNotifications([FromBody] RemoveNotificationsDto dto)
+        {
+           
+            if (dto == null || dto.NotificationIds == null || !dto.NotificationIds.Any())
+            {
+                return BadRequest(new { message = "Need notify list" });
+            }
+
+            try
+            {
+                var userId = GetUserIdFromToken();
+
+                // Gọi service mới
+                var deletedCount = await _notificationService.RemoveNotificationsAsync(userId, dto.NotificationIds);
+
+                if (deletedCount == 0)
+                {
+                    return NotFound(new { message = "Cant find any notificatiob." });
+                }
+
+                return Ok(new
+                {
+                    message = $"Delete success {deletedCount} notify.",
+                    deletedCount = deletedCount
+                });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                
+                _logger.LogError(ex, "Erro when delete {UserId}", GetUserIdFromToken());
+                return StatusCode(500, "Internal server error");
             }
         }
     }
