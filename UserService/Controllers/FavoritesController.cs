@@ -61,11 +61,6 @@ namespace UserService.Controllers
             {
                 return Unauthorized(new { message = ex.Message });
             }
-            catch (KeyNotFoundException ex) //Series không tồn tại
-            {
-                _logger.LogWarning("Toggle favorite failed: {ErrorMessage}", ex.Message);
-                return NotFound(new { message = ex.Message }); // Trả về 404 Not Found
-            }
             catch (InvalidOperationException ex) // Bắt lỗi cấu hình hoặc lỗi kết nối service
             {
                 _logger.LogError(ex, "Toggle favorite failed due to operation error.");
@@ -76,6 +71,11 @@ namespace UserService.Controllers
                 _logger.LogError(ex, "Toggle favorite failed due to network error calling NovelService.");
                 return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Lỗi kết nối dịch vụ, vui lòng thử lại sau." });
             }
+            catch (KeyNotFoundException ex) //Series không tồn tại
+            {
+                _logger.LogWarning("Toggle favorite failed: {ErrorMessage}", ex.Message);
+                return NotFound(new { message = ex.Message }); // Trả về 404 Not Found
+            }           
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error toggling favorite for User {UserId}", GetUserIdFromToken());

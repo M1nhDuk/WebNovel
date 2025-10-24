@@ -42,13 +42,23 @@ namespace NovelService.Controllers
             }
 
 
+            private Guid GetUserIdFromToken()
+            {
+                var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (Guid.TryParse(userIdStr, out Guid userId))
+                {
+                    return userId;
+                }
+                throw new UnauthorizedAccessException("User ID not found in token.");
+            }
+
+
             [HttpPost("series")]
             public async Task<ActionResult<NovelSeriesDetailDto>> CreateSeries([FromBody] CreateSeriesDto dto)
             {
                 try
                 {
-                    //sau này lấy uploaderId từ token
-                    int uploaderId = 1;
+                    var uploaderId = GetUserIdFromToken();
 
                     var result = await _seriesService.CreateSeriesAsync(dto, uploaderId);
                     return Ok(result);
@@ -65,7 +75,7 @@ namespace NovelService.Controllers
             {
                 try
                 {
-                    int uploaderId = 1;
+                    var uploaderId = GetUserIdFromToken();
 
                     var result = await _seriesService.UpdateSeriesAsync(id, dto, uploaderId);
                     if (result == null)
@@ -101,7 +111,7 @@ namespace NovelService.Controllers
             {
                 try
                 {
-                    int uploaderId = 1; // sau này lấy từ token
+                    var uploaderId = GetUserIdFromToken();
                     var result = await _seriesService.DeleteSeriesById(id, uploaderId);
                     if (!result)
                         return NotFound(new { message = "Series not found" });
@@ -151,8 +161,7 @@ namespace NovelService.Controllers
             {
                 try
                 {
-                    //sau này lấy uploaderId từ token
-                    int uploaderId = 1;
+                    var uploaderId = GetUserIdFromToken();
 
                     var result = await _classicSeries.CreateTraditionalSeriesAsync(dto, uploaderId);
                     return Ok(result);
@@ -168,7 +177,7 @@ namespace NovelService.Controllers
             {
                 try
                 {
-                    int uploaderId = 1; 
+                    var uploaderId = GetUserIdFromToken();
                     var result = await _classicSeries.UpdateClassicSeriesAsync(id, dto, uploaderId);
                     if (result == null)
                         return NotFound(new { message = "Classic Series not found or you are not authorized." });

@@ -26,7 +26,7 @@ namespace Shareds.DTOs.NovelSeries
 
 
         //ID
-        public int uploader_id { get; set; }
+        public Guid uploader_id { get; set; }
         public string uploader_name { get; set; } = string.Empty;
         public string? uploader_avatar { get; set; }
 

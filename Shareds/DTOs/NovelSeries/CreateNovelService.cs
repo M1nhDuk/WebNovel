@@ -22,7 +22,7 @@ namespace Shareds.DTOs.NovelSeries
 
         //ID
         [Required]
-        public int status_id { get; set; }
+        public Guid status_id { get; set; }
         [Required]
         public int uploader_id { get; set; }
         [Required]

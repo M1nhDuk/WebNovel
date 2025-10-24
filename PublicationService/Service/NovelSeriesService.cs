@@ -27,8 +27,7 @@ namespace NovelService.Service
 
 
         //Create
-        //TẠO SERIES (uploaderId lấy từ controller / token)
-        public async Task<NovelSeriesDetailDto> CreateSeriesAsync(CreateSeriesDto dto, int uploaderId)
+        public async Task<NovelSeriesDetailDto> CreateSeriesAsync(CreateSeriesDto dto, Guid uploaderId)
         {
             if (string.IsNullOrEmpty(dto.series_title)) throw  new InvalidOperationException("Series title is required");
 
@@ -78,7 +77,7 @@ namespace NovelService.Service
        
 
         //Update
-        public async Task<NovelSeriesDetailDto?> UpdateSeriesAsync(int seriesId, UpdateNovelService dto, int uploaderId) 
+        public async Task<NovelSeriesDetailDto?> UpdateSeriesAsync(int seriesId, UpdateNovelService dto, Guid uploaderId) 
         {
             var series = await _context.Novel_Series.FirstOrDefaultAsync(s => s.series_Id == seriesId);
 
@@ -147,7 +146,7 @@ namespace NovelService.Service
 
 
         //Delete
-        public async Task<bool> DeleteSeriesById(int id, int uploader_Id) // chưa valid quyền quản tri (uploaderID)
+        public async Task<bool> DeleteSeriesById(int id, Guid uploader_Id) // chưa valid quyền quản tri (uploaderID)
         {
             var series = await _context.Novel_Series
                 .Include(s => s.Novel)

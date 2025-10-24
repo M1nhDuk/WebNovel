@@ -81,7 +81,7 @@ namespace NovelService.Service
         }
 
         //Update 
-        public async Task<NovelDetailDto?> UpdateNovelAsync(int novel_Id, NovelUpdateDto dto, int uploader_id, int series_Id)
+        public async Task<NovelDetailDto?> UpdateNovelAsync(int novel_Id, NovelUpdateDto dto, Guid uploader_id, int series_Id)
         {
             // kiểm tra series tồn tại
             var series = await _context.Novel_Series.FirstOrDefaultAsync(s => s.series_Id == dto.series_Id);
@@ -130,7 +130,7 @@ namespace NovelService.Service
                 // map từ NovelSeries
                 author = n.NovelSeries?.author ?? string.Empty,
                 artist = n.NovelSeries?.artist,
-                uploader_id = n.NovelSeries?.uploader_id ?? 0,
+                uploader_id = n.NovelSeries?.uploader_id,
 
 
                 //lấy từ UserService (chưa làm)
@@ -155,7 +155,7 @@ namespace NovelService.Service
 
 
         //Delete
-        public async Task<bool> DeleteNovelAsync(int id, int uploader_Id, int series_Id) // chưa check quyền quản tri (uploaderID)
+        public async Task<bool> DeleteNovelAsync(int id, Guid uploader_Id, int series_Id) // chưa check quyền quản tri (uploaderID)
         {
             var novel = await _context.Novels
                 .Include(n => n.Chapters)

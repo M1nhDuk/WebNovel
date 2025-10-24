@@ -133,7 +133,7 @@ namespace NovelService.Service
         
 
         //Update
-        public async Task<ChapterDetailDto?> UpdateChapterAsync(int chapter_id, ChapterUpdateDto dto, int uploader_id, int? novelId = null, int? seriesId = null) // chưa check quyền quản tri (uploaderID)
+        public async Task<ChapterDetailDto?> UpdateChapterAsync(int chapter_id, ChapterUpdateDto dto, Guid uploader_id, int? novelId = null, int? seriesId = null) // chưa check quyền quản tri (uploaderID)
         {
             var query = _context.Chapters
                 .Include(c => c.Novel).ThenInclude(n => n.NovelSeries)
@@ -222,7 +222,7 @@ namespace NovelService.Service
         }
 
         //Delete
-        public async Task<bool> DeleteChapterById(int id, int uploaderId, int? novelId = null, int? seriesId = null) // chưa check quyền quản tri (uploaderID)
+        public async Task<bool> DeleteChapterById(int id, Guid uploaderId, int? novelId = null, int? seriesId = null) // chưa check quyền quản tri (uploaderID)
         {
             var query = _context.Chapters
                 .Include(c => c.Novel).ThenInclude(n => n.NovelSeries)

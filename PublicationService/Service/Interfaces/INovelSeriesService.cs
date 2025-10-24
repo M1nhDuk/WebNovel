@@ -9,13 +9,13 @@ namespace NovelService.Service.Interfaces
     public interface INovelSeriesService
     {
         //Create
-        Task<NovelSeriesDetailDto> CreateSeriesAsync(CreateSeriesDto createDto, int uploader_id);
+        Task<NovelSeriesDetailDto> CreateSeriesAsync(CreateSeriesDto createDto, Guid uploader_id);
 
         //Update
-        Task<NovelSeriesDetailDto?> UpdateSeriesAsync(int seriesId, UpdateNovelService dto, int uploader_id);
+        Task<NovelSeriesDetailDto?> UpdateSeriesAsync(int seriesId, UpdateNovelService dto, Guid uploader_id);
        
         //Delete
-        Task<bool> DeleteSeriesById(int seriesId, int uploader_id);
+        Task<bool> DeleteSeriesById(int seriesId, Guid uploader_id);
 
         // Read
         Task<NovelSeriesDetailDto?> GetByIdAsync(int seriesId);

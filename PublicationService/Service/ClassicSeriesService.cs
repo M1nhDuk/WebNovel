@@ -26,7 +26,7 @@ namespace NovelService.Service
         }
 
         // TẠO TRADITIONAL SERIES (TS)
-        public async Task<ClassicSeriesDetailDto> CreateTraditionalSeriesAsync(CreateTraditionalSeriesDto dto, int uploaderId)
+        public async Task<ClassicSeriesDetailDto> CreateTraditionalSeriesAsync(CreateTraditionalSeriesDto dto, Guid uploaderId)
         {
             if (string.IsNullOrEmpty(dto.series_title)) throw new InvalidOperationException("Series title is required");
             if (string.IsNullOrEmpty(dto.description)) throw new InvalidOperationException("Description is required");
@@ -86,7 +86,7 @@ namespace NovelService.Service
         }
 
         //Update
-        public async Task<ClassicSeriesDetailDto?> UpdateClassicSeriesAsync(int seriesId, UpdateClassicSeriesDto dto, int uploaderId)
+        public async Task<ClassicSeriesDetailDto?> UpdateClassicSeriesAsync(int seriesId, UpdateClassicSeriesDto dto, Guid uploaderId)
         {
             var series = await _context.ClassicSeries
                 .Include(s => s.NovelTags) 

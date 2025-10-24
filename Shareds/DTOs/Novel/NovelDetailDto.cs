@@ -19,7 +19,7 @@ using System.Threading.Tasks;
             public int novel_number { get; set; }
 
             //ID
-            public int uploader_id { get; set; } //map từ NovelSeries
+            public Guid uploader_id { get; set; } //map từ NovelSeries
             public string uploader_name { get; set; } // enrich sau khi map bằng cách gọi UserService API.
             public string? uploader_avatar { get; set; } //enrich sau khi map bằng cách gọi UserService API
 

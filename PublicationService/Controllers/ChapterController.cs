@@ -5,6 +5,7 @@ using NovelService.Models;
 using NovelService.Service.Interfaces;
 using Shareds.DTOs.Chapter;
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace NovelService.Controllers
@@ -23,6 +24,17 @@ namespace NovelService.Controllers
             _context = context;
             _logger = logger;
         }
+
+        private Guid GetUserIdFromToken()
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (Guid.TryParse(userIdStr, out Guid userId))
+            {
+                return userId;
+            }
+            throw new UnauthorizedAccessException("User ID not found in token.");
+        }
+
 
         // === FLOW 1: SERIES -> NOVEL -> CHAPTER ===
 
@@ -52,7 +64,7 @@ namespace NovelService.Controllers
         {
             try
             {
-                int uploaderId = 1; 
+                var uploaderId = GetUserIdFromToken();
                 var result = await _chapterService.UpdateChapterAsync(chapterId, dto, uploaderId, novelId: novelId);
                 if (result == null) return NotFound(new { message = "Chapter not found within this novel." });
                 return Ok(result);
@@ -85,7 +97,7 @@ namespace NovelService.Controllers
         {
             try
             {
-                int uploaderId = 1; // Lấy từ token
+                var uploaderId = GetUserIdFromToken();
                 var deleted = await _chapterService.DeleteChapterById(chapterId, uploaderId, novelId: novelId);
                 if (!deleted) return NotFound(new { message = "Chapter not found within this novel." });
                 return NoContent();
@@ -151,7 +163,7 @@ namespace NovelService.Controllers
         {
             try
             {
-                int uploaderId = 1;
+                var uploaderId = GetUserIdFromToken();
                 var result = await _chapterService.UpdateChapterAsync(chapterId, dto, uploaderId, seriesId: seriesId);
                 if (result == null) return NotFound(new { message = "Chapter not found within this series." });
                 return Ok(result);
@@ -170,7 +182,7 @@ namespace NovelService.Controllers
         {
             try
             {
-                int uploaderId = 1;
+                var uploaderId = GetUserIdFromToken();
                 var deleted = await _chapterService.DeleteChapterById(chapterId, uploaderId, seriesId: seriesId);
                 if (!deleted) return NotFound(new { message = "Chapter not found within this series." });
                 return NoContent();

@@ -7,6 +7,7 @@ using NovelService.Models;
 using NovelService.Service.Interfaces;
 using Shareds.DTOs.Novel;
 using System;
+using System.Security.Claims;
 
 namespace PublicationService.Controllers
 {
@@ -23,6 +24,17 @@ namespace PublicationService.Controllers
             _novelService = novelService;
             _logger = logger;
         }
+
+        private Guid GetUserIdFromToken()
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (Guid.TryParse(userIdStr, out Guid userId))
+            {
+                return userId;
+            }
+            throw new UnauthorizedAccessException("User ID not found in token.");
+        }
+
 
         // POST: api/novels
         [HttpPost]
@@ -55,7 +67,7 @@ namespace PublicationService.Controllers
                 return BadRequest("Invalid request data");
             try
             {
-                int uploaderId = 1;
+                var uploaderId = GetUserIdFromToken();
                 var result = await _novelService.UpdateNovelAsync(id, dto, uploaderId, series_Id );
                 if (result == null)
                     return NotFound(new { message = "Novel not found" });
@@ -93,7 +105,7 @@ namespace PublicationService.Controllers
         {
             try
             {
-                int uploader_Id = 1;
+                var uploader_Id = GetUserIdFromToken();
                 var delete = await _novelService.DeleteNovelAsync(novel_Id, uploader_Id, series_Id);
 
                 

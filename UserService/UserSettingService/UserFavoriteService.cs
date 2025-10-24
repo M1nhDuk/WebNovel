@@ -11,7 +11,7 @@ namespace UserService.UserSettingService
     {
         private readonly UserDbContext _context;
         private readonly ILogger<UserFavoriteService> _logger;
-        private readonly IHttpClientFactory _httpClientFactory; // <-- THÊM BIẾN NÀY
+        private readonly IHttpClientFactory _httpClientFactory; 
         private readonly IConfiguration _configuration;
 
         public UserFavoriteService(UserDbContext context, ILogger<UserFavoriteService> logger, IHttpClientFactory httpClientFactory, 
@@ -138,13 +138,20 @@ namespace UserService.UserSettingService
             var favorites = await _context.UserFavorite
                 .Where(f => f.UserId == UserId)
                 .OrderByDescending(f => f.TimeAdded)
-                .Select(f => MapToDto(f))
+                .Select(f => new UserFavoriteDto
+                {
+                    SeriesId = f.seriesId,
+                    AddedAt = f.TimeAdded,
+                    LastKnowChapter = f.LastKnownChapterCount
+                })
                 .ToListAsync();
 
             return favorites;
         }
         
 
+
+        //Reset
         public async Task<bool> SyncFavoriteCountsAsync(Guid UserId, List<FavoriteReadUpdateDto> updates)
         {
             var seriesId = updates.Select(f => f.SeriesId).ToList();
@@ -168,16 +175,6 @@ namespace UserService.UserSettingService
             await _context.SaveChangesAsync();
             _logger.LogInformation("User {UserId} synced chapter counts for {Count} favorites", UserId, userFavorite.Count);
             return true;
-        }
-
-        private UserFavoriteDto MapToDto(UserFavorite favorite)
-        {
-            return new UserFavoriteDto
-            {
-                SeriesId = favorite.seriesId,
-                AddedAt = favorite.TimeAdded,
-                LastKnowChapter = favorite.LastKnownChapterCount
-            };
         }
     }
 }
