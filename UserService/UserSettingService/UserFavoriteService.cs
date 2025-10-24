@@ -11,15 +11,23 @@ namespace UserService.UserSettingService
     {
         private readonly UserDbContext _context;
         private readonly ILogger<UserFavoriteService> _logger;
+        private readonly IHttpClientFactory _httpClientFactory; // <-- THÊM BIẾN NÀY
+        private readonly IConfiguration _configuration;
 
-        public UserFavoriteService(UserDbContext context, ILogger<UserFavoriteService> logger)
+        public UserFavoriteService(UserDbContext context, ILogger<UserFavoriteService> logger, IHttpClientFactory httpClientFactory, 
+            IConfiguration configuration)
         {
             _context = context;
             _logger = logger;
+            _httpClientFactory = httpClientFactory;
+            _configuration = configuration;
         }
 
+
+        //Check series có tồn tại hay không 
         public async Task<FavoriteToggleResult> ToggleFavoriteAsync(Guid userId, AddFavoriteDto dto)
         {
+
             var existing = await _context.UserFavorite
                 .FirstOrDefaultAsync(f => f.UserId == userId && f.seriesId == dto.SeriesId);
 
@@ -35,6 +43,42 @@ namespace UserService.UserSettingService
             else
             {
                 // TÌNH HUỐNG 2: Chưa thích -> Yêu thích (Thêm)
+                var novelServiceBaseUrl = _configuration["ServiceUrls:NovelService"];
+                if(string.IsNullOrEmpty(novelServiceBaseUrl))
+                {
+                    _logger.LogError("ServiceUrls:NovelService does not config in appsettings.json");
+                    throw new InvalidOperationException("Erro system configuration");
+                }
+
+                var httpClient = _httpClientFactory.CreateClient();
+                var seriesCheckUrl = $"{novelServiceBaseUrl}/api/series/{dto.SeriesId}";
+
+                try
+                {
+                    var response = await httpClient.GetAsync(seriesCheckUrl);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                        {
+                            _logger.LogWarning("User {UserId} toggle {SeriesId} which is not exsits.", userId, dto.SeriesId);
+                            throw new KeyNotFoundException($"Series với ID {dto.SeriesId} không tồn tại.");
+                        }
+                        else
+                        {
+                            _logger.LogError("Erro when calling to check {SeriesId}. Status: {StatusCode}", dto.SeriesId, response.StatusCode);
+                            throw new HttpRequestException("Không thể xác minh thông tin truyện.");
+                        }
+                    }
+                    _logger.LogInformation("Valid Series {SeriesId} inside NovelService.", dto.SeriesId);
+                } 
+                catch (Exception ex) 
+                {
+                    _logger.LogError(ex, "Network error when calling NovelService to check Series {SeriesId}", dto.SeriesId);
+                    throw new InvalidOperationException("Không thể kết nối đến dịch vụ truyện.");
+                }
+            }
+
                 var favorite = new UserFavorite
                 {
                     UserId = userId,
@@ -57,7 +101,6 @@ namespace UserService.UserSettingService
                         LastKnowChapter = favorite.LastKnownChapterCount
                     }
                 };
-            }
         }
 
 
@@ -83,7 +126,7 @@ namespace UserService.UserSettingService
 
             var deletedCount = await _context.SaveChangesAsync();
 
-            _logger.LogInformation("User {UserId} đã xóa thành công {Count} mục yêu thích.", userId, deletedCount);
+            _logger.LogInformation("User {UserId} delete success {Count} favorite series.", userId, deletedCount);
 
             return deletedCount;
         }

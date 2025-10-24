@@ -39,7 +39,7 @@ namespace UserService.Controllers
 
                 if (result.IsFavorited)
                 {
-                    // Vừa thêm thành công
+                   
                     return Ok(new
                     {
                         message = "Đã yêu thích series này.",
@@ -60,6 +60,21 @@ namespace UserService.Controllers
             catch (UnauthorizedAccessException ex)
             {
                 return Unauthorized(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex) //Series không tồn tại
+            {
+                _logger.LogWarning("Toggle favorite failed: {ErrorMessage}", ex.Message);
+                return NotFound(new { message = ex.Message }); // Trả về 404 Not Found
+            }
+            catch (InvalidOperationException ex) // Bắt lỗi cấu hình hoặc lỗi kết nối service
+            {
+                _logger.LogError(ex, "Toggle favorite failed due to operation error.");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
+            }
+            catch (HttpRequestException ex) // Bắt lỗi mạng khi gọi service khác
+            {
+                _logger.LogError(ex, "Toggle favorite failed due to network error calling NovelService.");
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Lỗi kết nối dịch vụ, vui lòng thử lại sau." });
             }
             catch (Exception ex)
             {
@@ -86,7 +101,7 @@ namespace UserService.Controllers
             }
         }
 
-        [HttpDelete] // Route bây giờ là DELETE /api/user/favorites (không có ID)
+        [HttpDelete] 
         public async Task<IActionResult> RemoveSelectedFavorites([FromBody] RemoveFavoritesDto dto)
         {
             if (dto == null || dto.SeriesIds == null || !dto.SeriesIds.Any())

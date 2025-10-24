@@ -129,7 +129,6 @@ namespace UserService.UserSettingService
             return deletedCount; 
         }
 
-
         private NotificationDto MapToDto(Notification n)
         {
             return new NotificationDto
