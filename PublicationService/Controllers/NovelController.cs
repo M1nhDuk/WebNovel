@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NovelService.Controllers.NovelService.Controllers;
@@ -38,13 +39,14 @@ namespace PublicationService.Controllers
 
         // POST: api/novels
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<NovelDetailDto>> CreateNovel(int series_Id, [FromBody] CreateNovelDto dto)
         {
 
             if (dto == null)
                 return BadRequest("Invalid request data");
 
-            // var userId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            //var userId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
             dto.series_Id = series_Id;
             
@@ -60,6 +62,7 @@ namespace PublicationService.Controllers
         }
 
         [HttpPut("{novel_Id:int}")]
+        [Authorize]
         public async Task<IActionResult>UpdateNovel(int id, [FromBody] NovelUpdateDto dto, [FromRoute] int series_Id)
         {
             
@@ -101,6 +104,7 @@ namespace PublicationService.Controllers
 
 
         [HttpDelete("{novel_Id:int}")]
+        [Authorize]
         public async Task<IActionResult> DeleteNovelById([FromRoute] int series_Id, [FromRoute] int novel_Id)
         {
             try
@@ -124,6 +128,7 @@ namespace PublicationService.Controllers
 
 
         [HttpPost("reorder")]
+        [Authorize]
         public async Task<IActionResult> ReorderNovels([FromBody] NovelReoderRequest request)
         {
             var result = await _novelService.ReorderNovelsAsync(request);

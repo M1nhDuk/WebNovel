@@ -4,6 +4,10 @@ using AutoMapper;
 using NovelService.Mappings;
 using NovelService.Service.Interfaces;
 using NovelService.Service;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,9 +16,62 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHttpClient();
 
 // L?y connection string t? appsettings.json
 var connectionString = builder.Configuration.GetConnectionString("MySqlConnection");
+
+
+// Thêm Authentication (JWT)
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(option =>
+    {
+        option.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["AppSettings:Issuer"],
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["AppSettings:Audience"],
+            ValidateLifetime = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["AppSettings:Token"]!)),
+            ValidateIssuerSigningKey = true
+        };
+
+        option.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                // Ghi log l?i chi ti?t vào Console khi xác th?c th?t b?i
+                Console.WriteLine("----- JWT Authentication Failed -----");
+                Console.WriteLine("Exception: " + context.Exception.ToString()); // In toàn b? exception
+                Console.WriteLine("-------------------------------------");
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+
+                Console.WriteLine("----- JWT Token Validated -----");
+                Console.WriteLine("User: " + context.Principal?.Identity?.Name);
+                Console.WriteLine("-----------------------------");
+                return Task.CompletedTask;
+            },
+            OnChallenge = context =>
+            {
+
+                Console.WriteLine("----- JWT Challenge Triggered -----");
+                if (context.AuthenticateFailure != null)
+                {
+                    Console.WriteLine("AuthenticateFailure: " + context.AuthenticateFailure.Message);
+                }
+                Console.WriteLine("Error: " + context.Error);
+                Console.WriteLine("ErrorDescription: " + context.ErrorDescription);
+                Console.WriteLine("---------------------------------");
+                return Task.CompletedTask;
+            }
+        };
+    });
+
 
 
 // ??ng ký DbContext v?i MySQL
@@ -36,6 +93,35 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter 'Bearer' + your token "
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
+
 var app = builder.Build();
 
 
@@ -51,6 +137,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
+
+app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllers();

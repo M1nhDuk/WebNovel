@@ -10,7 +10,8 @@ using Shareds.DTOs.NovelSeries;
 using System;
 using System.Security.Claims;
 using SixLabors.ImageSharp.Processing;
-using Microsoft.EntityFrameworkCore; // <-- Thêm
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization; // <-- Thêm
 
 namespace NovelService.Controllers
 {
@@ -54,6 +55,7 @@ namespace NovelService.Controllers
 
 
             [HttpPost("series")]
+            [Authorize]
             public async Task<ActionResult<NovelSeriesDetailDto>> CreateSeries([FromBody] CreateSeriesDto dto)
             {
                 try
@@ -71,6 +73,7 @@ namespace NovelService.Controllers
 
             // PUT: api/series/{id}
             [HttpPut("series/{id:int}")]
+            [Authorize]
             public async Task<IActionResult> UpdateSeries(int id, [FromBody] UpdateNovelService dto)
             {
                 try
@@ -107,6 +110,7 @@ namespace NovelService.Controllers
 
             //Delete
             [HttpDelete("series/{id:int}")]
+            [Authorize]
             public async Task<IActionResult> DeleteSeries(int id)
             {
                 try
@@ -157,6 +161,7 @@ namespace NovelService.Controllers
             //Classic Series
 
             [HttpPost("series/classic")]
+            [Authorize]
             public async Task<ActionResult<ClassicSeriesDetailDto>> CreateClassicSeries([FromBody] CreateTraditionalSeriesDto dto)
             {
                 try
@@ -173,6 +178,7 @@ namespace NovelService.Controllers
             }
 
             [HttpPut("series/{id:int}/classic")]
+            [Authorize]
             public async Task<IActionResult> UpdateClassicSeries(int id, [FromBody] UpdateClassicSeriesDto dto)
             {
                 try

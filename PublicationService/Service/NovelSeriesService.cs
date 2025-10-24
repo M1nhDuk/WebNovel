@@ -9,6 +9,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Shareds.DTOs;
 using Shareds.DTOs.ClassicSeries;
+using Shareds.DTOs.UserService;
 
 namespace NovelService.Service
 {
@@ -17,12 +18,23 @@ namespace NovelService.Service
         private readonly NovelDbContext _context;
         private readonly IUserService _userService;
         private readonly ILogger<NovelSeriesService> _logger;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IConfiguration _configuration;
+        private readonly string _userServiceUrl;
 
-        public NovelSeriesService(NovelDbContext context, ILogger<NovelSeriesService> logger)
+        public NovelSeriesService(
+            NovelDbContext context, 
+            ILogger<NovelSeriesService> logger, 
+            IHttpClientFactory httpClientFactory,
+            IConfiguration configuration)
         {
             _context = context;
             // _userService = userService;
             _logger = logger;
+            _httpClientFactory = httpClientFactory;
+            _configuration = configuration;
+            _userServiceUrl = _configuration["ServiceUrls:UserService"] ??
+                              throw new InvalidOperationException("ServiceUrls:UserService không được cấu hình");
         }
 
 
@@ -84,9 +96,12 @@ namespace NovelService.Service
             if (series == null)
                 throw new InvalidOperationException("Series not found");
 
-            //kiểm tra quyền
             if (series.uploader_id != uploaderId)
                 throw new UnauthorizedAccessException("You are not allowed to update this series");
+
+            bool hasAnnouncement = (!string.IsNullOrWhiteSpace(dto.note) && dto.note != series.note) ||
+                                     (!string.IsNullOrWhiteSpace(dto.description) && dto.description != series.description);
+
 
             // Update các field nếu có giá trị
             if (!string.IsNullOrWhiteSpace(dto.series_title))
@@ -141,6 +156,12 @@ namespace NovelService.Service
             _context.Novel_Series.Update(series);
             await _context.SaveChangesAsync();
 
+            if (hasAnnouncement)
+            {
+                // Gọi UserService để lấy danh sách followers
+                await NotifyFollowersOfUpdate(seriesId, series.series_title, uploaderId);
+            }
+
             return await GetByIdAsync(series.series_Id);
         }
 
@@ -159,6 +180,16 @@ namespace NovelService.Service
             //kiểm tra quyền
             if (series.uploader_id != uploader_Id)
                 throw new UnauthorizedAccessException("You are not allowed to delete this series");
+
+
+            var notificationDto = new CreateNotificationDto
+            {
+                UserId = series.uploader_id,
+                Type = "SeriesDeleted",
+                Message = $"Your series have been deleted '{series.series_title}'.",
+                LinkUrl = null // Không có link vì đã bị xóa
+
+            };
 
             _context.Novel_Series.Remove(series);
 
@@ -460,6 +491,63 @@ namespace NovelService.Service
                 PageNumber = pageNumber,
                 PageSize = pageSize
             };
+        }
+
+
+        private async Task NotifyFollowersOfUpdate(int seriesId, string seriesTitle, Guid uploaderId)
+        {
+            try
+            {
+                var httpClient = _httpClientFactory.CreateClient();
+                var followersUrl = $"{_userServiceUrl}/api/internal/favorites/{seriesId}/followers";
+
+                var followerIds = await httpClient.GetFromJsonAsync<List<Guid>>(followersUrl);
+
+                if (followerIds == null || !followerIds.Any())
+                {
+                    _logger.LogInformation("No follower for {SeriesId} noctice.", seriesId);
+                    return;
+                }
+
+                foreach (var followerId in followerIds)
+                {
+                    // Không gửi thông báo cho chính người vừa cập nhật
+                    if (followerId == uploaderId) continue;
+
+                    var notificationDto = new CreateNotificationDto
+                    {
+                        UserId = followerId,
+                        Type = "SeriesUpdate",
+                        Message = $"Series '{seriesTitle}' bạn theo dõi vừa có thông báo mới.",
+                        LinkUrl = $"/series/{seriesId}"
+                    };
+                    await SendNotificationAsync(notificationDto);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro when send notificationn to followers of series {SeriesId}", seriesId);
+            }
+        }
+
+        private async Task SendNotificationAsync(CreateNotificationDto dto)
+        {
+            try
+            {
+                var httpClient = _httpClientFactory.CreateClient();
+                var notificationUrl = $"{_userServiceUrl}/api/internal/notifications"; 
+
+                var response = await httpClient.PostAsJsonAsync(notificationUrl, dto);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Send notice faliuer to User {UserId}. Status: {StatusCode}", dto.UserId, response.StatusCode);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Connection erro when send noctify to User {UserId}", dto.UserId);
+            }
         }
     }
 }

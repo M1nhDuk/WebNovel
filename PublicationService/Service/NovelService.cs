@@ -130,7 +130,7 @@ namespace NovelService.Service
                 // map từ NovelSeries
                 author = n.NovelSeries?.author ?? string.Empty,
                 artist = n.NovelSeries?.artist,
-                uploader_id = n.NovelSeries?.uploader_id,
+                uploader_id = n.NovelSeries?.uploader_id ?? Guid.Empty,
 
 
                 //lấy từ UserService (chưa làm)
