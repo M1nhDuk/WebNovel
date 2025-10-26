@@ -197,6 +197,7 @@ namespace NovelService.Service
                 LinkUrl = null 
 
             };
+            await SendNotificationAsync(notificationDto);
 
             _context.Novel_Series.Remove(series);
 
@@ -507,34 +508,37 @@ namespace NovelService.Service
             try
             {
                 var httpClient = _httpClientFactory.CreateClient();
+     
                 var followersUrl = $"{_userServiceUrl}/api/internal/favorites/{seriesId}/followers";
 
-                var followerIds = await httpClient.GetFromJsonAsync<List<Guid>>(followersUrl);
+                followerIds = await httpClient.GetFromJsonAsync<List<Guid>>(followersUrl);
 
                 if (followerIds == null || !followerIds.Any())
                 {
-                    _logger.LogInformation("No follower for {SeriesId} noctice.", seriesId);
+                    _logger.LogInformation("Không có follower nào cho series {SeriesId}", seriesId);
                     return;
-                }
-
-                foreach (var followerId in followerIds)
-                {
-                    // Không gửi thông báo cho chính người vừa cập nhật
-                    if (followerId == uploaderId) continue;
-
-                    var notificationDto = new CreateNotificationDto
-                    {
-                        UserId = followerId,    
-                        Type = "SeriesUpdate",
-                        Message = $"Series '{seriesTitle}' bạn theo dõi vừa có thông báo mới.",
-                        LinkUrl = $"/series/{seriesId}"
-                    };
-                    await SendNotificationAsync(notificationDto);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro when send notificationn to followers of series {SeriesId}", seriesId);
+                _logger.LogError(ex, "Lỗi khi gọi UserService để lấy followers cho SeriesId {SeriesId}", seriesId);
+                return; // Không ném lỗi, chỉ log và bỏ qua
+            }
+
+            foreach (var followerId in followerIds)
+            {
+                // Không gửi thông báo cho chính tác giả
+                if (followerId == uploaderId) continue;
+
+                var notificationDto = new CreateNotificationDto
+                {
+                    UserId = followerId,
+                    Type = "SeriesUpdate", // Dùng chuỗi
+                    Message = $"Series '{seriesTitle}' bạn theo dõi vừa có thông báo mới.",
+                    LinkUrl = $"/series/{seriesId}"
+                };
+
+                await SendNotificationAsync(notificationDto);
             }
         }
 
@@ -543,7 +547,7 @@ namespace NovelService.Service
             try
             {
                 var httpClient = _httpClientFactory.CreateClient();
-                var notificationUrl = $"{_userServiceUrl}/api/internal/notifications"; 
+                var notificationUrl = $"{_userServiceUrl}/api/internal/notifications";
 
                 var response = await httpClient.PostAsJsonAsync(notificationUrl, dto);
 
