@@ -5,19 +5,24 @@ using NovelService.Service.Interfaces;
 using Shareds.DTOs.NovelSeries;
 using Shareds.DTOs.Novel;
 using Shareds.DTOs.Chapter;
-using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
+
 using Shareds.DTOs;
 using Shareds.DTOs.ClassicSeries;
 using Shareds.DTOs.UserService;
+
+
+using System.Net.Http;
+using System.Net.Http.Json;
+using Microsoft.Extensions.Configuration;
+
 
 namespace NovelService.Service
 {
     public class NovelSeriesService : INovelSeriesService
     {
         private readonly NovelDbContext _context;
-        private readonly IUserService _userService;
         private readonly ILogger<NovelSeriesService> _logger;
+
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly string _userServiceUrl;
@@ -29,11 +34,10 @@ namespace NovelService.Service
             IConfiguration configuration)
         {
             _context = context;
-            // _userService = userService;
             _logger = logger;
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
-            _userServiceUrl = _configuration["ServiceUrls:UserService"] ??
+            _userServiceUrl = configuration["ServiceUrls:UserService"] ??
                               throw new InvalidOperationException("ServiceUrls:UserService không được cấu hình");
         }
 
@@ -99,8 +103,8 @@ namespace NovelService.Service
             if (series.uploader_id != uploaderId)
                 throw new UnauthorizedAccessException("You are not allowed to update this series");
 
-            bool hasAnnouncement = (!string.IsNullOrWhiteSpace(dto.note) && dto.note != series.note) ||
-                                     (!string.IsNullOrWhiteSpace(dto.description) && dto.description != series.description);
+            var oldNote = series.note;
+            var oldDescription = series.description;
 
 
             // Update các field nếu có giá trị
@@ -156,9 +160,12 @@ namespace NovelService.Service
             _context.Novel_Series.Update(series);
             await _context.SaveChangesAsync();
 
+            bool hasAnnouncement = (dto.note != null && dto.note != oldNote) ||
+                                     (dto.description != null && dto.description != oldDescription);
+
             if (hasAnnouncement)
             {
-                // Gọi UserService để lấy danh sách followers
+                _logger.LogInformation("Series {SeriesId} có cập nhật. Gửi thông báo cho followers...", seriesId);
                 await NotifyFollowersOfUpdate(seriesId, series.series_title, uploaderId);
             }
 
@@ -187,7 +194,7 @@ namespace NovelService.Service
                 UserId = series.uploader_id,
                 Type = "SeriesDeleted",
                 Message = $"Your series have been deleted '{series.series_title}'.",
-                LinkUrl = null // Không có link vì đã bị xóa
+                LinkUrl = null 
 
             };
 
@@ -496,6 +503,7 @@ namespace NovelService.Service
 
         private async Task NotifyFollowersOfUpdate(int seriesId, string seriesTitle, Guid uploaderId)
         {
+            List<Guid> followerIds;
             try
             {
                 var httpClient = _httpClientFactory.CreateClient();
@@ -516,7 +524,7 @@ namespace NovelService.Service
 
                     var notificationDto = new CreateNotificationDto
                     {
-                        UserId = followerId,
+                        UserId = followerId,    
                         Type = "SeriesUpdate",
                         Message = $"Series '{seriesTitle}' bạn theo dõi vừa có thông báo mới.",
                         LinkUrl = $"/series/{seriesId}"
