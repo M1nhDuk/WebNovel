@@ -12,7 +12,7 @@ using Shareds.DTOs.NovelSeries;
 
 namespace NovelService.Service
 {
-    public class ClassicSeriesService: IClassicSeries
+    public class ClassicSeriesService : IClassicSeries
     {
         private readonly NovelDbContext _context;
         private readonly ILogger<ClassicSeriesService> _logger;
@@ -60,7 +60,7 @@ namespace NovelService.Service
                     edition = dto.edition
                 };
 
-               
+
                 _context.ClassicSeries.Add(ts);
                 await _context.SaveChangesAsync();
 
@@ -89,7 +89,7 @@ namespace NovelService.Service
         public async Task<ClassicSeriesDetailDto?> UpdateClassicSeriesAsync(int seriesId, UpdateClassicSeriesDto dto, Guid uploaderId)
         {
             var series = await _context.ClassicSeries
-                .Include(s => s.NovelTags) 
+                .Include(s => s.NovelTags)
                 .FirstOrDefaultAsync(s => s.series_Id == seriesId);
 
             if (series == null)
@@ -120,10 +120,6 @@ namespace NovelService.Service
 
             return updatedDto as ClassicSeriesDetailDto;
         }
-
-
-
-
     }
-    }
+}
 

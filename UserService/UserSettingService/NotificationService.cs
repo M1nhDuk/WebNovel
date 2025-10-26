@@ -49,7 +49,15 @@ namespace UserService.UserSettingService
                 .OrderByDescending(n => n.CreatedDate)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .Select(n => MapToDto(n))
+                .Select(n =>  new NotificationDto
+                {
+                    NotificationId = n.NotificationsId,
+                    Type = n.Type.ToString(),
+                    Message = n.Message,
+                    LinkUrl = n.LinkUrl,
+                    CreatedAt = n.CreatedDate,
+                    IsRead = n.IsRead
+                })
                 .ToListAsync();
 
             return notification;
