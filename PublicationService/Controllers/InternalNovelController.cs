@@ -5,6 +5,8 @@ using NovelService.Models;
 
 namespace NovelService.Controllers
 {
+    [ApiController] 
+    [Route("api/internal/publication")]
     public class InternalNovelController: ControllerBase
     {
         public readonly NovelDbContext _context;

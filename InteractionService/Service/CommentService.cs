@@ -128,9 +128,9 @@ namespace InteractionService.Service
                 // Lấy UserId của người viết comment gốc để gửi thông báo
                 parentCommentUserId = parentComment.UserId;
             }
-            else // Đây là comment gốc mới
+            else //comment gốc mới
             {
-                // Gọi PublicationService để lấy uploader_id
+                //lấy uploader_id từ NovelService
                 contentAuthorId = await GetContentAuthorId(seriesId, chapterId);
                 if (!contentAuthorId.HasValue)
                 {
@@ -159,7 +159,7 @@ namespace InteractionService.Service
 
             if (parentCommentUserId.HasValue && parentCommentUserId.Value != userId) 
             {
-                // Cần lấy UserName của người vừa reply (userId) để đưa vào message
+                // lấy UserName của người vừa reply bằng userId để đưa vào message
                 var commenterInfo = await GetUserInfo(userId); // Lấy thông tin người comment 
                 var commenterName = commenterInfo?.UserName ?? "Someone";
 
