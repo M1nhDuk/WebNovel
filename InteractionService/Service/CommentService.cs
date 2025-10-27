@@ -2,8 +2,11 @@
 using InteractionService.Models;
 using InteractionService.Service.Inteface;
 using Microsoft.EntityFrameworkCore;
+using Shareds.DTOs.AuthService;
 using Shareds.DTOs.Comment;
 using Shareds.DTOs.NovelSeries;
+using System.Net.Http;
+using System.Net.Http.Json;
 
 namespace InteractionService.Service
 {
@@ -11,14 +14,89 @@ namespace InteractionService.Service
     {
         private readonly InteracDbContext _context;
         private readonly ILogger<CommentService> _logger;
-        // private readonly IHttpClientFactory _httpClientFactory;
-
-        public CommentService(InteracDbContext context, ILogger<CommentService> logger)
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IConfiguration _configuration;
+        public CommentService(InteracDbContext context, ILogger<CommentService> logger, IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _context = context;
             _logger = logger;
-            // _httpClientFactory = httpClientFactory;
+            _httpClientFactory = httpClientFactory;
+            _configuration = configuration;
         }
+
+        private async Task EnrichCommentsWithUserInfo(List<CommentDto> comments)
+        {
+            if (comments == null || !comments.Any())
+            {
+                return;
+            }
+
+            // 1. Lấy danh sách UserId không trùng lặp
+            var userIds = comments.Select(c => c.UserId).Distinct().ToList();
+            if (!userIds.Any())
+            {
+                return;
+            }
+
+            // 2. Tạo HttpClient
+            // Sử dụng named client đã cấu hình
+            var httpClient = _httpClientFactory.CreateClient("AuthServiceClient");
+
+
+            // 3. Build URL request
+            var idsQueryParam = string.Join(",", userIds);
+            var requestUrl = $"api/internal/users/batch?ids={idsQueryParam}"; // Path tương đối nếu dùng BaseAddress
+
+            // 4. Gọi API nội bộ
+            List<UserInfoDto>? usersInfo = null;
+            try
+            {
+                usersInfo = await httpClient.GetFromJsonAsync<List<UserInfoDto>>(requestUrl);
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "HTTP request failed when calling AuthService batch endpoint. URL: {Url}", httpClient.BaseAddress + requestUrl);
+          
+                return;
+            }
+            catch (Exception ex) // Bắt các lỗi khác như JSON parsing
+            {
+                _logger.LogError(ex, "Error processing response from AuthService batch endpoint. URL: {Url}", httpClient.BaseAddress + requestUrl);
+                return;
+            }
+
+
+            // 5. Map thông tin User vào CommentDto
+            if (usersInfo != null && usersInfo.Any())
+            {
+                var userInfoDict = usersInfo.ToDictionary(u => u.UserId);
+                foreach (var comment in comments)
+                {
+                    if (userInfoDict.TryGetValue(comment.UserId, out var userInfo))
+                    {
+                        comment.UserName = userInfo.UserName;
+                        comment.UserAvatarThumbnail = userInfo.AvatarThumbnail;
+                    }
+                    else
+                    {
+                 
+                        comment.UserName = "[Deleted User]"; 
+                        comment.UserAvatarThumbnail = null; 
+                        _logger.LogWarning("User info not found for UserId {UserId} during comment enrichment", comment.UserId);
+                    }
+                }
+            }
+            else
+            {
+                _logger.LogWarning("Received empty or null user info list from AuthService for user IDs: {UserIds}", idsQueryParam);
+                foreach (var comment in comments)
+                {
+                    comment.UserName = "[Unknown User]";
+                    comment.UserAvatarThumbnail = null;
+                }
+            }
+        }
+
 
         public async Task<CommentDto> CreateCommentAsync(Guid userId, int? seriesId, int? chapterId, CreateCommentDto dto)
         {
@@ -26,20 +104,32 @@ namespace InteractionService.Service
             {
                 throw new ArgumentException("Comment must belong to exactly one Series OR one Chapter.");
             }
+
             if (string.IsNullOrWhiteSpace(dto.Content))
             {
                 throw new ArgumentException("Comment content cannot be empty.");
             }
 
+            Guid? parentCommentUserId = null; // ID của người bị reply
+            Guid? contentAuthorId = null;
+
             if (dto.ParentCommentId.HasValue)
             {
-                var parentExists = await _context.Comments.AnyAsync(c => c.CommentId == dto.ParentCommentId.Value);
-                if (!parentExists)
+                var parentComment = await _context.Comments.FindAsync(dto.ParentCommentId.Value);
+                if (parentComment == null)
                 {
                     throw new KeyNotFoundException("Parent comment not found.");
                 }
+                
 
+                //same chapter or serie
+                if (parentComment.SeriesId != seriesId || parentComment.ChapterId != chapterId)
+                {
+                    throw new ArgumentException("Reply target does not match parent comment target.");
+                }
             }
+
+
 
             var newComment = new Comment
             {
@@ -54,10 +144,14 @@ namespace InteractionService.Service
             _context.Comments.Add(newComment);
             await _context.SaveChangesAsync();
 
+            var commentDto = MapToDto(newComment);
+
+            // Enrich thông tin user cho comment vừa tạo
+            await EnrichCommentsWithUserInfo(new List<CommentDto> { commentDto });
+
             _logger.LogInformation("User {UserId} created comment {CommentId} for {TargetType} {TargetId}",
                 userId, newComment.CommentId, seriesId.HasValue ? "Series" : "Chapter", seriesId ?? chapterId);
 
-            // TODO: Enrich comment with UserName and Avatar by calling AuthService/UserService if needed here or in Get methods
 
             return MapToDto(newComment); 
 
@@ -92,6 +186,8 @@ namespace InteractionService.Service
 
             var commentDtos = comments.Select(c => MapToDto(c, c.Replies.Count)).ToList();
 
+            await EnrichCommentsWithUserInfo(commentDtos);
+
             return new PagedResult<CommentDto>
             {
                 Items = commentDtos,
@@ -115,9 +211,10 @@ namespace InteractionService.Service
                 .Include(c => c.Replies) 
                 .ToListAsync();
 
-            // TODO: Enrich replies with UserName and Avatar
 
             var replyDtos = replies.Select(r => MapToDto(r, r.Replies.Count)).ToList();
+
+            await EnrichCommentsWithUserInfo(replyDtos);
 
             return new PagedResult<CommentDto>
             {
@@ -154,9 +251,14 @@ namespace InteractionService.Service
             _context.Comments.Update(comment);
             await _context.SaveChangesAsync();
 
+            var updatedDto = MapToDto(comment);
+
+            // Enrich thông tin user
+            await EnrichCommentsWithUserInfo(new List<CommentDto> { updatedDto });
+
             _logger.LogInformation("User {UserId} updated comment {CommentId}", userId, commentId);
 
-            // TODO: Enrich with user info if needed
+      
             return MapToDto(comment);
         }
 

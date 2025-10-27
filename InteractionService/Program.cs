@@ -26,6 +26,11 @@ builder.Services.AddHttpClient("AuthServiceClient", client =>
     client.BaseAddress = new Uri(authServiceUrl);
 });
 
+builder.Services.AddHttpClient("NovelServiceClient", client =>
+{
+    client.BaseAddress = new Uri(novelServiceUrl);
+});
+
 builder.Services.AddScoped<ICommentService, CommentService>();
 // Add services to the container.
 
