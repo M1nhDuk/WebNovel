@@ -5,15 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Shareds.DTOs.Novel
+namespace Shareds.DTOs.Comment
 {
-    public class NovelUpdateDto
+    public class UpdateCommentDto
     {
-        public int series_Id {  get; set; }
-
         [Required]
-        public string? title { get; set; }
-        public string? cover_images { get; set; }
-
+        [StringLength(1000, MinimumLength = 1)]
+        public string Content { get; set; } = string.Empty;
     }
 }

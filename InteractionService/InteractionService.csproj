@@ -26,7 +26,7 @@
 
   <ItemGroup>
     <Folder Include="Data\InteracDbContext\" />
-    <Folder Include="Models\" />
+    <ProjectReference Include="..\Shareds\Shareds.csproj" />
   </ItemGroup>
 
 </Project>

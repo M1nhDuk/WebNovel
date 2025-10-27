@@ -31,5 +31,7 @@ namespace NovelService.Service.Interfaces
         //Filter
         IQueryable<NovelSeries> Filter(IQueryable<NovelSeries> query, SeriesFilterDto filter);
 
+        Task<PagedResult<SeriesListDto>> GetSeriesByUploaderAsync(Guid uploaderId, int pageNumber, int pageSize);
+
     }
 }

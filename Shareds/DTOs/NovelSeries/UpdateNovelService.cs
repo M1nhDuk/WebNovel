@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,9 +10,13 @@ namespace Shareds.DTOs.NovelSeries
     public class UpdateNovelService
     {
         public int series_Id { get; set; }
+
+        [Required]
         public string series_title { get; set; }
         public string? artist { get; set; }
         public string? author { get; set; }
+
+        [Required]
         public string description { get; set; }
         public string? cover_images { get; set; }
         public string? note { get; set; }

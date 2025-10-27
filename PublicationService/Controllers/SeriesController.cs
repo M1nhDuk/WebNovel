@@ -146,6 +146,31 @@ namespace NovelService.Controllers
                 return Ok(result);
             }
 
+            [HttpGet("user/series")] 
+            [Authorize] 
+            public async Task<ActionResult<PagedResult<SeriesListDto>>> GetMySeries(int pageNumber = 1, int pageSize = 10)
+            {
+                try
+                {
+                    var uploaderId = GetUserIdFromToken(); 
+                    var result = await _seriesService.GetSeriesByUploaderAsync(uploaderId, pageNumber, pageSize);
+                    return Ok(result);
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    _logger.LogWarning(ex, "Could not get UserId from token even though authorized.");
+                    return Unauthorized(new { message = ex.Message });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error retrieving series for uploader {UploaderId}", GetUserIdFromToken());
+                    return StatusCode(500, "An error occurred while retrieving your series.");
+                }
+            }
+
+
+
+
 
             [HttpGet("series/search")]
             public async Task<IActionResult> SearchSeries(

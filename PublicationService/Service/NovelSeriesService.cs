@@ -394,9 +394,55 @@ namespace NovelService.Service
             };
         }
 
+        //View By User
+        public async Task<PagedResult<SeriesListDto>> GetSeriesByUploaderAsync(Guid uploaderId, int pageNumber, int pageSize)
+        {
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 20) pageSize = 20;
+
+            var query = _context.Novel_Series
+                .Where(s => s.uploader_id == uploaderId)
+                .Include(s => s.category)
+                .Include(s => s.status)
+                .Include(s => s.NovelTags)
+                    .ThenInclude(nt => nt.Tag)
+                .OrderByDescending(s => s.updated_at);
+
+            var totalCount = await query.CountAsync();
+
+            var seriesList = await query
+                .Skip((pageNumber - 1) * pageSize) // Bỏ qua các trang trước
+                .Take(pageSize)
+                .Select(s => new SeriesListDto
+                {
+                    series_Id = s.series_Id,
+                    series_title = s.series_title,
+                    cover_images = s.cover_images,
+                    category_id = s.category_id,
+                    categoryName = s.category != null ? s.category.category_name : null,
+                    status_id = s.status_id,
+                    statusName = s.status != null ? s.status.statusName : null,
+                    Tags = s.NovelTags.Select(nt => nt.Tag.tagName).ToList() ?? new List<string>()
+                })
+                .ToListAsync();
+
+            return new PagedResult<SeriesListDto>
+            {
+                Items = seriesList,
+                TotalRecords = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+
+
+        }
+
+        
+
 
 // -------------------------------------------------------------------------------------------------------------------------------------------- //
-        //Sorting
+//Sorting
         public IQueryable<NovelSeries> Sorting(
            IQueryable<NovelSeries> query,
            SeriesSortBy sortBy,
