@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Shareds.DTOs.AuthService;
 using Shareds.DTOs.Comment;
 using Shareds.DTOs.NovelSeries;
+using Shareds.DTOs.UserService;
 using System.Net.Http;
 using System.Net.Http.Json;
 
@@ -113,23 +114,30 @@ namespace InteractionService.Service
             Guid? parentCommentUserId = null; // ID của người bị reply
             Guid? contentAuthorId = null;
 
-            if (dto.ParentCommentId.HasValue)
+            if (dto.ParentCommentId.HasValue) //Reply
             {
                 var parentComment = await _context.Comments.FindAsync(dto.ParentCommentId.Value);
                 if (parentComment == null)
                 {
                     throw new KeyNotFoundException("Parent comment not found.");
                 }
-                
-
-                //same chapter or serie
                 if (parentComment.SeriesId != seriesId || parentComment.ChapterId != chapterId)
                 {
                     throw new ArgumentException("Reply target does not match parent comment target.");
                 }
+                // Lấy UserId của người viết comment gốc để gửi thông báo
+                parentCommentUserId = parentComment.UserId;
             }
-
-
+            else // Đây là comment gốc mới
+            {
+                // Gọi PublicationService để lấy uploader_id
+                contentAuthorId = await GetContentAuthorId(seriesId, chapterId);
+                if (!contentAuthorId.HasValue)
+                {
+                    _logger.LogWarning("Could not find author for SeriesId={SeriesId} or ChapterId={ChapterId}. Cannot send notification.", seriesId, chapterId);
+                    throw new InvalidOperationException("Could not determine content author."); 
+                }
+            }
 
             var newComment = new Comment
             {
@@ -144,16 +152,50 @@ namespace InteractionService.Service
             _context.Comments.Add(newComment);
             await _context.SaveChangesAsync();
 
-            var commentDto = MapToDto(newComment);
-
-            // Enrich thông tin user cho comment vừa tạo
-            await EnrichCommentsWithUserInfo(new List<CommentDto> { commentDto });
-
             _logger.LogInformation("User {UserId} created comment {CommentId} for {TargetType} {TargetId}",
                 userId, newComment.CommentId, seriesId.HasValue ? "Series" : "Chapter", seriesId ?? chapterId);
 
+            string? linkUrl = seriesId.HasValue ? $"/series/{seriesId}" : $"/chapters/{chapterId}";
 
-            return MapToDto(newComment); 
+            if (parentCommentUserId.HasValue && parentCommentUserId.Value != userId) 
+            {
+                // Cần lấy UserName của người vừa reply (userId) để đưa vào message
+                var commenterInfo = await GetUserInfo(userId); // Lấy thông tin người comment 
+                var commenterName = commenterInfo?.UserName ?? "Someone";
+
+                var notificationDto = new CreateNotificationDto
+                {
+                    UserId = parentCommentUserId.Value, // Người nhận là User B
+                    Type = "NewComment",
+                    Message = $"{commenterName} replied to your comment.",
+                    LinkUrl = linkUrl + $"#comment-{newComment.CommentId}" // Link tới comment mới
+                };
+                await SendNotificationAsync(notificationDto);
+            }
+
+
+            // Kịch bản 2: User B comment vào bài của User A
+            else if (contentAuthorId.HasValue && contentAuthorId.Value != userId) //comment gốc
+            {
+
+                // Cần lấy UserName của người vừa comment 
+                var commenterInfo = await GetUserInfo(userId); // Lấy thông tin người comment
+                var commenterName = commenterInfo?.UserName ?? "Someone";
+                var targetName = seriesId.HasValue ? "your series" : "your chapter";
+
+                var notificationDto = new CreateNotificationDto
+                {
+                    UserId = contentAuthorId.Value, // Người nhận là User A (tác giả)
+                    Type = "NewComment",
+                    Message = $"{commenterName} commented on {targetName}.",
+                    LinkUrl = linkUrl + $"#comment-{newComment.CommentId}" // Link tới comment mới
+                };
+                await SendNotificationAsync(notificationDto);
+            }
+
+            var commentDto = MapToDto(newComment);
+            await EnrichCommentsWithUserInfo(new List<CommentDto> { commentDto });
+            return commentDto;
 
         }
 
@@ -289,6 +331,97 @@ namespace InteractionService.Service
         }
 
 
+
+        //lấy Uploader ID từ NovelService
+        private async Task<Guid?> GetContentAuthorId(int? seriesId, int? chapterId)
+        {
+            var httpClient = _httpClientFactory.CreateClient("NovelServiceClient");
+            string requestUrl;
+
+            if (seriesId.HasValue)
+            {
+                requestUrl = $"api/internal/publication/series/{seriesId.Value}/uploader";
+            }
+            else if (chapterId.HasValue)
+            {
+                requestUrl = $"api/internal/publication/chapters/{chapterId.Value}/uploader";
+            }
+            else
+            {
+                return null;
+            }
+
+            try
+            {
+                var response = await httpClient.GetAsync(requestUrl);
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<Guid>();
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to get author ID from PublicationService. URL: {Url}, Status: {StatusCode}", httpClient.BaseAddress + requestUrl, response.StatusCode);
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calling PublicationService to get author ID. URL: {Url}", httpClient.BaseAddress + requestUrl);
+                return null;
+            }
+        }
+
+
+
+        //Helper để gửi thông báo đến UserService
+        private async Task SendNotificationAsync(CreateNotificationDto dto)
+        {
+            var userServiceUrl = _configuration["ServiceUrls:UserService"];
+            if (string.IsNullOrEmpty(userServiceUrl))
+            {
+                _logger.LogError("ServiceUrls:UserService is not configured. Cannot send notification.");
+                return;
+            }
+            var httpClient = _httpClientFactory.CreateClient(); // Có thể tạo named client cho UserService
+            var notificationUrl = $"{userServiceUrl}/api/internal/notifications";
+
+            try
+            {
+                var response = await httpClient.PostAsJsonAsync(notificationUrl, dto);
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Failed to send notification via UserService for UserId {UserId}. Status: {StatusCode}, Reason: {Reason}", dto.UserId, response.StatusCode, await response.Content.ReadAsStringAsync());
+                }
+                else
+                {
+                    _logger.LogInformation("Successfully sent notification type {Type} to UserId {UserId}", dto.Type, dto.UserId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending notification via UserService for UserId {UserId}", dto.UserId);
+            }
+        }
+
+
+        //Helper để lấy thông tin user
+        private async Task<UserInfoDto?> GetUserInfo(Guid userId)
+        {
+            var httpClient = _httpClientFactory.CreateClient("AuthServiceClient");
+            var requestUrl = $"api/internal/users/batch?ids={userId}";
+            try
+            {
+                var usersInfo = await httpClient.GetFromJsonAsync<List<UserInfoDto>>(requestUrl);
+                return usersInfo?.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get user info for UserId {UserId} from AuthService", userId);
+                return null;
+            }
+        }
+
+
         private CommentDto MapToDto(Comment c, int replyCount = 0)
         {
             return new CommentDto
@@ -302,7 +435,6 @@ namespace InteractionService.Service
                 ChapterId = c.ChapterId,
                 ParentCommentId = c.ParentCommentId,
                 ReplyCount = replyCount,
-                // Gán UserName, UserAvatarThumbnail sau khi enrich
                 UserName = c.UserName,
                 UserAvatarThumbnail = c.UserAvatarThumbnail
             };
