@@ -111,5 +111,32 @@ namespace UserService.Controllers
         {
             return NotFound();
         }
+
+
+
+
+        [HttpDelete("{bookmarkId:guid}")] 
+        public async Task<IActionResult> RemoveBookmarkById(Guid bookmarkId)
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                var success = await _bookmarkService.RemoveBookmarkByIdAsync(userId, bookmarkId);
+                if (!success)
+                {
+                    return NotFound(new { message = "Bookmark not found or you are not authorized to delete it." });
+                }
+                return NoContent();
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error removing bookmark {BookmarkId} for User {UserId}", bookmarkId, GetUserIdFromToken());
+                return StatusCode(500, "Internal server error");
+            }
+        }
     }
 }

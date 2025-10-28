@@ -7,5 +7,6 @@ namespace UserService.UserSettingService.Interface
         Task<BookmarkToggleResultDto> ToggleBookmarkAsync(Guid userId, ToggleBookmarkDto dto);
         Task<bool> RemoveBookmarkForChapterAsync(Guid userId, int chapterId);
         Task<List<BookmarkDto>> GetGroupedBookmarksByUserAsync(Guid userId);
+        Task<bool> RemoveBookmarkByIdAsync(Guid userId, Guid bookmarkId);
     }
 }

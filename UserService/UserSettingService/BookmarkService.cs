@@ -121,6 +121,33 @@ namespace UserService.UserSettingService
         }
 
         
+
+        public async Task<bool> RemoveBookmarkByIdAsync(Guid userId, Guid bookmarkId)
+        {
+            var bookmark = await _context.UserBookmarks
+                .FirstOrDefaultAsync(b => b.BookmarkId == bookmarkId && b.UserId == userId);
+
+            if (bookmark == null)
+            {
+                return false;
+            }
+
+            _context.UserBookmarks.Remove(bookmark);
+            await _context.SaveChangesAsync();
+
+
+            _logger.LogInformation("User {UserId} removed bookmark {BookmarkId} by its ID", userId, bookmarkId);
+            return true;
+        }
+
+
+
+
+
+
+
+
+
         public async Task<List<BookmarkDto>> GetGroupedBookmarksByUserAsync(Guid userId)
         {
             var bookmarks = await _context.UserBookmarks
@@ -137,6 +164,9 @@ namespace UserService.UserSettingService
 
             return dtos;
         }
+
+
+
 
         private async Task<bool> ValidatePublicationReference(int seriesId, int chapterId)
         {
@@ -158,6 +188,12 @@ namespace UserService.UserSettingService
                 return false;
             }
         }
+
+
+
+
+
+
 
         private async Task EnrichBookmarksAsync(List<BookmarkDto> bookmarks)
         {

@@ -77,6 +77,48 @@ namespace NovelService.Controllers
 
         }
 
+        [HttpGet("validate/series/{seriesId:int}/chapter/{chapterId:int}")]
+        public async Task<IActionResult> ValidateChapterExistsInSeries(int seriesId, int chapterId)
+        {
+            try
+            {
+                var chapter = await _context.Chapters
+                     .Include(c => c.Novel) 
+                         .ThenInclude(n => n.NovelSeries) 
+                     .FirstOrDefaultAsync(c => c.chapter_id == chapterId);
+
+                bool isValid = false;
+                
+                if (chapter != null)
+                {
+                    if (chapter.series_Id == seriesId)
+                    {
+                        isValid = true;
+                    }
+                    else if (chapter.Novel != null && chapter.Novel.series_Id == seriesId)
+                    {
+                        isValid = true;
+                    }
+                }
+
+                if(isValid)
+                {
+                    return Ok();
+                }
+                else
+                {
+                    _logger.LogInformation("Validation failed: Chapter {ChapterId} not found or does not belong to Series {SeriesId}", chapterId, seriesId);
+                    return NotFound(); 
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during validation check for Series {SeriesId} / Chapter {ChapterId}", seriesId, chapterId);
+                return StatusCode(500, "Internal server error during validation.");
+            }
+        }
+
 
     }
 }
