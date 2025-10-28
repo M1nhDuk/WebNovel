@@ -46,32 +46,34 @@ namespace UserService.UserSettingService
         {
             bool isValidReference = await ValidatePublicationReference(dto.SeriesId, dto.ChapterId);
 
-            //valid series và chapter
-            if (!isValidReference)
+            // Bước 2: Kiểm tra kết quả xác thực
+            if (!isValidReference) // Nếu hàm ValidatePublicationReference trả về false...
             {
-                _logger.LogWarning("Attempt to toggle bookmark for non-existent Series {SeriesId} / Chapter {ChapterId} by User {UserId}", dto.SeriesId, dto.ChapterId, userId);
+                _logger.LogWarning("Attempt to toggle bookmark for non-existent Series {SeriesId} / Chapter {ChapterId} by User {UserId}", dto.SeriesId, dto.ChapterId, userId);            
                 throw new KeyNotFoundException("Referenced Series or Chapter does not exist or do not belong together.");
             }
 
             var existingBookmark = await _context.UserBookmarks
-                .FirstOrDefaultAsync(b => b.UserId == userId && b.ChapterId == dto.ChapterId);
+        .FirstOrDefaultAsync(b => b.UserId == userId && b.ChapterId == dto.ChapterId);
 
             UserBookmark bookmarkToReturn;
-            bool isNew =false;
+            bool isNew = false; // Biến này không thực sự cần thiết nữa nếu bạn chỉ cần trả về bookmark
 
-            if(existingBookmark == null)
+            if (existingBookmark != null) // <<< SỬA LẠI: Kiểm tra nếu bookmark ĐÃ tồn tại
             {
+                // *** Logic CẬP NHẬT bookmark hiện có ***
                 existingBookmark.LocationIdentifier = dto.LocationIdentifier;
                 existingBookmark.ContextSnippet = dto.ContextSnippet;
-                existingBookmark.CreatedAt = DateTime.UtcNow;
-                existingBookmark.SeriesId = dto.SeriesId;
+                existingBookmark.CreatedAt = DateTime.UtcNow; // Cập nhật thời gian
+                existingBookmark.SeriesId = dto.SeriesId; // Đảm bảo SeriesId đúng
 
-                _context.UserBookmarks.Update(existingBookmark);
+                _context.UserBookmarks.Update(existingBookmark); // Đánh dấu để EF cập nhật
                 bookmarkToReturn = existingBookmark;
                 _logger.LogInformation("User {UserId} updated bookmark for Chapter {ChapterId} to location {Location}", userId, dto.ChapterId, dto.LocationIdentifier);
-            } 
-                else
+            }
+            else // <<< Khối này thực thi khi bookmark CHƯA tồn tại
             {
+                // *** Logic TẠO MỚI bookmark ***
                 var newBookmark = new UserBookmark
                 {
                     UserId = userId,
@@ -79,22 +81,22 @@ namespace UserService.UserSettingService
                     ChapterId = dto.ChapterId,
                     LocationIdentifier = dto.LocationIdentifier,
                     ContextSnippet = dto.ContextSnippet,
-                    CreatedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow
                 };
-                    _context.UserBookmarks.Add(newBookmark);
-                    bookmarkToReturn = newBookmark;
-                    isNew = true;
-                    _logger.LogInformation("User {UserId} added new bookmark for Chapter {ChapterId} at location {Location}", userId, dto.ChapterId, dto.LocationIdentifier);
+                _context.UserBookmarks.Add(newBookmark); // Đánh dấu để EF thêm mới
+                bookmarkToReturn = newBookmark;
+                // isNew = true; // Không cần thiết lắm
+                _logger.LogInformation("User {UserId} added new bookmark for Chapter {ChapterId} at location {Location}", userId, dto.ChapterId, dto.LocationIdentifier);
             }
-            await _context.SaveChangesAsync();
+
+            await _context.SaveChangesAsync(); // Lưu thay đổi vào DB
 
             var resultDto = MapToDto(bookmarkToReturn);
-
-            // await EnrichBookmarksAsync(new List<BookmarkDto> { resultDto });
+            // await EnrichBookmarksAsync(new List<BookmarkDto> { resultDto }); // Cân nhắc có nên enrich ngay không
 
             return new BookmarkToggleResultDto
             {
-                IsBookmarked = true, // Luôn là true vì ta chỉ thêm/cập nhật
+                IsBookmarked = true,
                 Data = resultDto
             };
         }
