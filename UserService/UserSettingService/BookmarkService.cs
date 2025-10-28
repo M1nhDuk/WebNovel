@@ -1,6 +1,7 @@
 ﻿using InteractionService.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Shareds.DTOs.NovelSeries;
 using Shareds.DTOs.UserService;
 using UserService.Data;
 using UserService.Migrations;
@@ -44,36 +45,34 @@ namespace UserService.UserSettingService
 
         public async Task<BookmarkToggleResultDto> ToggleBookmarkAsync(Guid userId, ToggleBookmarkDto dto)
         {
-            bool isValidReference = await ValidatePublicationReference(dto.SeriesId, dto.ChapterId);
-
-            // Bước 2: Kiểm tra kết quả xác thực
-            if (!isValidReference) // Nếu hàm ValidatePublicationReference trả về false...
-            {
-                _logger.LogWarning("Attempt to toggle bookmark for non-existent Series {SeriesId} / Chapter {ChapterId} by User {UserId}", dto.SeriesId, dto.ChapterId, userId);            
-                throw new KeyNotFoundException("Referenced Series or Chapter does not exist or do not belong together.");
-            }
-
+ 
             var existingBookmark = await _context.UserBookmarks
-        .FirstOrDefaultAsync(b => b.UserId == userId && b.ChapterId == dto.ChapterId);
+                    .FirstOrDefaultAsync(b => b.UserId == userId && b.ChapterId == dto.ChapterId);
 
             UserBookmark bookmarkToReturn;
-            bool isNew = false; // Biến này không thực sự cần thiết nữa nếu bạn chỉ cần trả về bookmark
 
-            if (existingBookmark != null) // <<< SỬA LẠI: Kiểm tra nếu bookmark ĐÃ tồn tại
+            if (existingBookmark != null) 
             {
-                // *** Logic CẬP NHẬT bookmark hiện có ***
+                
                 existingBookmark.LocationIdentifier = dto.LocationIdentifier;
                 existingBookmark.ContextSnippet = dto.ContextSnippet;
-                existingBookmark.CreatedAt = DateTime.UtcNow; // Cập nhật thời gian
-                existingBookmark.SeriesId = dto.SeriesId; // Đảm bảo SeriesId đúng
+                existingBookmark.CreatedAt = DateTime.UtcNow; 
+                existingBookmark.SeriesId = dto.SeriesId; 
 
-                _context.UserBookmarks.Update(existingBookmark); // Đánh dấu để EF cập nhật
+                _context.UserBookmarks.Update(existingBookmark); 
                 bookmarkToReturn = existingBookmark;
                 _logger.LogInformation("User {UserId} updated bookmark for Chapter {ChapterId} to location {Location}", userId, dto.ChapterId, dto.LocationIdentifier);
             }
-            else // <<< Khối này thực thi khi bookmark CHƯA tồn tại
+            else 
             {
-                // *** Logic TẠO MỚI bookmark ***
+                bool isValidReference = await ValidatePublicationReference(dto.SeriesId, dto.ChapterId);
+
+
+                if (!isValidReference)
+                {
+                    throw new KeyNotFoundException("Referenced Series or Chapter does not exist or do not belong together.");
+                }
+
                 var newBookmark = new UserBookmark
                 {
                     UserId = userId,
@@ -83,16 +82,15 @@ namespace UserService.UserSettingService
                     ContextSnippet = dto.ContextSnippet,
                     CreatedAt = DateTime.UtcNow
                 };
-                _context.UserBookmarks.Add(newBookmark); // Đánh dấu để EF thêm mới
+                _context.UserBookmarks.Add(newBookmark); 
                 bookmarkToReturn = newBookmark;
-                // isNew = true; // Không cần thiết lắm
+        
                 _logger.LogInformation("User {UserId} added new bookmark for Chapter {ChapterId} at location {Location}", userId, dto.ChapterId, dto.LocationIdentifier);
             }
 
-            await _context.SaveChangesAsync(); // Lưu thay đổi vào DB
+            await _context.SaveChangesAsync(); 
 
             var resultDto = MapToDto(bookmarkToReturn);
-            // await EnrichBookmarksAsync(new List<BookmarkDto> { resultDto }); // Cân nhắc có nên enrich ngay không
 
             return new BookmarkToggleResultDto
             {
@@ -141,28 +139,61 @@ namespace UserService.UserSettingService
         }
 
 
-
-
-
-
-
-
-
-        public async Task<List<BookmarkDto>> GetGroupedBookmarksByUserAsync(Guid userId)
+        public async Task<BookmarkDto?> GetBookmarkForChapterAsync(Guid userId, int chapterId)
         {
-            var bookmarks = await _context.UserBookmarks
-                .Where(b => b.UserId == userId)
-                .OrderBy(b => b.SeriesId)
-                .ThenBy(b => b.ChapterId)
-                 .ThenBy(b => b.CreatedAt)
-            .ToListAsync();
+            var bookmark = await _context.UserBookmarks
+                .AsNoTracking() 
+                .FirstOrDefaultAsync(b => b.UserId == userId && b.ChapterId == chapterId);
 
+            if (bookmark == null)
+            {
+                return null;
+            }
+
+            var dto = MapToDto(bookmark);
+            await EnrichBookmarksAsync(new List<BookmarkDto> { dto });
+            return dto;
+        }
+
+
+
+
+
+
+        public async Task<PagedResult<BookmarkDto>> GetGroupedBookmarksByUserAsync(Guid userId, int pageNumber, int pageSize)
+        {
+           
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 20) pageSize = 20; 
+
+        
+            var query = _context.UserBookmarks
+                .Where(b => b.UserId == userId)
+                .OrderByDescending(b => b.CreatedAt); 
+
+      
+            var totalCount = await query.CountAsync();
+
+     
+            var bookmarks = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+       
             var dtos = bookmarks.Select(MapToDto).ToList();
 
-            
+          
             await EnrichBookmarksAsync(dtos);
 
-            return dtos;
+            return new PagedResult<BookmarkDto>
+            {
+                Items = dtos,
+                TotalRecords = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
         }
 
 

@@ -1,4 +1,5 @@
-﻿using Shareds.DTOs.UserService;
+﻿using Shareds.DTOs.NovelSeries;
+using Shareds.DTOs.UserService;
 
 namespace UserService.UserSettingService.Interface
 {
@@ -6,7 +7,9 @@ namespace UserService.UserSettingService.Interface
     {
         Task<BookmarkToggleResultDto> ToggleBookmarkAsync(Guid userId, ToggleBookmarkDto dto);
         Task<bool> RemoveBookmarkForChapterAsync(Guid userId, int chapterId);
-        Task<List<BookmarkDto>> GetGroupedBookmarksByUserAsync(Guid userId);
+        Task<PagedResult<BookmarkDto>> GetGroupedBookmarksByUserAsync(Guid userId, int pageNumber, int pageSize);
+        Task<BookmarkDto?> GetBookmarkForChapterAsync(Guid userId, int chapterId);
         Task<bool> RemoveBookmarkByIdAsync(Guid userId, Guid bookmarkId);
+
     }
 }

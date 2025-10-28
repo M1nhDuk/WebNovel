@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Shareds.DTOs.NovelSeries;
 using Shareds.DTOs.UserService;
 using System.Security.Claims;
 using UserService.UserSettingService;
@@ -85,12 +86,14 @@ namespace UserService.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<BookmarkDto>>> GetMyBookmarks()
+        public async Task<ActionResult<PagedResult<BookmarkDto>>> GetMyBookmarks(
+             [FromQuery] int page = 1,
+             [FromQuery] int pageSize = 10) // Thêm tham số query
         {
             try
             {
                 var userId = GetUserIdFromToken();
-                var bookmarks = await _bookmarkService.GetGroupedBookmarksByUserAsync(userId);
+                var bookmarks = await _bookmarkService.GetGroupedBookmarksByUserAsync(userId, page, pageSize);
                 return Ok(bookmarks); 
             }
             catch (UnauthorizedAccessException ex)
@@ -104,7 +107,29 @@ namespace UserService.Controllers
             }
         }
 
-    
+        [HttpGet("chapter/{chapterId:int}")] 
+        public async Task<ActionResult<BookmarkDto>> GetBookmarkForChapter(int chapterId)
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                var bookmark = await _bookmarkService.GetBookmarkForChapterAsync(userId, chapterId);
+
+                if (bookmark == null)
+                {
+                    return NotFound(); // 404 là bình thường nếu user chưa bookmark chapter này
+                }
+
+                return Ok(bookmark);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting bookmark for Chapter {ChapterId}, User {UserId}", chapterId, GetUserIdFromToken());
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+
         [HttpGet("{bookmarkId:guid}", Name = "GetBookmarkById")]
         [ApiExplorerSettings(IgnoreApi = true)]
         public IActionResult GetBookmarkById(Guid bookmarkId)
