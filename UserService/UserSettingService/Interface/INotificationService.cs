@@ -1,4 +1,4 @@
-﻿// In UserService/Services/Interface/INotificationService.cs
+﻿
 using Shareds.DTOs.UserService;
 
 namespace UserService.Services.Interfaces

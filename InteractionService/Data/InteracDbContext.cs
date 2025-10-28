@@ -26,8 +26,10 @@ namespace InteractionService.Data
                 entity.HasOne(c => c.ParentComment)
                       .WithMany(p => p.Replies)
                       .HasForeignKey(c => c.ParentCommentId)
-                      .OnDelete(DeleteBehavior.Cascade); // Hoặc Restrict tùy logic xóa
+                      .OnDelete(DeleteBehavior.Cascade); 
             });
+
+           
         }
     }
 }

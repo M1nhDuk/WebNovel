@@ -17,6 +17,7 @@ builder.Services.AddDbContext<UserDbContext>(options =>
 
 builder.Services.AddScoped<IUserFavoriteService, UserFavoriteService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IBookmarkService, BookmarkService>();
 
 builder.Services.AddHttpClient();
 
@@ -40,7 +41,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnAuthenticationFailed = context =>
             {
-                // Ghi log l?i chi ti?t vào Console khi xác th?c th?t b?i
                 Console.WriteLine("----- JWT Authentication Failed -----");
                 Console.WriteLine("Exception: " + context.Exception.ToString()); // In toàn b? exception
                 Console.WriteLine("-------------------------------------");

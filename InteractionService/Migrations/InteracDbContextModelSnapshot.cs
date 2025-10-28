@@ -59,7 +59,7 @@ namespace InteractionService.Migrations
 
                     b.HasIndex("SeriesId");
 
-                    b.ToTable("Comments");
+                    b.ToTable("Comments", (string)null);
                 });
 
             modelBuilder.Entity("InteractionService.Models.Comment", b =>

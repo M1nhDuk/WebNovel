@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using InteractionService.Models;
+using Microsoft.EntityFrameworkCore;
 using UserService.Models;
 
 namespace UserService.Data
@@ -12,7 +13,8 @@ namespace UserService.Data
 
         public DbSet<UserSetting> UserSettings { get; set; }
         public DbSet<UserFavorite> UserFavorite { get; set; }
-        public DbSet<Notification> Notification { get; set; } 
+        public DbSet<Notification> Notification { get; set; }
+        public DbSet<UserBookmark> UserBookmarks { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -32,6 +34,17 @@ namespace UserService.Data
 
             modelBuilder.Entity<Notification>()
                 .HasIndex(n => n.UserId);
+
+
+            modelBuilder.Entity<UserBookmark>(entity =>
+            {
+                entity.HasKey(b => b.BookmarkId);
+              
+                entity.HasIndex(b => new { b.UserId, b.ChapterId }).IsUnique();       
+              
+                entity.HasIndex(b => new { b.UserId, b.CreatedAt });
+                entity.HasIndex(b => new { b.UserId, b.SeriesId, b.ChapterId });
+            });
         }
     }
 }
