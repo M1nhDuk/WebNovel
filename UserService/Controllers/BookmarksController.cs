@@ -51,12 +51,10 @@ namespace UserService.Controllers
             }
             catch (KeyNotFoundException ex) 
             {
-                _logger.LogWarning("ToggleBookmark failed validation: {ErrorMessage}", ex.Message);
                 return NotFound(new { message = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error toggling bookmark for User {UserId}, Chapter {ChapterId}", GetUserIdFromToken(), dto.ChapterId);
                 return StatusCode(500, "Internal server error");
             }
         }
@@ -80,7 +78,6 @@ namespace UserService.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error removing bookmark for Chapter {ChapterId} for User {UserId}", chapterId, GetUserIdFromToken());
                 return StatusCode(500, "Internal server error");
             }
         }
@@ -102,7 +99,6 @@ namespace UserService.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting bookmarks for User {UserId}", GetUserIdFromToken());
                 return StatusCode(500, "Internal server error");
             }
         }
@@ -117,7 +113,7 @@ namespace UserService.Controllers
 
                 if (bookmark == null)
                 {
-                    return NotFound(); // 404 là bình thường nếu user chưa bookmark chapter này
+                    return NotFound(); 
                 }
 
                 return Ok(bookmark);
@@ -159,7 +155,6 @@ namespace UserService.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error removing bookmark {BookmarkId} for User {UserId}", bookmarkId, GetUserIdFromToken());
                 return StatusCode(500, "Internal server error");
             }
         }

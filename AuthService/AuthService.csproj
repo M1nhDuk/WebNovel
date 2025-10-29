@@ -32,8 +32,4 @@
     <ProjectReference Include="..\Shareds\Shareds.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="wwroot\images\" />
-  </ItemGroup>
-
 </Project>

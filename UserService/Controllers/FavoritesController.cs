@@ -61,24 +61,20 @@ namespace UserService.Controllers
             {
                 return Unauthorized(new { message = ex.Message });
             }
-            catch (InvalidOperationException ex) // Bắt lỗi cấu hình hoặc lỗi kết nối service
+            catch (InvalidOperationException ex) 
             {
-                _logger.LogError(ex, "Toggle favorite failed due to operation error.");
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
             }
-            catch (HttpRequestException ex) // Bắt lỗi mạng khi gọi service khác
+            catch (HttpRequestException ex) 
             {
-                _logger.LogError(ex, "Toggle favorite failed due to network error calling NovelService.");
                 return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Lỗi kết nối dịch vụ, vui lòng thử lại sau." });
             }
             catch (KeyNotFoundException ex) //Series không tồn tại
             {
-                _logger.LogWarning("Toggle favorite failed: {ErrorMessage}", ex.Message);
-                return NotFound(new { message = ex.Message }); // Trả về 404 Not Found
+                return NotFound(new { message = ex.Message });
             }           
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error toggling favorite for User {UserId}", GetUserIdFromToken());
                 return StatusCode(500, "Internal server error");
             }
         }
@@ -91,8 +87,7 @@ namespace UserService.Controllers
             {
                 var userId = GetUserIdFromToken();
                 var favorites = await _favoriteService.GetAllFavoriteAsync(userId);
-                // Frontend sẽ nhận list này (chỉ chứa ID) và gọi
-                // PublicationService để lấy thông tin chi tiết (Title, Cover, v.v.)
+
                 return Ok(favorites);
             }
             catch (UnauthorizedAccessException ex)
@@ -132,7 +127,6 @@ namespace UserService.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi xóa hàng loạt cho User {UserId}", GetUserIdFromToken());
                 return StatusCode(500, "Internal server error");
             }
         }

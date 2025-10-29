@@ -105,15 +105,13 @@ namespace NovelService.Controllers
                     return Ok();
                 }
                 else
-                {
-                    _logger.LogInformation("Validation failed: Chapter {ChapterId} not found or does not belong to Series {SeriesId}", chapterId, seriesId);
+                {               
                     return NotFound(); 
                 }
                 
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during validation check for Series {SeriesId} / Chapter {ChapterId}", seriesId, chapterId);
                 return StatusCode(500, "Internal server error during validation.");
             }
         }
