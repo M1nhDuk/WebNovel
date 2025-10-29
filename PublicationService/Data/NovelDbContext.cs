@@ -23,7 +23,8 @@ namespace NovelService.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            //Mapping
+            //Set defautl value
+
 
             // Novel - Chapter : 1 -> many
             modelBuilder.Entity<Novel>()
@@ -133,7 +134,7 @@ namespace NovelService.Data
                    .ValueGeneratedOnAddOrUpdate();
 
                 entity.Property(c => c.cover_images)
-               .HasDefaultValue("/images/cover/default_cover.jpg");
+                    .HasDefaultValue("/images/covers/default_cover.jpg");
 
             });
 
@@ -150,9 +151,6 @@ namespace NovelService.Data
                 .IsRequired()
                 .HasMaxLength(250);
 
-          
-
-
                 entity.HasIndex(c => new { c.series_Id, c.novel_number })
                    .IsUnique()
                    .HasDatabaseName("IX_NovelSeries_Novel_ChapterNumber");
@@ -162,7 +160,7 @@ namespace NovelService.Data
                     .ValueGeneratedOnAddOrUpdate();
 
                 entity.Property(c => c.cover_images)
-                    .HasDefaultValue("/images/cover/default_cover.jpg");
+                    .HasDefaultValue("/images/covers/default_cover.jpg");
             });
 
 

@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NovelService.Data;
 using NovelService.Service;
@@ -11,7 +10,7 @@ using System;
 using System.Security.Claims;
 using SixLabors.ImageSharp.Processing;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization; // <-- Thêm
+using Microsoft.AspNetCore.Authorization; 
 
 namespace NovelService.Controllers
 {
@@ -168,7 +167,118 @@ namespace NovelService.Controllers
                 }
             }
 
+            [HttpPost("series/{id:int}/cover")]
+            [Authorize] 
+            [RequestSizeLimit(MaxFileSize + 1024 * 1024)]
+            public async Task<IActionResult> UploadSeriesCover(int id, IFormFile file)
+            {
+                //Validate File
+                if (file == null || file.Length == 0)
+                {
+                    return BadRequest(new { message = "Không có file nào được tải lên." });
+                }
 
+                if (file.Length > MaxFileSize)
+                {
+                    return BadRequest(new { message = $"Kích thước file vượt quá giới hạn {MaxFileSize / 1024 / 1024}MB." });
+                }
+
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+
+                var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+                if (string.IsNullOrEmpty(extension) || !allowedExtensions.Contains(extension))
+                {
+                    return BadRequest(new { message = "Loại file không hợp lệ. Chỉ chấp nhận .jpg, .jpeg, .png." });
+                }
+
+                try
+                {
+                    var uploaderId = GetUserIdFromToken();
+
+                   
+                    var series = await _context.Novel_Series.FindAsync(id);
+                    if (series == null)
+                    {
+                        return NotFound(new { message = "Không tìm thấy series." });
+                    }
+                    if (series.uploader_id != uploaderId)
+                    {
+                       
+                        return Forbid("Bạn không có quyền thay đổi ảnh bìa cho series này.");
+                    }
+
+                    //Lưu
+                    var uploadsFolderPath = Path.Combine(_environment.WebRootPath, "images", "covers");
+
+                    if (!Directory.Exists(uploadsFolderPath))
+                    {
+                        Directory.CreateDirectory(uploadsFolderPath);
+                    }
+
+                    // Tạo tên file duy nhất
+                    var uniqueFileName = $"{Guid.NewGuid()}{extension}";
+                    var filePath = Path.Combine(uploadsFolderPath, uniqueFileName);
+
+                    // Lưu file vào đường dẫn vật lý
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    //Xóa File Ảnh Bìa Cũ 
+                    var oldRelativePath = series.cover_images;
+                    var defaultPath = "/images/covers/default_cover.jpg"; 
+
+                    if (!string.IsNullOrEmpty(oldRelativePath) && oldRelativePath.Trim() != defaultPath)
+                    {
+                        var oldFileName = Path.GetFileName(oldRelativePath); 
+                        var oldFilePath = Path.Combine(uploadsFolderPath, oldFileName);
+
+                        if (System.IO.File.Exists(oldFilePath))
+                        {
+                            try
+                            {
+                                System.IO.File.Delete(oldFilePath);
+                                _logger.LogInformation("Đã xóa file ảnh bìa cũ: {OldFilePath}", oldFilePath);
+                            }
+                            catch (IOException ex)
+                            {
+                                
+                                _logger.LogWarning(ex, "Không thể xóa file ảnh bìa cũ: {OldFilePath}", oldFilePath);
+                            }
+                        }
+                    }
+
+                    // Lưu đường dẫn tương đối vào DB
+                    var relativePath = $"/images/covers/{uniqueFileName}";
+
+                    series.cover_images = relativePath;
+
+                    series.updated_at = DateTime.UtcNow; 
+
+                    _context.Novel_Series.Update(series);
+
+                    await _context.SaveChangesAsync();
+
+                    //Trả về URL/Path mới cho FE
+                    var fullUrl = $"{Request.Scheme}://{Request.Host}{relativePath}";
+                    return Ok(new { coverUrl = fullUrl }); 
+
+                    // Hoặc chỉ trả về đường dẫn tương đối nếu FE tự xử lý việc ghép domain
+                    // return Ok(new { coverPath = relativePath });
+
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    return Unauthorized(new { message = ex.Message }); 
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Lỗi khi tải lên ảnh bìa cho series {SeriesId}", id);
+                    return StatusCode(500, new { message = "Đã xảy ra lỗi máy chủ trong quá trình tải file." }); 
+                }
+            }
 
 
 
