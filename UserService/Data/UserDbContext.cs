@@ -16,6 +16,8 @@ namespace UserService.Data
         public DbSet<Notification> Notification { get; set; }
         public DbSet<UserBookmark> UserBookmarks { get; set; }
 
+        public DbSet<ReadingHistory> ReadingHistories { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -44,6 +46,16 @@ namespace UserService.Data
               
                 entity.HasIndex(b => new { b.UserId, b.CreatedAt });
                 entity.HasIndex(b => new { b.UserId, b.SeriesId, b.ChapterId });
+            });
+
+
+            modelBuilder.Entity<ReadingHistory>(entity =>
+            {
+                entity.HasKey(rh => rh.HistoryId);
+               
+                entity.HasIndex(rh => new { rh.UserId, rh.LastAccessedAt });
+
+                entity.HasIndex(rh => new { rh.UserId, rh.SeriesId }).IsUnique();
             });
         }
     }

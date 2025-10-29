@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using NovelService.Data;
 using NovelService.Models;
+using Shareds.DTOs.NovelSeries;
 
 namespace NovelService.Controllers
 {
@@ -36,7 +37,6 @@ namespace NovelService.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting uploader for Series ID {SeriesId}", seriesId);
                 return StatusCode(500, "Internal server error");
             }
         }
@@ -64,7 +64,6 @@ namespace NovelService.Controllers
 
                 if (uploaderId == Guid.Empty)
                 {
-                    _logger.LogWarning("Could not determine uploader for Chapter ID {ChapterId}", chapterId);
                     return NotFound($"Could not find uploader for the content related to Chapter ID {chapterId}.");
                 }
                 return Ok(uploaderId);
@@ -116,6 +115,45 @@ namespace NovelService.Controllers
             {
                 _logger.LogError(ex, "Error during validation check for Series {SeriesId} / Chapter {ChapterId}", seriesId, chapterId);
                 return StatusCode(500, "Internal server error during validation.");
+            }
+        }
+
+
+        [HttpPost("batch-series-summary")] 
+        public async Task<ActionResult<List<SeriesSummaryDto>>> GetBatchSeriesSummaries([FromBody] List<int> seriesIds)
+        {
+            if (seriesIds == null || !seriesIds.Any())
+            {
+                return Ok(new List<SeriesSummaryDto>()); 
+            }
+
+            try
+            {
+                var summaries = await _context.Novel_Series
+                    .Where(s => seriesIds.Contains(s.series_Id))
+                    .Select(s => new SeriesSummaryDto
+                    {
+                        SeriesId = s.series_Id,
+                        Title = s.series_title, 
+                        CoverImage = s.cover_images 
+                    })
+                    .ToListAsync();
+
+     
+                if (summaries.Count != seriesIds.Distinct().Count())
+                {
+                    var foundIds = summaries.Select(s => s.SeriesId).ToHashSet();
+                    var notFoundIds = seriesIds.Distinct().Where(id => !foundIds.Contains(id));
+                    _logger.LogWarning("Could not find series summaries for IDs: {NotFoundIds}", string.Join(", ", notFoundIds));
+                }
+
+
+                return Ok(summaries);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching batch series summaries for IDs: {SeriesIds}", string.Join(",", seriesIds));
+                return StatusCode(500, "Internal server error while fetching series summaries.");
             }
         }
 
