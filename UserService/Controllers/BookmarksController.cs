@@ -85,7 +85,7 @@ namespace UserService.Controllers
         [HttpGet]
         public async Task<ActionResult<PagedResult<BookmarkDto>>> GetMyBookmarks(
              [FromQuery] int page = 1,
-             [FromQuery] int pageSize = 10) // Thêm tham số query
+             [FromQuery] int pageSize = 10) 
         {
             try
             {

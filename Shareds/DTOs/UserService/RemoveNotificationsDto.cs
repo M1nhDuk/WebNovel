@@ -10,7 +10,7 @@ namespace Shareds.DTOs.UserService
     public class RemoveNotificationsDto
     {
         [Required]
-        [MinLength(1, ErrorMessage = "Cần cung cấp ít nhất một NotificationId.")]
+        [MinLength(1, ErrorMessage = "Required NotificationId.")]
         public List<Guid> NotificationIds { get; set; } = new List<Guid>();
     }
 }

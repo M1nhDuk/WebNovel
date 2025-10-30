@@ -175,12 +175,12 @@ namespace NovelService.Controllers
                 //Validate File
                 if (file == null || file.Length == 0)
                 {
-                    return BadRequest(new { message = "Không có file nào được tải lên." });
+                    return BadRequest(new { message = "No upload file foud." });
                 }
 
                 if (file.Length > MaxFileSize)
                 {
-                    return BadRequest(new { message = $"Kích thước file vượt quá giới hạn {MaxFileSize / 1024 / 1024}MB." });
+                    return BadRequest(new { message = $"Only allow 15MB file {MaxFileSize / 1024 / 1024}MB." });
                 }
 
                 var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
@@ -189,7 +189,7 @@ namespace NovelService.Controllers
 
                 if (string.IsNullOrEmpty(extension) || !allowedExtensions.Contains(extension))
                 {
-                    return BadRequest(new { message = "Loại file không hợp lệ. Chỉ chấp nhận .jpg, .jpeg, .png." });
+                    return BadRequest(new { message = "Only allow .jpg, .jpeg, .png." });
                 }
 
                 try
@@ -200,12 +200,12 @@ namespace NovelService.Controllers
                     var series = await _context.Novel_Series.FindAsync(id);
                     if (series == null)
                     {
-                        return NotFound(new { message = "Không tìm thấy series." });
+                        return NotFound(new { message = "Series not found." });
                     }
                     if (series.uploader_id != uploaderId)
                     {
                        
-                        return Forbid("Bạn không có quyền thay đổi ảnh bìa cho series này.");
+                        return Forbid("You do not have permit to change.");
                     }
 
                     //Lưu
@@ -240,12 +240,12 @@ namespace NovelService.Controllers
                             try
                             {
                                 System.IO.File.Delete(oldFilePath);
-                                _logger.LogInformation("Đã xóa file ảnh bìa cũ: {OldFilePath}", oldFilePath);
+                                _logger.LogInformation("Remove old cover images: {OldFilePath}", oldFilePath);
                             }
                             catch (IOException ex)
                             {
                                 
-                                _logger.LogWarning(ex, "Không thể xóa file ảnh bìa cũ: {OldFilePath}", oldFilePath);
+                                _logger.LogWarning(ex, "Cannot remove old cover images: {OldFilePath}", oldFilePath);
                             }
                         }
                     }
@@ -265,8 +265,6 @@ namespace NovelService.Controllers
                     var fullUrl = $"{Request.Scheme}://{Request.Host}{relativePath}";
                     return Ok(new { coverUrl = fullUrl }); 
 
-                    // Hoặc chỉ trả về đường dẫn tương đối nếu FE tự xử lý việc ghép domain
-                    // return Ok(new { coverPath = relativePath });
 
                 }
                 catch (UnauthorizedAccessException ex)
@@ -275,8 +273,8 @@ namespace NovelService.Controllers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Lỗi khi tải lên ảnh bìa cho series {SeriesId}", id);
-                    return StatusCode(500, new { message = "Đã xảy ra lỗi máy chủ trong quá trình tải file." }); 
+                    _logger.LogError(ex, "Erro when upload coeve images of series {SeriesId}", id);
+                    return StatusCode(500, new { message = "Erro when uploading file." }); 
                 }
             }
 

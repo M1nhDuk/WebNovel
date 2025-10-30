@@ -84,7 +84,7 @@ namespace NovelService.Controllers
                 }
                 return NoContent(); 
             }
-            catch (InvalidOperationException ex) //
+            catch (InvalidOperationException ex) 
             {
                 _logger.LogWarning(ex, "Failed to update status {StatusId}.", id);
                 return Conflict(new { message = ex.Message }); 

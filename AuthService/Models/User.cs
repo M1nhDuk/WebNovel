@@ -16,6 +16,8 @@
         public string? PasswordResetToken { get; set; }
         public DateTime? ResetTokenExpires { get; set; }
 
+        public bool IsLocked { get; set; }  = false;
+
         public string? Avatar {  get; set; }
         public string? AvatarThumbnail { get; set; }
         public string? BackgroundImage { get; set; }

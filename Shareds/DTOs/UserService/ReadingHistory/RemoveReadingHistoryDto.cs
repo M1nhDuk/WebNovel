@@ -10,7 +10,7 @@ namespace Shareds.DTOs.UserService.ReadingHistory
     public class RemoveReadingHistoryDto
     {
         [Required]
-        [MinLength(1, ErrorMessage = "Cần cung cấp ít nhất một HistoryId hoặc SeriesId.")]
+        [MinLength(1, ErrorMessage = "Need HistoryId or SeriesId.")]
         public List<Guid>? HistoryIds { get; set; }
     }
 }

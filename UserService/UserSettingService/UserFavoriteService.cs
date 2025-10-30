@@ -33,7 +33,7 @@ namespace UserService.UserSettingService
 
             if (existing != null)
             {
-                // TÌNH HUỐNG 1: Đã thích -> Bỏ thích (Xóa)
+                //Đã thích -> Bỏ thích
                 _context.UserFavorite.Remove(existing);
                 await _context.SaveChangesAsync();
                 _logger.LogInformation("User {UserId} UN-favorited Series {SeriesId}", userId, dto.SeriesId);
@@ -42,7 +42,7 @@ namespace UserService.UserSettingService
             }
             else
             {
-                // TÌNH HUỐNG 2: Chưa thích -> Yêu thích (Thêm)
+                //Chưa thích -> Yêu thích (Thêm)
                 var novelServiceBaseUrl = _configuration["ServiceUrls:NovelService"];
                 if(string.IsNullOrEmpty(novelServiceBaseUrl))
                 {
@@ -62,12 +62,12 @@ namespace UserService.UserSettingService
                         if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                         {
                             _logger.LogWarning("User {UserId} toggle {SeriesId} which is not exsits.", userId, dto.SeriesId);
-                            throw new KeyNotFoundException($"Series với ID {dto.SeriesId} không tồn tại.");
+                            throw new KeyNotFoundException($"Series with ID {dto.SeriesId} not exsists.");
                         }
                         else
                         {
                             _logger.LogError("Erro when calling to check {SeriesId}. Status: {StatusCode}", dto.SeriesId, response.StatusCode);
-                            throw new HttpRequestException("Không thể xác minh thông tin truyện.");
+                            throw new HttpRequestException("Cannot verify series.");
                         }
                     }
                     _logger.LogInformation("Valid Series {SeriesId} inside NovelService.", dto.SeriesId);
@@ -75,7 +75,7 @@ namespace UserService.UserSettingService
                 catch (Exception ex) 
                 {
                     _logger.LogError(ex, "Network error when calling NovelService to check Series {SeriesId}", dto.SeriesId);
-                    throw new InvalidOperationException("Không thể kết nối đến dịch vụ truyện.");
+                    throw new InvalidOperationException("Erro connection");
                 }
             }
 

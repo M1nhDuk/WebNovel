@@ -125,16 +125,12 @@ namespace InteractionService.Controllers
 
         // --- Qu?n lý Comment (Chung) ---
 
-        // Endpoint này ch? ?? CreatedAtAction ho?t ??ng, không nh?t thi?t ph?i public r?ng rãi
+
         [HttpGet("comments/{commentId:guid}", Name = "GetCommentById")]
-        [ApiExplorerSettings(IgnoreApi = true)] // ?n kh?i Swagger n?u mu?n
+        [ApiExplorerSettings(IgnoreApi = true)] 
         public async Task<ActionResult<CommentDto>> GetCommentById(Guid commentId)
         {
-            // Logic l?y 1 comment c? th? (có th? không c?n thi?t n?u ch? l?y theo list)
-            // var comment = await _commentService.GetSingleCommentAsync(commentId);
-            // if (comment == null) return NotFound();
-            // return Ok(comment);
-            return NotFound(); // Ho?c tri?n khai l?y 1 comment n?u c?n
+            return NotFound(); 
         }
 
 
@@ -153,7 +149,7 @@ namespace InteractionService.Controllers
                 return Ok(updatedComment);
             }
             catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
-            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); } // Dùng Forbid (403) thay vì Unauthorized (401)
+            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating comment {CommentId}", commentId);
@@ -173,7 +169,7 @@ namespace InteractionService.Controllers
                 {
                     return NotFound(new { message = "Comment not found." });
                 }
-                return NoContent(); // 204 No Content - thành công
+                return NoContent(); 
             }
             catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
             catch (Exception ex)

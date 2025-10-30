@@ -10,10 +10,6 @@ using UserService.UserSettingService.Interface;
 
 namespace UserService.UserSettingService
 {
-   
-
-    
-
     public class BookmarkService: IBookmarkService
     {
         private readonly UserDbContext _context;
@@ -145,10 +141,6 @@ namespace UserService.UserSettingService
         }
 
 
-
-
-
-
         public async Task<PagedResult<BookmarkDto>> GetGroupedBookmarksByUserAsync(Guid userId, int pageNumber, int pageSize)
         {
            
@@ -188,6 +180,8 @@ namespace UserService.UserSettingService
 
 
 
+        //Helper
+
         private async Task<bool> ValidatePublicationReference(int seriesId, int chapterId)
         {
             var httpClient = _httpClientFactory.CreateClient(); 
@@ -208,9 +202,6 @@ namespace UserService.UserSettingService
                 return false;
             }
         }
-
-
-
 
 
 

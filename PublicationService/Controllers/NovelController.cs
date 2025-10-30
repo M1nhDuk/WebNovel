@@ -149,13 +149,13 @@ namespace PublicationService.Controllers
         {
             if (file == null || file.Length == 0)
             {
-                return BadRequest(new { message = "Không có file nào ???c t?i lên." });
+                return BadRequest(new { message = "No Upload File Found" });
             }
 
 
             if (file.Length > MaxFileSize)
             {
-                return BadRequest(new { message = $"Kích th??c file v??t quá gi?i h?n {MaxFileSize / 1024 / 1024}MB." });
+                return BadRequest(new { message = $"Only allow 15MB file {MaxFileSize / 1024 / 1024}MB." });
             }
 
             var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
@@ -163,7 +163,7 @@ namespace PublicationService.Controllers
 
             if (string.IsNullOrEmpty(extension) || !allowedExtensions.Contains(extension))
             {
-                return BadRequest(new { message = "Lo?i file không h?p l?. Ch? ch?p nh?n .jpg, .jpeg, .png." });
+                return BadRequest(new { message = "Only allow .jpg, .jpeg, .png." });
             }
 
             try
@@ -178,17 +178,17 @@ namespace PublicationService.Controllers
 
                 if ( novel == null)
                 {
-                    return NotFound(new { message = "Không tìm th?y novel." });
+                    return NotFound(new { message = "Novel not found" });
                 }
 
                 if(novel.NovelSeries == null)
                 {
-                    return BadRequest(new { message = "Novel này không thu?c v? series nào." });
+                    return BadRequest(new { message = "Novel not belong to any series" });
                 }
 
                 if (novel.NovelSeries.uploader_id != currentUserId)
                 {
-                    return Forbid("B?n không có quy?n thay ??i ?nh bìa cho novel này.");
+                    return Forbid("You do not have permit to change");
                 }
 
                
@@ -217,7 +217,7 @@ namespace PublicationService.Controllers
                     if (System.IO.File.Exists(oldFilePath))
                     {
                         try { System.IO.File.Delete(oldFilePath); }
-                        catch (IOException ex) { _logger.LogWarning(ex, "Không th? xóa file ?nh bìa c? c?a novel: {OldFilePath}", oldFilePath); }
+                        catch (IOException ex) { _logger.LogWarning(ex, "Cannot remove novel cover_image novel: {OldFilePath}", oldFilePath); }
                     }
                 }
 
@@ -248,7 +248,7 @@ namespace PublicationService.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "?ã x?y ra l?i máy ch? trong quá trình t?i file." });
+                return StatusCode(500, new { message = "Erro when uploading file " });
             }
         }
     }

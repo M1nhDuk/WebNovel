@@ -21,7 +21,6 @@ namespace Shareds.DTOs.Comment
         public string? UserName { get; set; }
         public string? UserAvatarThumbnail { get; set; }
 
-        // Có thể thêm số lượng replies hoặc danh sách replies trực tiếp tùy nhu cầu
         public int ReplyCount { get; set; } = 0;
 
     }

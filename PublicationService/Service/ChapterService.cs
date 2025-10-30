@@ -334,7 +334,7 @@ namespace NovelService.Service
 
 
 
-            //Điền các vị trí còn lại bằng các chương không có delta, giữ nguyên thứ tự của các chương 
+            //Điền các vị trí còn lại bằng các chương và giữ nguyên thứ tự của các chương 
             int cursor = 1;
             foreach (var chapter in chapters)
             {

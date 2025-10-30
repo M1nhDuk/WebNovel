@@ -5,12 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Shareds.DTOs.UserService
+namespace Shareds.DTOs.AuthService
 {
-    public class RemoveFavoritesDto
+    public class UpdateRoleDto
     {
         [Required]
-        [MinLength(1, ErrorMessage = "Required SeriesId.")]
-        public List<int> SeriesIds { get; set; } = new List<int>();
+        public string NewRole { get; set; }
     }
 }

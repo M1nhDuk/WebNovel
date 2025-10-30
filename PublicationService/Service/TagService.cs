@@ -70,7 +70,7 @@ namespace NovelService.Service
 
         public async Task<bool> UpdateTagAsync(int id, TagUpdateDto dto)
         {
-            var tag = await _context.Tags.FindAsync();
+            var tag = await _context.Tags.FindAsync(id);
             if (tag == null)
             {
                 return false;

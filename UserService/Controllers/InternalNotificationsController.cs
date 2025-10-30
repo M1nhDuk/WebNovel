@@ -35,7 +35,7 @@ namespace UserService.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi khi tạo thông báo nội bộ cho User {UserId}", dto.UserId);
-                return StatusCode(500, "Lỗi máy chủ nội bộ");
+                return StatusCode(500, "Erro connection");
             }
         }
     }

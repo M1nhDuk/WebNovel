@@ -60,7 +60,7 @@ namespace InteractionService.Service
           
                 return;
             }
-            catch (Exception ex) // Bắt các lỗi khác như JSON parsing
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing response from AuthService batch endpoint. URL: {Url}", httpClient.BaseAddress + requestUrl);
                 return;
@@ -125,6 +125,7 @@ namespace InteractionService.Service
                 {
                     throw new ArgumentException("Reply target does not match parent comment target.");
                 }
+
                 // Lấy UserId của người viết comment gốc để gửi thông báo
                 parentCommentUserId = parentComment.UserId;
             }
@@ -165,7 +166,7 @@ namespace InteractionService.Service
 
                 var notificationDto = new CreateNotificationDto
                 {
-                    UserId = parentCommentUserId.Value, // Người nhận là User B
+                    UserId = parentCommentUserId.Value,
                     Type = "NewComment",
                     Message = $"{commenterName} replied to your comment.",
                     LinkUrl = linkUrl + $"#comment-{newComment.CommentId}" // Link tới comment mới
@@ -174,7 +175,7 @@ namespace InteractionService.Service
             }
 
 
-            // Kịch bản 2: User B comment vào bài của User A
+            //User B comment vào bài của User A
             else if (contentAuthorId.HasValue && contentAuthorId.Value != userId) //comment gốc
             {
 
@@ -382,7 +383,7 @@ namespace InteractionService.Service
                 _logger.LogError("ServiceUrls:UserService is not configured. Cannot send notification.");
                 return;
             }
-            var httpClient = _httpClientFactory.CreateClient(); // Có thể tạo named client cho UserService
+            var httpClient = _httpClientFactory.CreateClient();
             var notificationUrl = $"{userServiceUrl}/api/internal/notifications";
 
             try

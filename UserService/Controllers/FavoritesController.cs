@@ -67,7 +67,7 @@ namespace UserService.Controllers
             }
             catch (HttpRequestException ex) 
             {
-                return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Lỗi kết nối dịch vụ, vui lòng thử lại sau." });
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Connection Erro" });
             }
             catch (KeyNotFoundException ex) //Series không tồn tại
             {
@@ -101,7 +101,7 @@ namespace UserService.Controllers
         {
             if (dto == null || dto.SeriesIds == null || !dto.SeriesIds.Any())
             {
-                return BadRequest(new { message = "Cần cung cấp danh sách SeriesId để xóa." });
+                return BadRequest(new { message = "Series required to delete." });
             }
 
             try
@@ -112,12 +112,12 @@ namespace UserService.Controllers
 
                 if (deletedCount == 0)
                 {
-                    return NotFound(new { message = "Không tìm thấy truyện yêu thích nào để xóa." });
+                    return NotFound(new { message = "Cannot find series to remove" });
                 }
 
                 return Ok(new
                 {
-                    message = $"Đã xóa thành công {deletedCount} truyện khỏi danh sách yêu thích.",
+                    message = $"Remove successfully {deletedCount} series from favorite list.",
                     deletedCount = deletedCount
                 });
             }

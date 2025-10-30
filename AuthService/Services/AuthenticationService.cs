@@ -37,6 +37,11 @@ namespace AuthService.Services
                 return null;
             }
 
+            if (user.IsLocked)
+            {
+                throw new Exception("This account is Locked.");
+            }
+
             if (!user.IsEmailConfirmed)
             {
                 throw new Exception("Unvalid Email, check your email to verify");

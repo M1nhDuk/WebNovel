@@ -62,7 +62,7 @@ namespace NovelService.Service
                     cover_images = dto.cover_images,
                     type = type.Series,
                     note = dto.note,
-                    uploader_id = uploaderId,                              // <-- lấy từ service khác 
+                    uploader_id = uploaderId,                         
                     category_id = dto.category_id ?? throw new ArgumentNullException(nameof(dto.category_id)),
                     status_id = dto.status_id,
                     views = 0,
@@ -300,7 +300,6 @@ namespace NovelService.Service
                     uploader_id = s.uploader_id,
                     type = "Series",
 
-                    // category + status
                     category_id = s.category_id,
                     categoryName = s.category?.category_name,
                     status_id = s.status_id,
@@ -561,14 +560,13 @@ namespace NovelService.Service
 
                 if (followerIds == null || !followerIds.Any())
                 {
-                    _logger.LogInformation("Không có follower nào cho series {SeriesId}", seriesId);
+                    _logger.LogInformation("No Follower for series {SeriesId}", seriesId);
                     return;
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi gọi UserService để lấy followers cho SeriesId {SeriesId}", seriesId);
-                return; // Không ném lỗi, chỉ log và bỏ qua
+                return; 
             }
 
             foreach (var followerId in followerIds)

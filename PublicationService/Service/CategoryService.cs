@@ -32,7 +32,7 @@ namespace NovelService.Service
             bool nameExists = await _context.Categories.AnyAsync(c => c.category_name == dto.category_name);
             if (nameExists)
             {
-                throw new InvalidOperationException("Tên thể loại đã tồn tại.");
+                throw new InvalidOperationException("Name exist.");
             }
 
             var newCategory = new Category

@@ -42,7 +42,6 @@ namespace UserService.UserSettingService
 
                 if (existingEntry != null)
                 {
-                    // Đã có, chỉ cập nhật thời gian
                     existingEntry.LastAccessedAt = DateTime.UtcNow;
                     _context.ReadingHistories.Update(existingEntry);
                     _logger.LogInformation("Updated reading history for User {UserId}, Series {SeriesId}", userId, seriesId);
@@ -123,6 +122,8 @@ namespace UserService.UserSettingService
                 return deletedCount;
             }
 
+
+        //Helper
             private async Task EnrichHistoryItemsAsync(List<ReadingHistoryDto> historyItems)
             {
                 if (!historyItems.Any()) return;

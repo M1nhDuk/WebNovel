@@ -77,7 +77,7 @@ namespace UserService.Controllers
         {
             if (dto == null || dto.HistoryIds == null || !dto.HistoryIds.Any()) // Kiểm tra HistoryIds
             {
-                return BadRequest(new { message = "Cần cung cấp danh sách HistoryIds để xóa." });
+                return BadRequest(new { message = "Provide list of HistoryIds to remove." });
             }
 
             try
@@ -88,12 +88,12 @@ namespace UserService.Controllers
                 if (deletedCount == 0)
                 {
                    
-                    return Ok(new { message = "Không tìm thấy mục lịch sử nào phù hợp để xóa.", deletedCount });
+                    return Ok(new { message = "Cannot find any history to remove.", deletedCount });
                 }
 
                 return Ok(new
                 {
-                    message = $"Đã xóa thành công {deletedCount} mục khỏi lịch sử đọc.",
+                    message = $"Remove {deletedCount} from reading history.",
                     deletedCount
                 });
             }

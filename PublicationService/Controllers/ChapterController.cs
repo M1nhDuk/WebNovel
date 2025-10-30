@@ -39,7 +39,7 @@ namespace NovelService.Controllers
 
         // === FLOW 1: SERIES -> NOVEL -> CHAPTER ===
 
-        //   [HttpPost("series/{seriesId:int}/novels/{novelId:int}/chapters")]
+
         [HttpPost("novels/{novelId:int}/chapters")]
         [Authorize]
         public async Task<IActionResult> CreateChapterForNovel([FromRoute] int novelId, [FromBody] ChapterCreateDto dto)
@@ -60,7 +60,6 @@ namespace NovelService.Controllers
 
 
         //Update
-        //  [HttpPut("series/{seriesId:int}/novels/{novelId:int}/chapters/{chapterId:int}")]
         [HttpPut("novels/{novelId:int}/chapters/{chapterId:int}")]
         [Authorize]
         public async Task<IActionResult> UpdateChapterForNovel(int novelId, [FromRoute] int chapterId, [FromBody] ChapterUpdateDto dto)
@@ -83,7 +82,6 @@ namespace NovelService.Controllers
 
 
         //Get(View)
-        //[HttpGet("series/{seriesId:int}/novels/{novelId:int}/chapters/{chapterId:int}")]
         [HttpGet("novels/{novelId:int}/chapters/{chapterId:int}")]
         public async Task<ActionResult<ChapterDetailDto>> GetChapterByIdForNovel(int novelId, [FromRoute] int chapterId)
         {
@@ -94,7 +92,6 @@ namespace NovelService.Controllers
 
 
         //Delete
-        // [HttpDelete("series/{seriesId:int}/novels/{novelId:int}/chapters/{chapterId:int}")]
         [HttpDelete("novels/{novelId:int}/chapters/{chapterId:int}")]
         [Authorize]
         public async Task<IActionResult> DeleteChapterForNovel(int novelId, [FromRoute] int chapterId)
@@ -115,7 +112,6 @@ namespace NovelService.Controllers
 
 
         //Reorder
-        // [HttpPost("series/{seriesId:int}/novels/{novelId:int}/chapters/reorder")]
         [HttpPost("novels/{novelId:int}/chapters/reorder")]
         [Authorize]
         public async Task<IActionResult> ReorderChaptersForNovel([FromRoute] int novelId, [FromBody] ReorderChaptersRequest request)
