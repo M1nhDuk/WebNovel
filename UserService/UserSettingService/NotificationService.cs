@@ -114,8 +114,7 @@ namespace UserService.UserSettingService
                 return 0; 
             }
 
-            // Tìm tất cả thông báo của user này
-            // VÀ có NotificationId nằm trong danh sách được cung cấp
+            // Tìm tất cả thông báo của user hiện tại
             var notificationsToDelete = await _context.Notification
                 .Where(n => n.UserId == userId && notificationIds.Contains(n.NotificationsId))
                 .ToListAsync();

@@ -68,7 +68,7 @@ namespace UserService.UserSettingService
             {
                 if (pageNumber < 1) pageNumber = 1;
                 if (pageSize < 1) pageSize = 10;
-                if (pageSize > 50) pageSize = 50; // Giới hạn kích thước trang
+                if (pageSize > 20) pageSize = 20; 
 
                 var query = _context.ReadingHistories
                     .Where(rh => rh.UserId == userId)

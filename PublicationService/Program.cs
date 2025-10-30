@@ -116,6 +116,9 @@ builder.Services.AddScoped<INovelSeriesService, NovelSeriesService>();
 builder.Services.AddScoped<INovelService, NovelService.Service.NovelService>();
 builder.Services.AddScoped<IChapterService, NovelService.Service.ChapterService>();
 builder.Services.AddScoped<IClassicSeries, ClassicSeriesService>();
+builder.Services.AddScoped<ITagService, TagService>();
+builder.Services.AddScoped<ICategory, CategoryService>();
+builder.Services.AddScoped<IStatusService, StatusService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

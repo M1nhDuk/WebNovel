@@ -2,7 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using NovelService.Data;
 using NovelService.Models;
+using Shareds.DTOs;
 using Shareds.DTOs.NovelSeries;
+using System.Linq;
 
 namespace NovelService.Controllers
 {
@@ -116,7 +118,7 @@ namespace NovelService.Controllers
             }
         }
 
-
+        //Reading History
         [HttpPost("batch-series-summary")] 
         public async Task<ActionResult<List<SeriesSummaryDto>>> GetBatchSeriesSummaries([FromBody] List<int> seriesIds)
         {
@@ -141,7 +143,9 @@ namespace NovelService.Controllers
                 if (summaries.Count != seriesIds.Distinct().Count())
                 {
                     var foundIds = summaries.Select(s => s.SeriesId).ToHashSet();
+
                     var notFoundIds = seriesIds.Distinct().Where(id => !foundIds.Contains(id));
+
                     _logger.LogWarning("Could not find series summaries for IDs: {NotFoundIds}", string.Join(", ", notFoundIds));
                 }
 
@@ -155,6 +159,72 @@ namespace NovelService.Controllers
             }
         }
 
+
+        //Book mark
+        [HttpPost("batch-details")]
+        public async Task<ActionResult<List<PublicationDetailResponseItem>>> GetBatchPublicationDetails([FromBody] List<PublicationDetailRequestItem> requestItems)
+        {
+            if (requestItems == null || !requestItems.Any())
+            {
+                return Ok(new List<PublicationDetailResponseItem>());
+            }
+
+            var chapterIds = requestItems.Select(r => r.ChapterId).Distinct().ToList();
+
+            try
+            {
+                // Truy vấn các chapter và thông tin liên quan
+                var chapters = await _context.Chapters
+                    .Where(c => chapterIds.Contains(c.chapter_id))
+                    .Include(c => c.Novel)
+                        .ThenInclude(n => n.NovelSeries) // Flow: Series -> Novel -> Chapter
+                    .Include(c => c.TS) // Flow: ClassicSeries  -> Chapter
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                var results = new List<PublicationDetailResponseItem>();
+
+                // Map kết quả
+                foreach (var req in requestItems)
+                {
+                    var chapter = chapters.FirstOrDefault(c => c.chapter_id == req.ChapterId);
+                    if (chapter != null)
+                    {
+ 
+                        var series = chapter.TS ?? chapter.Novel?.NovelSeries;
+
+
+                        if (series != null && series.series_Id == req.SeriesId)
+                        {
+                            results.Add(new PublicationDetailResponseItem
+                            {
+                                SeriesId = req.SeriesId,
+                                ChapterId = req.ChapterId,
+                                SeriesTitle = series.series_title,
+                                SeriesCoverImage = series.cover_images,
+                                ChapterTitle = chapter.title,
+                                ChapterNumber = chapter.chapter_number
+                            });
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Chapter {ChapterId} found but does not belong to requested Series {SeriesId}", req.ChapterId, req.SeriesId);
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Chapter {ChapterId} requested in batch details not found.", req.ChapterId);
+                    }
+                }
+
+                return Ok(results);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching batch publication details.");
+                return StatusCode(500, "Internal server error while fetching batch details.");
+            }
+        }
 
     }
 }

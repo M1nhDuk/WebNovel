@@ -3,27 +3,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shareds.DTOs.NovelSeries;
 using Shareds.DTOs.UserService;
+using Shareds.DTOs;
 using UserService.Data;
 using UserService.Migrations;
 using UserService.UserSettingService.Interface;
 
 namespace UserService.UserSettingService
 {
-    public class PublicationDetailRequestItem
-    {
-        public int SeriesId { get; set; }
-        public int ChapterId { get; set; }
-    }
+   
 
-    public class PublicationDetailResponseItem
-    {
-        public int SeriesId { get; set; }
-        public int ChapterId { get; set; }
-        public string? SeriesTitle { get; set; }
-        public string? SeriesCoverImage { get; set; }
-        public string? ChapterTitle { get; set; }
-        public int ChapterNumber { get; set; }
-    }
+    
 
     public class BookmarkService: IBookmarkService
     {

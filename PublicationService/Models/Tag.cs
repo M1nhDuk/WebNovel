@@ -4,7 +4,7 @@
     {
         public int tagId { get; set; }
         public string tagName { get; set; }
-
+        public string? Description { get; set; }
         public ICollection<NovelTag> NovelTags { get; set; } = new List<NovelTag>();
     }
 }

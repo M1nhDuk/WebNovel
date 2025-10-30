@@ -40,7 +40,6 @@ using System.Threading.Tasks;
                     else
                     {
                         _logger.LogWarning("Invalid GUID format received in batch request: {InvalidId}", idStr);
-                        // Có thể bỏ qua ID không hợp lệ hoặc trả về lỗi tùy logic
                     }
                 }
 

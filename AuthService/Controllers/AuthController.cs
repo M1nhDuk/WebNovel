@@ -85,6 +85,8 @@ namespace AuthService.Controllers
             return Ok("Email have been sent to your ib!");
         }
 
+
+
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
         {
@@ -118,6 +120,8 @@ namespace AuthService.Controllers
             return Ok(new { email });
         }
 
+
+
         //Logout
         [Authorize] 
         [HttpPost("logout")]
@@ -132,8 +136,5 @@ namespace AuthService.Controllers
             await autheService.LogoutAsync(userId);
             return Ok("Logged out successfully.");
         }
-
-
-
     }
 }
