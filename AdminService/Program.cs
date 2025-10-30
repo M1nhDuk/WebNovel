@@ -1,4 +1,7 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,6 +9,12 @@ builder.Services.AddHttpClient("AuthServiceClient", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["ServiceUrls:AuthService"]
         ?? throw new InvalidOperationException("AuthService URL not configured"));
+});
+
+builder.Services.AddHttpClient("NovelServiceClient", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ServiceUrls:NovelService"]
+        ?? throw new InvalidOperationException("NovelService URL not configured"));
 });
 
 // Add services to the container.
@@ -24,7 +33,7 @@ builder.Services.AddSwaggerGen(options =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Enter 'Bearer' + your token "
+        Description = "Enter your token "
     });
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
@@ -34,6 +43,24 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
+
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(option =>
+    {
+        option.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["AppSettings:Issuer"],
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["AppSettings:Audience"],
+            ValidateLifetime = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["AppSettings:Token"]!)),
+            ValidateIssuerSigningKey = true
+        };
+    });
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -46,6 +73,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication(); 
 app.UseAuthorization();
 
 app.MapControllers();
