@@ -24,6 +24,7 @@ namespace AdminService.Controllers
             _logger = logger;
         }
 
+
         private HttpClient GetAuthClient()
         {
             var client = _httpClientFactory.CreateClient("AuthServiceClient");
