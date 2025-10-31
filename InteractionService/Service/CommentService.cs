@@ -314,7 +314,7 @@ namespace InteractionService.Service
                 return false;
             }
 
-            if (comment.UserId != userId /* && !User.IsInRole("Admin") */)
+            if (comment.UserId != userId)
             {
                 throw new UnauthorizedAccessException("You are not allowed to delete this comment.");
             }
@@ -357,12 +357,35 @@ namespace InteractionService.Service
                 return true;
             }
 
+
+
             _context.Comments.RemoveRange(commentsToDelete);
             var result = await _context.SaveChangesAsync();
 
             _logger.LogInformation("Deleted {Count} comments for ChapterId {ChapterId}", result, chapterId);
 
             return result > 0;
+
+        }
+
+
+        public async Task<bool> AdminDeleteCommentAsync(Guid commentId)
+        {
+            var comment = await _context.Comments.FindAsync(commentId);
+            if (comment == null)
+            {
+                return false; 
+            }
+
+            _context.Comments.Remove(comment);
+            var result = await _context.SaveChangesAsync();
+
+            if (result > 0)
+            {
+                _logger.LogWarning("ADMIN deleted comment {CommentId}", commentId);
+                return true;
+            }
+            return false;
 
         }
 
@@ -458,6 +481,8 @@ namespace InteractionService.Service
                 return null;
             }
         }
+
+
 
 
         private CommentDto MapToDto(Comment c, int replyCount = 0)

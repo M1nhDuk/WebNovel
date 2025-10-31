@@ -1,10 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using NovelService.Data;
 using NovelService.Models;
+using NovelService.Service.Interfaces;
 using Shareds.DTOs;
 using Shareds.DTOs.NovelSeries;
 using System.Linq;
+using System.Net.Http;
 
 namespace NovelService.Controllers
 {
@@ -14,14 +18,29 @@ namespace NovelService.Controllers
     {
         public readonly NovelDbContext _context;
         private readonly ILogger<InternalNovelController> _logger;
+        private readonly INovelSeriesService _seriesService;
+        private readonly INovelService _novelService;
+        private readonly IChapterService _chapterService;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public InternalNovelController(NovelDbContext context, ILogger<InternalNovelController> logger)
+        public InternalNovelController(NovelDbContext context,
+            ILogger<InternalNovelController> logger,
+            INovelSeriesService seriesService,
+            INovelService novelService,
+            IChapterService chapterService,
+            IHttpClientFactory httpClientFactory)
         {
             _context = context;
             _logger = logger;
+            _seriesService = seriesService;
+            _novelService = novelService;
+            _chapterService = chapterService;
+            _httpClientFactory = httpClientFactory;
         }
 
         [HttpGet("series/{seriesId:int}/uploader")]
+
+
         public async Task<ActionResult<Guid>> GetSeriesUploader(int seriesId)
         {
             try
@@ -225,6 +244,111 @@ namespace NovelService.Controllers
                 _logger.LogError(ex, "Error fetching batch publication details.");
                 return StatusCode(500, "Internal server error while fetching batch details.");
             }
+        }
+
+
+
+        //Helper gọi InteractionService để xóa comment
+        private async Task<bool> DeleteCommentsForSeries(int seriesId)
+        {
+            try
+            {           
+                var client = _httpClientFactory.CreateClient("InteractionServiceClient");
+     
+                var response = await client.DeleteAsync($"api/internal/comments/by-series/{seriesId}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("Failed to delete comments for SeriesId {SeriesId} from InteractionService. Status: {StatusCode}", seriesId, response.StatusCode);
+                    return false;
+                }
+                _logger.LogInformation("Successfully triggered comment deletion for SeriesId {SeriesId}", seriesId);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calling InteractionService to delete comments for SeriesId {SeriesId}", seriesId);
+                return false; 
+            }
+        }
+
+ 
+        private async Task<bool> DeleteCommentsForChapter(int chapterId)
+        {
+            try
+            {
+                var client = _httpClientFactory.CreateClient("InteractionServiceClient");
+                var response = await client.DeleteAsync($"api/internal/comments/by-chapter/{chapterId}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("Failed to delete comments for ChapterId {ChapterId} from InteractionService. Status: {StatusCode}", chapterId, response.StatusCode);
+                    return false;
+                }
+                _logger.LogInformation("Successfully triggered comment deletion for ChapterId {ChapterId}", chapterId);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calling InteractionService to delete comments for ChapterId {ChapterId}", chapterId);
+                return false;
+            }
+        }
+
+        // SERIES -- NOVEL -- CHAPTER 
+
+        [HttpDelete("admin/series/{id:int}")]
+        [Authorize(Roles = "Admin")] 
+        public async Task<IActionResult> AdminDeleteSeries(int id)
+        {
+            _logger.LogWarning("Admin executing delete for SeriesId {SeriesId}", id);
+            var series = await _context.Novel_Series.FindAsync(id);
+            if (series == null) return NotFound();
+
+            await DeleteCommentsForSeries(id);
+
+            _context.Novel_Series.Remove(series);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+
+
+        [HttpDelete("admin/novels/{id:int}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AdminDeleteNovel(int id)
+        {
+            var novel = await _context.Novels.FindAsync(id);
+            if (novel == null) return NotFound();
+
+            foreach (var chapter in novel.Chapters)
+            {
+                await DeleteCommentsForChapter(chapter.chapter_id);
+            }
+
+            _context.Novels.Remove(novel);
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpDelete("admin/chapters/{id:int}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AdminDeleteChapter(int id)
+        {
+
+            var chapter = await _context.Chapters.FindAsync(id);
+            if (chapter == null) return NotFound();
+
+            await DeleteCommentsForChapter(id);
+
+            _context.Chapters.Remove(chapter);
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
 
     }

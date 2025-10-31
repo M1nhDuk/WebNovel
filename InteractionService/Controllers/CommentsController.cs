@@ -92,6 +92,8 @@ namespace InteractionService.Controllers
             }
         }
 
+
+
         [HttpGet("chapters/{chapterId:int}/comments")]
         public async Task<ActionResult<PagedResult<CommentDto>>> GetChapterComments(int chapterId, [FromQuery] int page = 1, [FromQuery] int size = 20)
         {
@@ -108,6 +110,9 @@ namespace InteractionService.Controllers
             }
         }
 
+
+
+
         [HttpGet("comments/{parentCommentId:guid}/replies")]
         public async Task<ActionResult<PagedResult<CommentDto>>> GetCommentReplies(Guid parentCommentId, [FromQuery] int page = 1, [FromQuery] int size = 10)
         {
@@ -122,6 +127,9 @@ namespace InteractionService.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
+
+
 
         // --- Manage Comment (Chung) ---
 

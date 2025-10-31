@@ -51,7 +51,7 @@ namespace NovelService.Service
                 { 
                     series_Id = series_Id,
                     title = dto.title,
-                    cover_images = dto.cover_images,
+                    cover_images = string.IsNullOrEmpty(dto.cover_images) ? "/images/covers/default_cover.jpg" : dto.cover_images,
                     novel_number = nextNumber,
                     updated_at = DateTime.UtcNow
                 };
@@ -84,13 +84,23 @@ namespace NovelService.Service
         public async Task<NovelDetailDto?> UpdateNovelAsync(int novel_Id, NovelUpdateDto dto, Guid uploader_id, int series_Id)
         {
             // kiểm tra series tồn tại
-            var series = await _context.Novel_Series.FirstOrDefaultAsync(s => s.series_Id == dto.series_Id);
-            if (series == null) throw new InvalidOperationException("Series not found");
+            var novel = await _context.Novels
+                .Include(n => n.NovelSeries)
+                .FirstOrDefaultAsync(n => n.novel_Id == novel_Id && n.series_Id == series_Id);
 
-            var novel = await _context.Novels.FirstOrDefaultAsync(n => n.novel_Id == novel_Id);
 
             if (novel == null)
                 throw new InvalidOperationException("Novel not found");
+
+            if (novel.NovelSeries == null)
+            {
+                throw new InvalidOperationException("Cannot update novel: Parent series not found.");
+            }
+
+            if (novel.NovelSeries.uploader_id != uploader_id)
+            {
+                throw new UnauthorizedAccessException("You are not authorized to update this novel.");
+            }
 
             if (!string.IsNullOrWhiteSpace(dto.title))
                 novel.title = dto.title;
@@ -99,7 +109,6 @@ namespace NovelService.Service
                 novel.cover_images = dto.cover_images;
 
             novel.updated_at = DateTime.Now;
-
 
             await _context.SaveChangesAsync();
 
@@ -156,8 +165,9 @@ namespace NovelService.Service
 
 
         //Delete
-        public async Task<bool> DeleteNovelAsync(int id, Guid uploader_Id, int series_Id) // chưa check quyền quản tri (uploaderID)
+        public async Task<bool> DeleteNovelAsync(int id, Guid uploader_Id, int series_Id)
         {
+
             var novel = await _context.Novels
                 .Include(n => n.Chapters)
                 .Include(n => n.NovelSeries)
@@ -165,6 +175,17 @@ namespace NovelService.Service
 
             if (novel == null)
                 throw new InvalidOperationException("Novel not found");
+
+
+            if (novel.NovelSeries == null)
+            {
+                throw new InvalidOperationException("Cannot delete novel: Parent series not found.");
+            }
+
+            if (novel.NovelSeries.uploader_id != uploader_Id)
+            {
+                throw new UnauthorizedAccessException("You are not authorized to delete this novel.");
+            }
 
             int deletedWordCount = novel.Chapters?.Sum(c => c.word_count) ?? 0;
 

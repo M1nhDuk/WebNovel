@@ -59,7 +59,7 @@ namespace NovelService.Service
                     author = dto.author,
                     artist = dto.artist,
                     description = dto.description,
-                    cover_images = dto.cover_images,
+                    cover_images = string.IsNullOrEmpty(dto.cover_images) ? "/images/covers/default_cover.jpg" : dto.cover_images,
                     type = type.Series,
                     note = dto.note,
                     uploader_id = uploaderId,                         

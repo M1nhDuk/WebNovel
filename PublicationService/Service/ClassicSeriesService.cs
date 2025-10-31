@@ -100,11 +100,9 @@ namespace NovelService.Service
 
             if (series.uploader_id != uploaderId)
             {
-                _logger.LogWarning("User {UploaderId} is not authorized to update series {SeriesId}.", uploaderId, seriesId);
                 throw new UnauthorizedAccessException("You are not authorized to update this series.");
             }
 
-            //Cập nhật các thuộc tính chung bằng cách truyền thẳng DTO
             await _novelSeriesService.UpdateSeriesAsync(seriesId, dto, uploaderId);
 
             //Cập nhật các thuộc tính riêng của ClassicSeries

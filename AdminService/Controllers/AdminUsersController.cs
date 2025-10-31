@@ -33,6 +33,7 @@ namespace AdminService.Controllers
             return client;
         }
 
+        //Get all
         [HttpGet]
         public async Task<IActionResult> GetUsers(
             [FromQuery] int page = 1,
