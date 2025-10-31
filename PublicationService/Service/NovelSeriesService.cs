@@ -174,7 +174,7 @@ namespace NovelService.Service
 
 
         //Delete
-        public async Task<bool> DeleteSeriesById(int id, Guid uploader_Id) // chưa valid quyền quản tri (uploaderID)
+        public async Task<bool> DeleteSeriesById(int id, Guid uploader_Id) 
         {
             var series = await _context.Novel_Series
                 .Include(s => s.Novel)
@@ -188,6 +188,23 @@ namespace NovelService.Service
             if (series.uploader_id != uploader_Id)
                 throw new UnauthorizedAccessException("You are not allowed to delete this series");
 
+            try
+            {
+                var httpClient = _httpClientFactory.CreateClient("InteractionServiceClient");
+                var response = await httpClient.DeleteAsync($"api/internal/comments/by-series/{id}");
+
+                if (!response.IsSuccessStatusCode)
+                {               
+                    _logger.LogError("Failed to delete comments for SeriesId {SeriesId} from InteractionService",id);    
+                }
+                else
+                {
+                    _logger.LogInformation("Successfully triggered comment deletion for SeriesId {SeriesId}", id);
+                }
+            } catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calling InteractionService to delete comments for SeriesId {SeriesId}", id);
+            }
 
             var notificationDto = new CreateNotificationDto
             {
@@ -441,6 +458,7 @@ namespace NovelService.Service
 
 
 // -------------------------------------------------------------------------------------------------------------------------------------------- //
+
 //Sorting
         public IQueryable<NovelSeries> Sorting(
            IQueryable<NovelSeries> query,

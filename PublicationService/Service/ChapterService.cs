@@ -7,6 +7,8 @@ using Shareds.DTOs.Novel;
 using AutoMapper;
 using Shareds.DTOs.Chapter;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace NovelService.Service
 {
@@ -16,12 +18,14 @@ namespace NovelService.Service
         private readonly NovelDbContext _context;
         private readonly IUserService _userService;
         private readonly ILogger<IChapterService> _logger;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public ChapterService(NovelDbContext context, ILogger<IChapterService> logger)
+        public ChapterService(NovelDbContext context, ILogger<IChapterService> logger, IHttpClientFactory httpClientFactory)
         {
             _context = context;
             // _userService = userService;
             _logger = logger;
+            _httpClientFactory = httpClientFactory;
         }
 
         //TẠO CHAPTER (liên kết đến novel tồn tại) + update counts
@@ -222,7 +226,7 @@ namespace NovelService.Service
         }
 
         //Delete
-        public async Task<bool> DeleteChapterById(int id, Guid uploaderId, int? novelId = null, int? seriesId = null) // chưa check quyền quản tri (uploaderID)
+        public async Task<bool> DeleteChapterById(int id, Guid uploaderId, int? novelId = null, int? seriesId = null) 
         {
             var query = _context.Chapters
                 .Include(c => c.Novel).ThenInclude(n => n.NovelSeries)
@@ -244,28 +248,50 @@ namespace NovelService.Service
 
             var parentSeries = chapter.Novel?.NovelSeries ?? chapter.TS;
 
+            if (parentSeries == null || parentSeries.uploader_id != uploaderId)
+            { 
+                throw new UnauthorizedAccessException("You are not authorized to delete this chapter.");
+            }
+
+
             using var tx = await _context.Database.BeginTransactionAsync();
 
             try
             {
-                // Trừ word_count khỏi series cha
-                if (parentSeries != null)
+                var httpClient = _httpClientFactory.CreateClient("InteractionServiceClient");
+                var response = await httpClient.DeleteAsync($"api/internal/comments/by-chapter/{id}");
+
+                if(!response.IsSuccessStatusCode)
                 {
-                    parentSeries.word_count = Math.Max(0, parentSeries.word_count - chapter.word_count);
-                    parentSeries.updated_at = DateTime.UtcNow;
-                    _context.Novel_Series.Update(parentSeries);
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("Failed to delete comments for ChapterId {ChapterId} from InteractionService",id);
+
+                    await tx.RollbackAsync();
+                    throw new Exception("Failed to clear comments. Aborting chapter deletion.");
                 }
+                _logger.LogInformation("Successfully triggered comment deletion for ChapterId {ChapterId}", id);
+
+                parentSeries.word_count = Math.Max(0, parentSeries.word_count - chapter.word_count);
+
+                parentSeries.updated_at = DateTime.UtcNow;
+
+                _context.Novel_Series.Update(parentSeries);
 
                 _context.Chapters.Remove(chapter);
+
                 await _context.SaveChangesAsync();
+
 
                 await tx.CommitAsync();
                 return true;
             }
             catch (Exception ex)
             {
-                await tx.RollbackAsync();
-                _logger.LogError(ex, "DeleteChapterAsync failed for chapterId={chapterId}", id);
+                if (tx.GetDbTransaction().Connection != null)
+                {
+                    await tx.RollbackAsync();
+                }
+
                 throw;
             }
         }

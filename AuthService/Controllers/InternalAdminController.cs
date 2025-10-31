@@ -52,6 +52,7 @@ namespace AuthService.Controllers
 
 
             var totalRecords = await query.CountAsync();
+
             var users = await query
                 .OrderBy(u => u.Username)
                 .Skip((page - 1) * pageSize)
@@ -64,6 +65,7 @@ namespace AuthService.Controllers
                 Username = u.Username,
                 Email = u.Email,
                 Role = u.Role,
+                PasswordHash = u.PasswordHash,
                 IsEmailConfirmed = u.IsEmailConfirmed,
                 IsLocked = u.IsLocked,
                 CreatedAt = u.Created_At,
@@ -93,6 +95,7 @@ namespace AuthService.Controllers
                 UserId = user.UserId,
                 Username = user.Username,
                 Email = user.Email,
+                PasswordHash = user.PasswordHash,
                 Role = user.Role,
                 IsEmailConfirmed = user.IsEmailConfirmed,
                 IsLocked = user.IsLocked,

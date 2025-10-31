@@ -15,6 +15,8 @@ namespace Shareds.DTOs.AuthService
         public bool IsEmailConfirmed { get; set; }
         public bool IsLocked { get; set; }
         public DateTime? CreatedAt { get; set; }
+
+        public string PasswordHash { get; set; }
         public string? Avatar { get; set; }
         public string? AvatarThumbnail { get; set; }
         public string? BackgroundImage { get; set; }

@@ -14,8 +14,19 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddHttpClient();
 
+var interactionServiceUrl = builder.Configuration["ServiceUrls:InteractionService"] ??
+                              throw new InvalidOperationException("ServiceUrls:InteractionService is not configured.");
+
+builder.Services.AddHttpClient("InteractionServiceClient", client =>
+{
+    client.BaseAddress = new Uri(interactionServiceUrl);
+});
+
+
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
 
 builder.Services.AddSwaggerGen(options =>
 {

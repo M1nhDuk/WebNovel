@@ -142,7 +142,7 @@ namespace PublicationService.Controllers
 
 
 
-        [HttpPost("series/{id:int}/cover")]
+        [HttpPost("{id:int}/cover")]
         [Authorize]
         [RequestSizeLimit(MaxFileSize + 1024 * 1024)]
         public async Task<IActionResult> UploadNovelCover(int id, IFormFile file)

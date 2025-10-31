@@ -106,6 +106,7 @@ namespace NovelService.Service
             return await GetNovelByID(series_Id, novel.novel_Id);
         }
 
+
         //Read by id
         public async Task<NovelDetailDto?> GetNovelByID(int id, int series_Id )
         {

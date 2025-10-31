@@ -54,6 +54,7 @@ namespace AdminService.Controllers
             return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
         }
 
+
         // GET: api/admin/users/{id}
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetUserDetail(Guid id)
@@ -68,6 +69,7 @@ namespace AdminService.Controllers
             }
             return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
         }
+
 
         // PUT: api/admin/users/{id}/role
         [HttpPut("{id:guid}/role")]
@@ -106,6 +108,7 @@ namespace AdminService.Controllers
                 return NoContent();
             return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
         }
+
 
         // DELETE: api/admin/users/{id} 
         [HttpDelete("{id:guid}")]

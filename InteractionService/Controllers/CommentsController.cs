@@ -123,7 +123,7 @@ namespace InteractionService.Controllers
             }
         }
 
-        // --- Qu?n lý Comment (Chung) ---
+        // --- Manage Comment (Chung) ---
 
 
         [HttpGet("comments/{commentId:guid}", Name = "GetCommentById")]
@@ -178,6 +178,5 @@ namespace InteractionService.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
-
     }
 }
