@@ -331,6 +331,41 @@ namespace InteractionService.Service
             return false;
         }
 
+        public async Task<bool> DeleteCommentsBySeriesAsync(int seriesId)
+        {
+            var commentsToDelete = await _context.Comments.Where(c => c.SeriesId == seriesId).ToListAsync();
+
+            if(!commentsToDelete.Any())
+            {
+                return true;
+            }
+
+            _context.Comments.RemoveRange(commentsToDelete);
+            var result = await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Deleted {Count} comments for SeriesId {SeriesId}", result, seriesId);
+
+            return result > 0;
+        }
+
+        public async Task<bool> DeleteCommentsByChapterAsync(int chapterId)
+        {
+            var commentsToDelete = await _context.Comments.Where(c => c.ChapterId == chapterId).ToListAsync();
+
+            if (!commentsToDelete.Any())
+            {
+                return true;
+            }
+
+            _context.Comments.RemoveRange(commentsToDelete);
+            var result = await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Deleted {Count} comments for ChapterId {ChapterId}", result, chapterId);
+
+            return result > 0;
+
+        }
+
 
 
         //lấy Uploader ID từ NovelService
@@ -378,11 +413,13 @@ namespace InteractionService.Service
         private async Task SendNotificationAsync(CreateNotificationDto dto)
         {
             var userServiceUrl = _configuration["ServiceUrls:UserService"];
+
             if (string.IsNullOrEmpty(userServiceUrl))
             {
                 _logger.LogError("ServiceUrls:UserService is not configured. Cannot send notification.");
                 return;
             }
+
             var httpClient = _httpClientFactory.CreateClient();
             var notificationUrl = $"{userServiceUrl}/api/internal/notifications";
 

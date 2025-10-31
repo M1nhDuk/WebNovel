@@ -11,6 +11,8 @@ namespace InteractionService.Service.Inteface
         Task<PagedResult<CommentDto>> GetRepliesAsync(Guid parentCommentId, int pageNumber = 1, int pageSize = 10);
         Task<CommentDto?> UpdateCommentAsync(Guid commentId, Guid userId, UpdateCommentDto dto);
         Task<bool> DeleteCommentAsync(Guid commentId, Guid userId);
+        Task<bool> DeleteCommentsBySeriesAsync(int seriesId);
+        Task<bool> DeleteCommentsByChapterAsync(int chapterId);
 
         // Task<bool> AdminDeleteCommentAsync(Guid commentId);
     }
