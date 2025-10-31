@@ -124,6 +124,7 @@ namespace AuthService.Controllers
             return NoContent();
         }
 
+
         [HttpPost("{id:guid}/lock")]
         public async Task<IActionResult> LockUser(Guid id)
         {

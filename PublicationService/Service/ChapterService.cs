@@ -154,41 +154,45 @@ namespace NovelService.Service
                 query = query.Where(c => c.series_Id == seriesId.Value);
             }
 
+
             var chapter = await query.FirstOrDefaultAsync(c => c.chapter_id == chapter_id);
 
             if (chapter == null)
                 throw new InvalidOperationException("Chapter not found");
 
+            // Xác định parentSeries
+            var parentSeries = chapter.Novel?.NovelSeries ?? chapter.TS;
+
+            if (parentSeries == null || parentSeries.uploader_id != uploader_id)
+            {
+                throw new UnauthorizedAccessException("You are not authorized to edit this chapter.");
+            }
+
             bool contentChanged = false;
+
+            int oldWordCount = chapter.word_count;
+            int newWordCount = oldWordCount;
+
             if (!string.IsNullOrWhiteSpace(dto.title))
                 chapter.title = dto.title;
 
             if (!string.IsNullOrWhiteSpace(dto.content))
             {
                 chapter.content = dto.content;
-                chapter.word_count = dto.content.Split((char[])null, StringSplitOptions.RemoveEmptyEntries).Length;
+                newWordCount = dto.content.Split((char[])null, StringSplitOptions.RemoveEmptyEntries).Length;
+                chapter.word_count = newWordCount; 
                 contentChanged = true;
             }
 
-
-
             // Nếu nội dung thay đổi, cập nhật lại word_count của series cha
-            if (contentChanged)
+            if (contentChanged && parentSeries != null)
             {
-                // Xác định parentSeries
-                var parentSeries = chapter.Novel?.NovelSeries ?? chapter.TS;
+                // Tính toán chênh lệch
+                int wordCountDelta = newWordCount - oldWordCount;
 
-                if (parentSeries != null)
-                {
-                    // Tính lại tổng word count của tất cả chapter thuộc series
-                    var totalWordCount = await _context.Chapters
-                        .Where(c => (c.Novel != null && c.Novel.series_Id == parentSeries.series_Id) || c.series_Id == parentSeries.series_Id)
-                        .SumAsync(c => c.word_count);
-
-                    parentSeries.word_count = totalWordCount;
-                    parentSeries.updated_at = DateTime.UtcNow;
-                    _context.Novel_Series.Update(parentSeries);
-                }
+                parentSeries.word_count += wordCountDelta;
+                parentSeries.updated_at = DateTime.UtcNow;
+                _context.Novel_Series.Update(parentSeries);
             }
 
             await _context.SaveChangesAsync();

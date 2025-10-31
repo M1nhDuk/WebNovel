@@ -14,6 +14,6 @@ namespace InteractionService.Service.Inteface
         Task<bool> DeleteCommentsBySeriesAsync(int seriesId);
         Task<bool> DeleteCommentsByChapterAsync(int chapterId);
 
-        // Task<bool> AdminDeleteCommentAsync(Guid commentId);
+         Task<bool> AdminDeleteCommentAsync(Guid commentId);
     }
 }

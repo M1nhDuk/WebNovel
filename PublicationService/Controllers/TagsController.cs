@@ -40,7 +40,7 @@ namespace NovelService.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")] // Chỉ Admin
+        [Authorize(Roles = "Admin")] 
         public async Task<ActionResult<TagDto>> CreateTag([FromBody] TagCreateDto dto)
         {
             if (!ModelState.IsValid)
@@ -96,7 +96,7 @@ namespace NovelService.Controllers
 
 
         [HttpDelete("{id:int}")]
-        [Authorize(Roles = "Admin")] // Chỉ Admin
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteTag(int id)
         {
             try
@@ -106,12 +106,12 @@ namespace NovelService.Controllers
                 {
                     return NotFound(new { message = "Tag not found." });
                 }
-                return NoContent(); // 204 No Content
+                return NoContent();
             }
             catch (InvalidOperationException ex) 
             {
                 _logger.LogWarning(ex, "Failed to delete tag {TagId}.", id);
-                return BadRequest(new { message = ex.Message }); // 400 Bad Request
+                return BadRequest(new { message = ex.Message }); 
             }
             catch (Exception ex)
             {

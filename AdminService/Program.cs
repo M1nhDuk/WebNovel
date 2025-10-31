@@ -5,6 +5,8 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+//Add Service
 builder.Services.AddHttpClient("AuthServiceClient", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["ServiceUrls:AuthService"]
@@ -17,7 +19,11 @@ builder.Services.AddHttpClient("NovelServiceClient", client =>
         ?? throw new InvalidOperationException("NovelService URL not configured"));
 });
 
-// Add services to the container.
+builder.Services.AddHttpClient("InteractionServiceClient", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ServiceUrls:InteractionService"]
+        ?? throw new InvalidOperationException("InteractionService URL not configured"));
+});
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
