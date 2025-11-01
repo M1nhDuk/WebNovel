@@ -25,6 +25,14 @@ builder.Services.AddHttpClient("InteractionServiceClient", client =>
         ?? throw new InvalidOperationException("InteractionService URL not configured"));
 });
 
+builder.Services.AddHttpClient("UserServiceClient", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ServiceUrls:UserService"]
+        ?? throw new InvalidOperationException("UserService URL not configured"));
+});
+
+// -
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHttpContextAccessor();
