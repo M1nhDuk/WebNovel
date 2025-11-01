@@ -51,6 +51,7 @@ namespace AuthService.Services
         }
 
 
+
         //Create Token
         private async Task<TokenResponseDto> CreateTokenResponse(User? user, bool rememberMe = false)
         {
@@ -60,6 +61,7 @@ namespace AuthService.Services
                 RefreshToken = await GenerateAndSaveRefreshToken(user, rememberMe)
             };
         }
+
 
 
         //Log out
@@ -76,6 +78,7 @@ namespace AuthService.Services
 
             await context.SaveChangesAsync();
         }
+
 
 
         //Register

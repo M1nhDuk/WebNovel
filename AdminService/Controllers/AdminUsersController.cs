@@ -56,6 +56,7 @@ namespace AdminService.Controllers
         }
 
 
+
         // GET: api/admin/users/{id}
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetUserDetail(Guid id)
@@ -72,6 +73,7 @@ namespace AdminService.Controllers
         }
 
 
+
         // PUT: api/admin/users/{id}/role
         [HttpPut("{id:guid}/role")]
         public async Task<IActionResult> UpdateUserRole(Guid id, [FromBody] UpdateRoleDto dto)
@@ -83,6 +85,7 @@ namespace AdminService.Controllers
                 return NoContent();
             return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
         }
+
 
 
         // POST: api/admin/users/{id}/lock 
@@ -115,12 +118,34 @@ namespace AdminService.Controllers
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
-            var client = GetAuthClient();
-            var response = await client.DeleteAsync($"api/internal/admin/users/{id}");
+            var userClient = _httpClientFactory.CreateClient("UserServiceClient");
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            userClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            if (response.IsSuccessStatusCode)
-                return NoContent();
-            return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
+            var userResponse = await userClient.DeleteAsync($"api/internal/admin/users/{id}");
+            if (!userResponse.IsSuccessStatusCode && userResponse.StatusCode != System.Net.HttpStatusCode.NotFound)
+            {
+                return StatusCode((int)userResponse.StatusCode, "Failed to delete user data from UserService.");
+            }
+
+
+            var interactionClient = _httpClientFactory.CreateClient("InteractionServiceClient"); 
+            interactionClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token); 
+
+            var interactionResponse = await interactionClient.DeleteAsync($"api/internal/admin/users/{id}");
+            if (!interactionResponse.IsSuccessStatusCode && interactionResponse.StatusCode != System.Net.HttpStatusCode.NotFound)
+            {
+                return StatusCode((int)interactionResponse.StatusCode, "Failed to delete user comments from InteractionService.");
+            }
+
+
+            var authClient = GetAuthClient(); 
+            var authResponse = await authClient.DeleteAsync($"api/internal/admin/users/{id}");
+
+            if (authResponse.IsSuccessStatusCode)
+                return NoContent(); 
+
+            return StatusCode((int)authResponse.StatusCode, await authResponse.Content.ReadAsStringAsync());
         }
 
     }
