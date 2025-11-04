@@ -100,6 +100,16 @@ namespace NovelService.Controllers
             [HttpGet("series/{id:int}")]
             public async Task<ActionResult<NovelSeriesDetailDto>> GetByIdAsync(int id)
             {
+
+                //Tăng view khi xem chi tiết
+                var increaseView = _context.Novel_Series
+                    .Where(s => s.series_Id == id)
+                    .ExecuteUpdateAsync(updates => updates.SetProperty(
+                        s => s.views,
+                        s => s.views + 1
+                    ));
+
+
                 var series = await _seriesService.GetByIdAsync(id);
                 if (series == null) return NotFound();
 
