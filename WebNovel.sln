@@ -70,7 +70,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Mappings", "Mappings", "{48
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shareds", "Shareds\Shareds.csproj", "{11238830-D527-468A-93E7-8A9F432F24E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NovelFE.Server", "NovelFE\NovelFE.Server\NovelFE.Server.csproj", "{690F5577-1D7F-4024-A448-B057591EB905}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NovelFE.Server", "NovelFE\NovelFE.Server\NovelFE.Server.csproj", "{690F5577-1D7F-4024-A448-B057591EB905}"
 EndProject
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "novelfe.client", "NovelFE\novelfe.client\novelfe.client.esproj", "{4864C3E0-F030-45E4-AA31-CC86D43A8373}"
 EndProject
