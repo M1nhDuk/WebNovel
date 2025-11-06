@@ -329,8 +329,51 @@
         "AllowedScopes": []
       }
     }
-
   ],
+  // --------------- END POINT ---------------------------
+  "SwaggerEndPoints": [
+    {
+      "Key": "publication",
+      "Config": [
+        {
+          "Name": "Publication API",
+          "Version": "v1",
+          "Url": "https://localhost:7263/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "auth",
+      "Config": [
+        {
+          "Name": "Auth API",
+          "Version": "v1",
+          "Url": "https://localhost:7154/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "user",
+      "Config": [
+        {
+          "Name": "User API",
+          "Version": "v1",
+          "Url": "https://localhost:7048/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "interaction",
+      "Config": [
+        {
+          "Name": "Interaction API",
+          "Version": "v1",
+          "Url": "https://localhost:7003/swagger/v1/swagger.json"
+        }
+      ]
+    }
+  ],
+
   "GlobalConfiguration": {
     "BaseUrl": "https://localhost:8000"
   }

@@ -1,0 +1,35 @@
+
+export const API_ROUTES = {
+    // --- AuthService Routes ---
+    AUTH: {
+        REGISTER: '/auth/register',
+        CONFIRM_EMAIL: '/auth/confirm-email',
+        LOGIN: '/auth/login',
+        REFRESH_TOKEN: '/auth/refresh-token',
+        FORGOT_PASSWORD: '/auth/forgot-password',
+        RESET_PASSWORD: '/auth/reset-password',
+        GET_EMAIL_FROM_TOKEN: '/auth/get-email-from-token',
+        LOGOUT: '/auth/logout',
+        UPLOAD_AVATAR: '/user/avatar',
+        UPLOAD_BACKGROUND: '/user/background',
+    },
+
+    // --- NovelService Routes ---
+    SERIES: {
+        GET_ALL_SERIES: '/series',
+        SEARCH_SERIES: '/series/search',
+        CREATE_SERIES: '/series',
+
+    
+        GET_BY_ID: (id: number | string) => `/series/${id}`,
+        UPDATE: (id: number | string) => `/series/${id}`,
+        DELETE: (id: number | string) => `/series/${id}`,
+        UPLOAD_COVER: (id: number | string) => `/series/${id}/cover`,
+
+        GET_MY_SERIES: '/user/series',
+
+        CREATE_CLASSIC_SERIES: '/series/classic',
+        UPDATE_CLASSIC_SERIES: (id: number | string) => `/series/${id}/classic`,
+    },
+
+};
