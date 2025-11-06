@@ -1,0 +1,343 @@
+{
+  "Routes": [
+    //1. AuthService 
+
+    //1.1. Register
+    {
+      "UpstreamPathTemplate": "/auth/register",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7154
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Auth/register",
+      "DangerousAcceptAnyServerCertificateValidator": true
+    },
+
+    //1.2 Comfirm email
+    {
+      "UpstreamPathTemplate": "/auth/confirm-email",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7154
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Auth/confirm-email",
+      "DangerousAcceptAnyServerCertificateValidator": true
+    },
+
+    //1.3 Login
+    {
+      "UpstreamPathTemplate": "/auth/login",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7154
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Auth/login",
+      "DangerousAcceptAnyServerCertificateValidator": true
+    },
+
+    //1.4 Refresh Token
+    {
+      "UpstreamPathTemplate": "/auth/refresh-token",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7154
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Auth/refresh-token",
+      "DangerousAcceptAnyServerCertificateValidator": true
+    },
+
+    //1.5 Forgot Password
+    {
+      "UpstreamPathTemplate": "/auth/forgot-password",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7154
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Auth/forgot-password",
+      "DangerousAcceptAnyServerCertificateValidator": true
+    },
+
+    //1.6 Reset Password
+    {
+      "UpstreamPathTemplate": "/auth/reset-password",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7154
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Auth/reset-password",
+      "DangerousAcceptAnyServerCertificateValidator": true
+    },
+
+    //1.7 Get email from token
+    {
+      "UpstreamPathTemplate": "/auth/get-email-from-token",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7154
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Auth/get-email-from-token",
+      "DangerousAcceptAnyServerCertificateValidator": true
+    },
+
+    //1.8 Log out
+    {
+      "UpstreamPathTemplate": "/auth/logout",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7154
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Auth/logout",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
+    // --- UserController Routes ---
+    //1.9 Avata
+    {
+      "UpstreamPathTemplate": "/user/avatar",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7154
+        }
+      ],
+      "DownstreamPathTemplate": "/api/User/avatar",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
+    //1.10 Back ground
+    {
+      "UpstreamPathTemplate": "/user/background",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7154
+        }
+      ],
+      "DownstreamPathTemplate": "/api/User/background",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
+
+    //2. Novel Service
+
+    // ---- SERIES ----
+
+    // 2.1,  view all series
+    {
+      "UpstreamPathTemplate": "/series",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7263
+        }
+      ],
+      "DownstreamPathTemplate": "/api/series",
+      "DangerousAcceptAnyServerCertificateValidator": true
+    },
+
+    //2.2, view by id
+    {
+      "UpstreamPathTemplate": "/series/{id}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7263
+        }
+      ],
+      "DownstreamPathTemplate": "/api/series/{id}",
+      "DangerousAcceptAnyServerCertificateValidator": true
+    },
+
+    //2.3 Search
+    {
+      "UpstreamPathTemplate": "/series/search",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7263
+        }
+      ],
+      "DownstreamPathTemplate": "/api/series/search",
+      "DangerousAcceptAnyServerCertificateValidator": true
+    },
+
+    //2.4 Tạo Series
+    {
+      "UpstreamPathTemplate": "/series",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7263
+        }
+      ],
+      "DownstreamPathTemplate": "/api/series",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
+    //2.5 Cập nhât, xóa Series
+    {
+      "UpstreamPathTemplate": "/series/{id}",
+      "UpstreamHttpMethod": [ "PUT", "DELETE" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7263
+        }
+      ],
+      "DownstreamPathTemplate": "/api/series/{id}",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
+    //2.6 Upload ảnh bìa
+    {
+      "UpstreamPathTemplate": "/series/{id}/cover",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7263
+        }
+      ],
+      "DownstreamPathTemplate": "/api/series/{id}/cover",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
+    //2.7 xem series của tôi
+    {
+      "UpstreamPathTemplate": "/user/series",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7263
+        }
+      ],
+      "DownstreamPathTemplate": "/api/user/series",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
+    //2.8 Tạo classic series
+    {
+      "UpstreamPathTemplate": "/series/classic",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7263
+        }
+      ],
+      "DownstreamPathTemplate": "/api/series/classic",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
+    //2.9 Cập nhật classic series
+    {
+      "UpstreamPathTemplate": "/series/{id}/classic",
+      "UpstreamHttpMethod": [ "PUT" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7263
+        }
+      ],
+      "DownstreamPathTemplate": "/api/series/{id}/classic",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    }
+  ],
+
+  "GlobalConfiguration": {
+    "BaseUrl": "https://localhost:8000"
+  }
+}
+
+
+
+
+
+
