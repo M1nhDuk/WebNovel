@@ -70,6 +70,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shareds", "Shareds\Shareds.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiGateWay", "ApiGateWay\ApiGateWay.csproj", "{098C67B5-E54F-4E46-9D14-94F045BEFA87}"
 EndProject
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "webnovel-client", "webnovel-client\webnovel-client.esproj", "{F8AC9F5A-B06A-4A6B-B5FD-3E0CC991D56F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -104,6 +106,12 @@ Global
 		{098C67B5-E54F-4E46-9D14-94F045BEFA87}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{098C67B5-E54F-4E46-9D14-94F045BEFA87}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{098C67B5-E54F-4E46-9D14-94F045BEFA87}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8AC9F5A-B06A-4A6B-B5FD-3E0CC991D56F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8AC9F5A-B06A-4A6B-B5FD-3E0CC991D56F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8AC9F5A-B06A-4A6B-B5FD-3E0CC991D56F}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{F8AC9F5A-B06A-4A6B-B5FD-3E0CC991D56F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8AC9F5A-B06A-4A6B-B5FD-3E0CC991D56F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8AC9F5A-B06A-4A6B-B5FD-3E0CC991D56F}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
