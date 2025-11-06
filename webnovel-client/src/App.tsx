@@ -1,14 +1,14 @@
 import './App.css'
+import HomePage from './pages/HomePage'
 
 function App() {
     return (
         <>
-            <h1>WebNovel Client</h1>
-            <div className="card">
-                <p>
-                    Edit <code>src/App.tsx</code> and save to test HMR
-                </p>
-            </div>
+            {/* B?n có th? ??t Header/Layout ? ?ây */}
+            <main>
+                <HomePage />
+            </main>
+            {/* B?n có th? ??t Footer ? ?ây */}
         </>
     )
 }
