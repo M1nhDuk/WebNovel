@@ -69,7 +69,19 @@ namespace NovelService.Service
                     word_count = 0
                 };
 
-                _context.Novel_Series.Add(series);
+                if (dto.TagIds != null && dto.TagIds.Any())
+                {
+                    foreach (var tagId in dto.TagIds.Distinct())
+                    {
+
+                        series.NovelTags.Add(new NovelTag
+                        {
+                            tagID = tagId
+                        });
+                    }
+                }
+
+                    _context.Novel_Series.Add(series);
                 await _context.SaveChangesAsync(); 
 
                 int totalSeriesWordCount = 0;

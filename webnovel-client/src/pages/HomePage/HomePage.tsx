@@ -3,56 +3,11 @@ import apiClient from '../../api/apiClient';
 import { API_ROUTES } from '../../api/apiRoutes';
 import type { PagedResult, SeriesListDto } from '../../types/series';
 import './HomePage.css';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom'; 
+import SeriesItem from '../../components/series/SeriesItem'; 
+import Slider from "react-slick";
+import "./HomePageSlider.css";
 
-const GATEWAY_URL = 'https://localhost:8000';
-
-interface SeriesItemProps {
-    series: SeriesListDto;
-    type: 'slider' | 'grid';
-}
-
-const SeriesItem: React.FC<SeriesItemProps> = ({ series, type }) => {
-    const getImageUrl = (coverPath: string | undefined) => {
-        if (!coverPath) {
-            return 'path/to/default/placeholder.png';
-        }
-        const formattedPath = coverPath.startsWith('/') ? coverPath : `/${coverPath}`;
-        return `${GATEWAY_URL}${formattedPath}`;
-    };
-
-    const itemClass = type === 'slider' ? 'popular-thumb-item' : 'thumb-item-flow';
-
-    return (
-        <div className={itemClass}>
-            <div className="thumb-wrapper">
-                <Link to={`/series/${series.series_Id}`} title={series.series_title}>
-                    <div className="a6-ratio">
-                        <div
-                            className="content img-in-ratio"
-                            style={{ backgroundImage: `url(${getImageUrl(series.cover_images)})` }}
-                        ></div>
-                    </div>
-                </Link>
-                {type === 'grid' && (
-                    <div className="thumb-detail">
-                        <div className="thumb_attr chapter-title">
-                            <a href="#" title="Latest Chapter">Latest Chapter...</a>
-                        </div>
-                        <div className="thumb_attr volume-title">Volume 1</div>
-                    </div>
-                )}
-            </div>
-            <div className="thumb_attr series-title">
-                <Link to={`/series/${series.series_Id}`} title={series.series_title}>
-                    {series.series_title}
-                </Link>
-            </div>
-        </div>
-    );
-};
-
-// --- Reusable Section Component ---
 interface SeriesSectionProps {
     title: string;
     subTitle: string;
@@ -75,6 +30,7 @@ const SeriesSection: React.FC<SeriesSectionProps> = ({ title, subTitle, seriesLi
 
                 <div className={`thumb-item-flow see-more ${type === 'grid' ? 'col-4 col-md-3 col-lg-2' : ''}`}>
                     <div className="thumb-wrapper">
+
                         <Link to={seeMoreLink}>
                             <div className="a6-ratio">
                                 <div className="content img-in-ratio" style={{ backgroundImage: "url('/img/nocover.jpg')" }}></div>
@@ -97,8 +53,6 @@ const SeriesSection: React.FC<SeriesSectionProps> = ({ title, subTitle, seriesLi
 
 // --- MAIN HOME PAGE COMPONENT ---
 const HomePage = () => {
-
-
     const [seriesList, setSeriesList] = useState<SeriesListDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -123,6 +77,18 @@ const HomePage = () => {
         fetchSeries();
     }, []);
 
+    const sliderSettings = {
+        dots: true, 
+        infinite: true, 
+        speed: 500, 
+        slidesToShow: 4, 
+        slidesToScroll: 4, 
+        customPaging: (_i: number) => (
+            <div className="slick-dot"></div>
+        )
+    };
+
+
     if (loading) {
         return <div>Loading...</div>;
     }
@@ -131,44 +97,49 @@ const HomePage = () => {
         return <div>{error}</div>;
     }
 
-    const featuredSeries = seriesList.slice(0, 8);
-    const webNovels = seriesList.filter(s => s.categoryName === "Translated").slice(0, 6);
-    const classicNovels = seriesList.filter(s => s.categoryName === "Original").slice(0, 6);
-    const selfComposed = seriesList.filter(s => s.categoryName === "Self-Composed").slice(0, 6);
 
+    const featuredSeries = seriesList.slice(0, 12);
 
-    const webNovelSeries = seriesList.filter(s => s.type === "Series").slice(0, 6);
-    const classicNovelSeries = seriesList.filter(s => s.type === "TRADITIONAL").slice(0, 6);
+    const webNovels = seriesList.filter(s => s.categoryName === "Translated").slice(0, 9);
+    const classicNovels = seriesList.filter(s => s.categoryName === "Original").slice(0, 9);
+    const selfComposed = seriesList.filter(s => s.categoryName === "Self-Composed").slice(0, 9);
+
+    const webNovelSeries = seriesList.filter(s => s.type === "Series").slice(0, 9);
+    const classicNovelSeries = seriesList.filter(s => s.type === "TRADITIONAL").slice(0, 9);
 
     return (
         <main id="mainpart" className="at-index">
             <div className="container" style={{ paddingTop: '20px' }}>
                 <div className="row">
                     <div className="col-12">
+                    
+                        <section className="index-section featured-slider-container">
+                            <header className="section-title">
+                                <span className="sts-bold">Featured</span>
+                                <span className="sts-empty">Series</span>
+                            </header>
+                            <Slider {...sliderSettings}>
+                                {featuredSeries.map(series => (
+                                    
+                                    <SeriesItem key={series.series_Id} series={series} type="grid" />
+                                ))}
+                            </Slider>
+                        </section>
 
-                        {/* Featured Section */}
-                        <SeriesSection
-                            title="Featured"
-                            subTitle="Series"
-                            seriesList={featuredSeries}
-                            type="slider"
-                            seeMoreLink="/list?sort=views"
-                        />
-
-
+                        {/*TYPE  */}
                         <SeriesSection
                             title="Web"
                             subTitle="Novels"
                             seriesList={webNovelSeries}
                             type="grid"
-                            seeMoreLink="/list?type=Series"
+                            seeMoreLink="/browse"
                         />
                         <SeriesSection
                             title="Classic"
                             subTitle="Novels"
                             seriesList={classicNovelSeries}
                             type="grid"
-                            seeMoreLink="/list?type=TRADITIONAL"
+                            seeMoreLink="/browse"
                         />
 
                         {/* Translate Section */}
@@ -177,7 +148,7 @@ const HomePage = () => {
                             subTitle="Publications"
                             seriesList={webNovels}
                             type="grid"
-                            seeMoreLink="/list?category=Translated"
+                            seeMoreLink="/browse"
                         />
 
                         {/* Classic Novels Section */}
@@ -186,7 +157,7 @@ const HomePage = () => {
                             subTitle="Publications"
                             seriesList={classicNovels}
                             type="grid"
-                            seeMoreLink="/list?category=Original"
+                            seeMoreLink="/browse"
                         />
 
                         {/* Originals Section */}
@@ -195,7 +166,7 @@ const HomePage = () => {
                             subTitle="Creations"
                             seriesList={selfComposed}
                             type="grid"
-                            seeMoreLink="/list?category=Self-Composed"
+                            seeMoreLink="/browse"
                         />
 
                     </div>

@@ -32,4 +32,14 @@ export const API_ROUTES = {
         UPDATE_CLASSIC_SERIES: (id: number | string) => `/series/${id}/classic`,
     },
 
+    CATEGORY: {
+        GET_ALL: '/categories',
+    },
+    STATUS: {
+        GET_ALL: '/statuses',
+    },
+    TAG: {
+        GET_ALL: '/tags',
+    },
+
 };
