@@ -3,6 +3,7 @@ import apiClient from '../../api/apiClient';
 import { API_ROUTES } from '../../api/apiRoutes';
 import type { PagedResult, SeriesListDto } from '../../types/series';
 import './HomePage.css';
+import { Link } from 'react-router-dom';
 
 const GATEWAY_URL = 'https://localhost:8000';
 
@@ -25,14 +26,14 @@ const SeriesItem: React.FC<SeriesItemProps> = ({ series, type }) => {
     return (
         <div className={itemClass}>
             <div className="thumb-wrapper">
-                <a href={`/series/${series.series_Id}`} title={series.series_title}>
+                <Link to={`/series/${series.series_Id}`} title={series.series_title}>
                     <div className="a6-ratio">
                         <div
                             className="content img-in-ratio"
                             style={{ backgroundImage: `url(${getImageUrl(series.cover_images)})` }}
                         ></div>
                     </div>
-                </a>
+                </Link>
                 {type === 'grid' && (
                     <div className="thumb-detail">
                         <div className="thumb_attr chapter-title">
@@ -43,9 +44,9 @@ const SeriesItem: React.FC<SeriesItemProps> = ({ series, type }) => {
                 )}
             </div>
             <div className="thumb_attr series-title">
-                <a href={`/series/${series.series_Id}`} title={series.series_title}>
+                <Link to={`/series/${series.series_Id}`} title={series.series_title}>
                     {series.series_title}
-                </a>
+                </Link>
             </div>
         </div>
     );
@@ -74,7 +75,7 @@ const SeriesSection: React.FC<SeriesSectionProps> = ({ title, subTitle, seriesLi
 
                 <div className={`thumb-item-flow see-more ${type === 'grid' ? 'col-4 col-md-3 col-lg-2' : ''}`}>
                     <div className="thumb-wrapper">
-                        <a href={seeMoreLink}>
+                        <Link to={seeMoreLink}>
                             <div className="a6-ratio">
                                 <div className="content img-in-ratio" style={{ backgroundImage: "url('/img/nocover.jpg')" }}></div>
                             </div>
@@ -86,7 +87,7 @@ const SeriesSection: React.FC<SeriesSectionProps> = ({ title, subTitle, seriesLi
                                     </div>
                                 </div>
                             </div>
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </main>
@@ -96,6 +97,8 @@ const SeriesSection: React.FC<SeriesSectionProps> = ({ title, subTitle, seriesLi
 
 // --- MAIN HOME PAGE COMPONENT ---
 const HomePage = () => {
+
+
     const [seriesList, setSeriesList] = useState<SeriesListDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -107,7 +110,7 @@ const HomePage = () => {
                 setError(null);
                 const response = await apiClient.get<PagedResult<SeriesListDto>>(
                     API_ROUTES.SERIES.GET_ALL_SERIES,
-                    { params: { pageNumber: 1, pageSize: 50 } } 
+                    { params: { pageNumber: 1, pageSize: 50 } }
                 );
                 setSeriesList(response.data.items);
             } catch (err) {
@@ -152,7 +155,7 @@ const HomePage = () => {
                             seeMoreLink="/list?sort=views"
                         />
 
-                        {/* === (M?I) THÊM CÁC M?C L?C THEO TYPE === */}
+
                         <SeriesSection
                             title="Web"
                             subTitle="Novels"
@@ -172,27 +175,27 @@ const HomePage = () => {
                         <SeriesSection
                             title="Translated"
                             subTitle="Publications"
-                            seriesList={webNovels}                                                     
+                            seriesList={webNovels}
                             type="grid"
-                            seeMoreLink="/list?category=Translated" 
+                            seeMoreLink="/list?category=Translated"
                         />
 
                         {/* Classic Novels Section */}
                         <SeriesSection
                             title="Original"
                             subTitle="Publications"
-                            seriesList={classicNovels} 
+                            seriesList={classicNovels}
                             type="grid"
-                            seeMoreLink="/list?category=Original" 
+                            seeMoreLink="/list?category=Original"
                         />
 
                         {/* Originals Section */}
                         <SeriesSection
                             title="Self-Composed"
                             subTitle="Creations"
-                            seriesList={selfComposed} 
+                            seriesList={selfComposed}
                             type="grid"
-                            seeMoreLink="/list?category=Self-Composed" 
+                            seeMoreLink="/list?category=Self-Composed"
                         />
 
                     </div>

@@ -1,13 +1,17 @@
 import React from 'react';
 import './CSS/Header.css';
 import { FaSearch, FaHeart, FaBell, FaUserCircle } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 const Header: React.FC = () => {
     return (
         <header className="top-header">
 
             <div className="header-left">
-                <div className="header-logo">W</div>
+                <Link to="/" className="header-logo-link" title="Trang ch?">
+                    <div className="header-logo">W</div>
+                </Link>
+
                 <div className="search-bar">
                     <FaSearch className="search-icon" />
                     <input type="text" placeholder="Search book, name, author..." />
@@ -16,16 +20,16 @@ const Header: React.FC = () => {
 
 
             <div className="header-right">
-                <a href="/profile" className="user-profile">
+                <Link to="/profile" className="user-profile">
                     <FaUserCircle className="user-avatar" />
                     <span>Username</span>
-                </a>
-                <a href="/favorites" className="header-icon-btn" title="Favorites">
+                </Link>
+                <Link to="/favorites" className="header-icon-btn" title="Favorites">
                     <FaHeart />
-                </a>
-                <a href="/notifications" className="header-icon-btn" title="Notifications">
+                </Link>
+                <Link to="/notifications" className="header-icon-btn" title="Notifications">
                     <FaBell />
-                </a>
+                </Link>
             </div>
         </header>
     );
