@@ -8,6 +8,7 @@ export interface SeriesListDto {
     status_id: number;
     statusName?: string;
     tags: string[];
+    type: string;
 }
 
 export interface PagedResult<T> {

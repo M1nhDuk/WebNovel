@@ -1,15 +1,18 @@
 import './App.css'
-import HomePage from './pages/HomePage'
+import HomePage from './pages/HomePage/HomePage'
+import LeftSidebar from './components/layout/LeftSidebar'
+import Header from './components/layout/Header' 
 
 function App() {
     return (
-        <>
-            {/* B?n có th? ??t Header/Layout ? ?ây */}
-            <main>
+        <div className="app-layout">
+            <Header /> 
+            <LeftSidebar />
+
+            <main className="main-content">
                 <HomePage />
             </main>
-            {/* B?n có th? ??t Footer ? ?ây */}
-        </>
+        </div>
     )
 }
 
