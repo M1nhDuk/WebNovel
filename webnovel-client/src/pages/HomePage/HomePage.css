@@ -90,26 +90,16 @@
         text-decoration: none;
     }
 
-main.slider {
-    display: flex;
-    overflow-x: auto;
-    overflow-y: hidden;
-    flex-wrap: nowrap;
-    padding-bottom: 10px;
-}
 
-.popular-thumb-item {
-    flex: 0 0 120px;
-    width: 160px;
-    margin-right: 20px;
-}
 
 
 .thumb-section-flow main.row {
-    display: grid;
+    display: flex;
     width: 100%;
-    grid-template-columns: repeat(5, 1fr); 
     gap: 20px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 10px;
 }
 
 .thumb-item-flow {
