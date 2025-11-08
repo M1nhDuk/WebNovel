@@ -397,7 +397,9 @@ namespace NovelService.Service
                     categoryName = s.category!.category_name,
                     status_id = s.status_id,
                     statusName = s.status!.statusName,
+                    type = s.type.ToString(),
                     Tags = s.NovelTags.Select(nt => nt.Tag.tagName).ToList()
+
                 })
                 .ToListAsync();
 

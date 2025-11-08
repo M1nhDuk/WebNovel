@@ -13,6 +13,8 @@ namespace Shareds.DTOs.NovelSeries
         public string series_title { get; set; }
         public string? cover_images { get; set; }
 
+        public string type { get; set; }
+
         //Id
         public int category_id { get; set; }
         public string? categoryName { get; set; }
