@@ -6,31 +6,32 @@ import {
     FaBookmark,
     FaThLarge,
     FaChevronDown
-} from 'react-icons/fa'; 
+} from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 const LeftSidebar: React.FC = () => {
     return (
         <nav className="left-sidebar">
             <ul>
                 <li>
-                    <a href="/" title="Home">
+                    <Link to="/" title="Home">
                         <FaHome className="sidebar-icon" />
-                    </a>
+                    </Link>
                 </li>
                 <li>
-                    <a href="/history" title="Reading History">
+                    <Link to="/history" title="Reading History">
                         <FaHistory className="sidebar-icon" />
-                    </a>
+                    </Link>
                 </li>
                 <li>
-                    <a href="/bookmarks" title="Bookmarks">
+                    <Link to="/bookmarks" title="Bookmarks">
                         <FaBookmark className="sidebar-icon" />
-                    </a>
+                    </Link>
                 </li>
                 <li>
-                    <a href="/categories" title="Categories">
+                    <Link to="/categories" title="Categories">
                         <FaThLarge className="sidebar-icon" />
-                    </a>
+                    </Link>
                 </li>
                 <li>
                     <a href="#" title="More">
