@@ -8,7 +8,6 @@ namespace NovelService.Controllers
 {
     [ApiController]
     [Route("api/categories")]
-    [Authorize(Roles = "Admin")]
     public class CategoriesController: ControllerBase
     {
         private readonly ICategory _categoryService;
@@ -21,6 +20,7 @@ namespace NovelService.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategories()
         {
             var categories = await _categoryService.GetAllCategoriesAsync();
@@ -30,6 +30,7 @@ namespace NovelService.Controllers
 
 
         [HttpGet("{id:int}")]
+        [AllowAnonymous]
         public async Task<ActionResult<CategoryDto>> GetCategory(int id)
         {
             var category = await _categoryService.GetCategoryByIdAsync(id);
@@ -41,6 +42,7 @@ namespace NovelService.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<CategoryDto>> CreateCategory([FromBody] CategoryCreateDto dto)
         {
             if (!ModelState.IsValid)
@@ -66,6 +68,7 @@ namespace NovelService.Controllers
 
 
         [HttpPut("{id:int}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateCategory(int id, [FromBody] CategoryUpdateDto dto)
         {
             if (!ModelState.IsValid)
@@ -97,6 +100,7 @@ namespace NovelService.Controllers
 
 
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
             try

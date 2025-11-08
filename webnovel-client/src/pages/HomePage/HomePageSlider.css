@@ -1,0 +1,29 @@
+.featured-slider-container {
+    margin-bottom: 30px; 
+}
+
+    .featured-slider-container .slick-dots {
+        bottom: -15px; 
+    }
+
+        .featured-slider-container .slick-dots li {
+            margin: 0 3px;
+        }
+
+            .featured-slider-container .slick-dots li button:before {
+                font-size: 10px; 
+                color: var(--text-secondary); 
+                opacity: 0.5;
+                transition: all 0.2s;
+            }
+
+            .featured-slider-container .slick-dots li.slick-active button:before {
+                color: var(--text-primary);
+                opacity: 1;
+            }
+
+
+
+    .featured-slider-container .slick-slide > div {
+        padding: 0 10px;
+    }

@@ -330,6 +330,53 @@
       }
     },
 
+    // 3.1. Route cho view Categories
+    {
+      "UpstreamPathTemplate": "/categories",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7263
+        }
+      ],
+      "DownstreamPathTemplate": "/api/categories",
+      "DangerousAcceptAnyServerCertificateValidator": true
+    },
+
+    // 3.2. Route cho view Statuses
+    {
+      "UpstreamPathTemplate": "/statuses",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7263
+        }
+      ],
+      "DownstreamPathTemplate": "/api/statuses",
+      "DangerousAcceptAnyServerCertificateValidator": true
+    },
+
+    // 3.3. Route cho view Tags 
+    {
+      "UpstreamPathTemplate": "/tags",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7263
+        }
+      ],
+      "DownstreamPathTemplate": "/api/tags",
+      "DangerousAcceptAnyServerCertificateValidator": true
+    },
+
+
+    //Images base
     {
       "UpstreamPathTemplate": "/images/{everything}",
       "UpstreamHttpMethod": [ "GET" ],
@@ -343,7 +390,6 @@
       "DownstreamPathTemplate": "/images/{everything}",
       "DangerousAcceptAnyServerCertificateValidator": true
     }
-
 
   ],
 

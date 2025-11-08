@@ -1,0 +1,144 @@
+.browse-page-container {
+    display: flex;
+    flex-wrap: wrap;
+    padding-top: 20px; 
+    max-width: 1400px; 
+    margin: 0 auto;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.browse-content {
+    flex: 1;
+    min-width: 0; 
+    padding-right: 20px;
+}
+
+.browse-sidebar {
+    flex: 0 0 300px; 
+    width: 300px;
+}
+
+
+.sorting-controls {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-surface);
+    padding: 8px 15px;
+    border-radius: 4px;
+}
+
+    .sorting-controls select {
+        padding: 8px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        background-color: var(--bg-surface);
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        font-weight: 600;
+        flex-grow: 1; 
+    }
+
+
+.sort-direction-btn {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-surface);
+    color: var(--text-primary);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.1rem; 
+    line-height: 1;
+    margin-left: 10px;
+}
+
+    .sort-direction-btn:hover {
+        background-color: var(--bg-main);
+    }
+
+
+/* Series Grid */
+.series-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 20px;
+}
+
+/* Filter Box */
+.filter-box {
+    background-color: var(--bg-surface);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.filter-box-header {
+    padding: 12px 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    text-align: left; 
+}
+
+.filter-box-content {
+    padding: 15px;
+    max-height: 300px;
+    overflow-y: auto;
+    text-align: left; 
+}
+
+/* Ki?u cho các m?c filter (checkbox) */
+.filter-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+    .filter-item label {
+        margin-left: 8px;
+        color: var(--text-secondary);
+        font-weight: 500;
+        cursor: pointer;
+        flex: 1;
+    }
+
+    .filter-item input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+
+    .filter-item:hover label {
+        color: var(--text-primary);
+    }
+
+
+    /* Ki?u cho filter 'Type' (radio button) */
+    .filter-item input[type="radio"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+
+/* Responsive: 
+   Khi màn hình nh?, chuy?n filter-sidebar lên trên */
+@media (max-width: 992px) {
+    .browse-page-container {
+        flex-direction: column;
+    }
+
+    .browse-content {
+        padding-right: 0;
+        order: 2; 
+    }
+
+    .browse-sidebar {
+        flex: 1 1 100%;
+        width: 100%;
+        order: 1; 
+    }
+}

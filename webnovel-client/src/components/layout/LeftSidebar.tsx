@@ -29,7 +29,7 @@ const LeftSidebar: React.FC = () => {
                     </Link>
                 </li>
                 <li>
-                    <Link to="/categories" title="Categories">
+                    <Link to="/browse" title="Browse All">
                         <FaThLarge className="sidebar-icon" />
                     </Link>
                 </li>

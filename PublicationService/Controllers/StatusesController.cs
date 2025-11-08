@@ -7,7 +7,7 @@ namespace NovelService.Controllers
 {
     [ApiController]
     [Route("api/statuses")]
-    [Authorize(Roles = "Admin")]
+
     public class StatusesController: ControllerBase
     {
         private readonly IStatusService _statusService;
@@ -20,6 +20,7 @@ namespace NovelService.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<NovelStatusDto>>> GetStatuses()
         {
             var statuses = await _statusService.GetAllStatusesAsync();
@@ -28,6 +29,7 @@ namespace NovelService.Controllers
 
 
         [HttpGet("{id:int}")]
+        [AllowAnonymous]
         public async Task<ActionResult<NovelStatusDto>> GetStatus(int id)
         {
             var status = await _statusService.GetStatusByIdAsync(id);
@@ -40,6 +42,7 @@ namespace NovelService.Controllers
 
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<NovelStatusDto>> CreateStatus([FromBody] StatusCreateDto dto)
         {
             if (!ModelState.IsValid)
@@ -64,6 +67,7 @@ namespace NovelService.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateStatus(int id, [FromBody] StatusUpdateDto dto)
         {
             if (!ModelState.IsValid)
@@ -92,6 +96,7 @@ namespace NovelService.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteStatus(int id)
         {
             try

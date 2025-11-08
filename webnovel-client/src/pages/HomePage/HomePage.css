@@ -99,7 +99,7 @@ main.slider {
 }
 
 .popular-thumb-item {
-    flex: 0 0 160px;
+    flex: 0 0 120px;
     width: 160px;
     margin-right: 20px;
 }
@@ -108,17 +108,13 @@ main.slider {
 .thumb-section-flow main.row {
     display: grid;
     width: 100%;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-template-columns: repeat(5, 1fr); 
     gap: 20px;
 }
 
 .thumb-item-flow {
     display: flex;
     flex-direction: column;
-    /* thêm n?n tr?ng cho card  */
-    /* background-color: var(--bg-surface); */
-    /* border-radius: 8px; */
-    /* box-shadow: 0 1px 3px rgba(0,0,0,0.05); */
 }
 
 
