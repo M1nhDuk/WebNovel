@@ -1,0 +1,347 @@
+﻿import React, { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import apiClient from '../../api/apiClient';
+import { API_ROUTES } from '../../api/apiRoutes';
+import type { NovelSeriesDetailDto } from '../../types/series';
+import {
+    FaHeart,
+    FaInfoCircle
+} from 'react-icons/fa';
+
+import { formatDistanceToNow } from 'date-fns';
+import { vi } from 'date-fns/locale';
+import './SeriesDetailPage.css';
+
+const GATEWAY_URL = 'https://localhost:8000';
+
+const SeriesDetailPage: React.FC = () => {
+
+    const { id } = useParams<{ id: string }>();
+
+    const [notification, setNotification] = useState<string | null>(null);
+    const [isFavorited, setIsFavorited] = useState(false);
+    const [series, setSeries] = useState<NovelSeriesDetailDto | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+    const DESCRIPTION_THRESHOLD = 5;
+
+    const [expandedVolumes, setExpandedVolumes] = useState<Set<number>>(new Set());
+
+
+    const getImageUrl = (coverPath: string | undefined | null) => { // Thêm | null
+        if (!coverPath) {
+            return `${GATEWAY_URL}/images/covers/default_cover.jpg`;
+        }
+        const formattedPath = coverPath.startsWith('/') ? coverPath : `/${coverPath}`;
+        return `${GATEWAY_URL}${formattedPath}`;
+    };
+
+    useEffect(() => {
+        if (!id) return;
+
+        const fetchSeriesDetail = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const response = await apiClient.get<NovelSeriesDetailDto>(
+                    API_ROUTES.SERIES.GET_BY_ID(id)
+                );
+                console.log("DỮ LIỆU SERIES NHẬN ĐƯỢC:", response.data);
+                setSeries(response.data);
+            } catch (err) {
+                console.error("Failed to fetch series details:", err);
+                setError("Could not load series details.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchSeriesDetail();
+    }, [id]);
+
+
+    useEffect(() => {
+        if (notification) {
+            const timer = setTimeout(() => {
+                setNotification(null);
+            }, 4000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [notification]);
+
+
+    const handleFavoriteClick = () => {
+        const newFavoriteState = !isFavorited;
+        setIsFavorited(newFavoriteState);
+        if (newFavoriteState) {
+            setNotification("Bạn đã theo dõi truyện.");
+        } else {
+            setNotification("Bạn đã ngừng theo dõi truyện.");
+        }
+    };
+
+
+    if (loading) { return <div className="detail-page-container">Loading...</div>; }
+    if (error) { return <div className="detail-page-container" style={{ color: 'red' }}>{error}</div>; }
+    if (!series) { return <div className="detail-page-container">Series not found.</div>; }
+
+
+    const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString('vi-VN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    };
+
+    const formatTimeAgo = (dateString: string) => {
+        const date = new Date(dateString);
+        return formatDistanceToNow(date, { locale: vi });
+    };
+
+
+    const toggleVolumeExpand = (volumeId: number) => {
+        setExpandedVolumes(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(volumeId)) {
+                newSet.delete(volumeId); 
+            } else {
+                newSet.add(volumeId); 
+            }
+            return newSet;
+        });
+    };
+
+
+
+    return (
+        <div className="detail-page-container">
+            <h1 className="series-title-header">{series.series_title}</h1>
+
+            <div className="series-content-layout">
+
+                {/* === CỘT BÊN TRÁI === */}
+                <aside className="series-left-col">
+                    <img
+                        src={getImageUrl(series.cover_images)}
+                        alt={series.series_title}
+                        className="series-cover-img"
+                    />
+                    <button
+                        className={`series-action-btn ${isFavorited ? 'favorited' : ''}`}
+                        onClick={handleFavoriteClick}
+                    >
+                        <FaHeart style={{ marginRight: '8px' }} />
+                        {isFavorited ? 'Đã theo dõi' : 'Theo dõi'}
+                    </button>
+                </aside>
+
+
+                {/* === CỘT Ở GIỮA === */}
+                <section className="series-right-col">
+
+                    {/* (Phần Details - Giữ nguyên) */}
+                    <div className="synopsis-section">
+                        <h3>Details</h3>
+
+                        <div className="series-tags-list">
+                            <strong>Tags:</strong>
+                            {(series.tags || []).map(tag => (
+                                <Link to={`/browse?tag=${tag}`} className="tag-pill" key={tag}>
+                                    {tag}
+                                </Link>
+                            ))}
+                        </div>
+
+                        <div className="series-meta-info">
+                            <div className="meta-item">
+                                <strong>Author:</strong>
+                                <span>{series.author || 'N/A'}</span>
+                            </div>
+                            <div className="meta-item">
+                                <strong>Artist:</strong>
+                                <span>{series.artist || 'N/A'}</span>
+                            </div>
+                            <div className="meta-item">
+                                <strong>Status:</strong>
+                                <span>{series.statusName || 'N/A'}</span>
+                            </div>
+                            <div className="meta-item">
+                                <strong>Category:</strong>
+                                <span>{series.categoryName || 'N/A'}</span>
+                            </div>
+                        </div>
+
+                        <div className="series-stats-bar">
+                            <div className="stat-item">
+                                <span className="stat-label">Lần cuối</span>
+                                <span className="stat-value">{formatTimeAgo(series.updated_at)}</span>
+                            </div>
+                            <div className="stat-item">
+                                <span className="stat-label">Số từ</span>
+                                <span className="stat-value">
+                                    {series.word_count.toLocaleString('vi-VN')}
+                                </span>
+                            </div>
+                            <div className="stat-item">
+                                <span className="stat-label">Lượt xem</span>
+                                <span className="stat-value">
+                                    {series.views.toLocaleString('vi-VN')}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* (Khối Tóm tắt) */}
+                    <div className="sidebar-box">
+                        <div className="sidebar-box-header">
+                            Tóm tắt
+                        </div>
+                        {(() => {
+                            const isLong = series.description.length > DESCRIPTION_THRESHOLD;
+                            return (
+                                <>
+                                    <div
+                                        className={`sidebar-box-content description-content ${isLong && !isDescriptionExpanded ? 'collapsed' : ''}`}
+                                    >
+                                        <p>{series.description}</p>
+                                        {isLong && !isDescriptionExpanded && (
+                                            <div
+                                                className="description-overlay-toggle"
+                                                onClick={() => setIsDescriptionExpanded(true)}
+                                            >
+                                                <span>Xem thêm</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {isLong && isDescriptionExpanded && (
+                                        <div className="description-toggle-footer">
+                                            <button
+                                                className="toggle-description-btn"
+                                                onClick={() => setIsDescriptionExpanded(false)}
+                                            >
+                                                Thu gọn
+                                            </button>
+                                        </div>
+                                    )}
+                                </>
+                            );
+                        })()}
+                    </div>
+
+
+                    {/* (Phần Volume & Chapter List) */}
+                    <div className="chapter-list-section">
+                        <h3>Volume & Chapter List</h3>
+
+
+                        {series.novels.map(volume => {
+
+      
+                            const isExpanded = expandedVolumes.has(volume.novel_id);
+
+                 
+                            const chaptersToShow = isExpanded
+                                ? volume.chapters 
+                                : volume.chapters.slice(0, 5); 
+
+                            return (
+                                <div key={volume.novel_id} className="volume-item">
+                                    <div className="volume-cover">
+                                        <Link to={`/series/${series.series_Id}`}>
+                                            <img
+                                                src={getImageUrl(volume.cover_images)}
+                                                alt={volume.novel_title}
+                                                className="volume-cover-img"
+                                            />
+                                        </Link>
+                                    </div>
+                                    <div className="volume-list-wrapper">
+                                        <h4 className="volume-title">{volume.novel_title}</h4>
+                                        <ul className="chapter-list">
+
+                                            {chaptersToShow.map(chapter => (
+                                                <li key={chapter.chapter_id} className="chapter-item">
+                                                    <Link
+                                                        to={`/series/${series.series_Id}/chapter/${chapter.chapter_id}`}
+                                                        className="chapter-title"
+                                                    >
+                                                        {chapter.title} 
+                                                    </Link>
+                                                    <span className="chapter-date">{formatDate(chapter.created_at)}</span>
+                                                </li>
+                                            ))}
+
+                                            {/* Chỉ hiển thị nút khi có nhiều hơn 5 chương */}
+                                            {volume.chapters.length > 5 && (
+                                                <li className="chapter-item chapter-see-more">
+                                                    <button
+                                                        className="toggle-chapters-btn"
+                                                        onClick={() => toggleVolumeExpand(volume.novel_id)}
+                                                    >
+                                                        {isExpanded
+                                                            ? "Thu gọn"
+                                                            : `Xem tiếp (${volume.chapters.length} chương)`
+                                                        }
+                                                    </button>
+                                                </li>
+                                            )}
+
+                                            {volume.chapters.length === 0 && (
+                                                <li className="chapter-item">
+                                                    <span>No chapters in this volume yet.</span>
+                                                </li>
+                                            )}
+                                        </ul>
+                                    </div>
+                                </div>
+                            );
+                        })}
+
+                        {series.novels.length === 0 && (
+                            <p>No volumes or chapters have been added yet.</p>
+                        )}
+                    </div>
+                </section>
+
+                {/* === CỘT BÊN PHẢI (SIDEBAR) === */}
+                <aside className="series-sidebar-col">
+                    <div className="sidebar-box">
+                        <div className="sidebar-box-header uploader-header">
+                            <img
+                                src={getImageUrl(series.uploader_avatar)}
+                                alt={series.uploader_name}
+                                className="uploader-avatar"
+                            />
+                            <span className="uploader-name">Uploader</span>
+                        </div>
+                        <div className="sidebar-box-content uploader-name-value">
+                            <strong>{series.uploader_name}</strong>
+                        </div>
+                    </div>
+                    {series.note && (
+                        <div className="sidebar-box">
+                            <div className="sidebar-box-header">
+                                Chú thích thêm
+                            </div>
+                            <div className="sidebar-box-content">
+                                <p>{series.note}</p>
+                            </div>
+                        </div>
+                    )}
+                </aside>
+            </div>
+
+            {notification && (
+                <div className={`action-notification-bar ${isFavorited ? 'follow' : 'unfollow'}`}>
+                    <FaInfoCircle className="notification-icon" />
+                    <span className="notification-text">{notification}</span>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default SeriesDetailPage;

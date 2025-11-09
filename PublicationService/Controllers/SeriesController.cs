@@ -102,7 +102,7 @@ namespace NovelService.Controllers
             {
 
                 //Tăng view khi xem chi tiết
-                var increaseView = _context.Novel_Series
+                var increaseView = await _context.Novel_Series
                     .Where(s => s.series_Id == id)
                     .ExecuteUpdateAsync(updates => updates.SetProperty(
                         s => s.views,

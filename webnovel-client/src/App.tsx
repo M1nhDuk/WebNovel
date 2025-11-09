@@ -3,8 +3,8 @@ import HomePage from './pages/HomePage/HomePage'
 import LeftSidebar from './components/layout/LeftSidebar'
 import Header from './components/layout/Header'
 import { Routes, Route } from 'react-router-dom'
-
 import BrowsePage from './pages/BrowsePage/BrowsePage'
+import SeriesDetailPage from './pages/SeriesDetailPage/SeriesDetailPage'
 
 function App() {
     return (
@@ -17,6 +17,8 @@ function App() {
                     <Route path="/" element={<HomePage />} />
 
                     <Route path="/browse" element={<BrowsePage />} />
+
+                    <Route path="/series/:id" element={<SeriesDetailPage />} />
 
                 </Routes>
             </main>
