@@ -1,0 +1,516 @@
+﻿.detail-page-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 15px;
+    color: var(--text-primary);
+}
+
+.series-title-header {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.series-content-layout {
+    display: flex;
+    gap: 30px;
+}
+
+/* Cột bên trái: Ảnh bìa và thông tin */
+.series-left-col {
+    width: 200px;
+    flex-shrink: 0;
+    text-align: left;
+}
+
+.series-cover-img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 15px;
+}
+
+
+/* ===== 1. CSS CHO NÚT "THEO DÕI" (BÊN TRÁI) ===== */
+
+.series-action-btn {
+    width: 100%;
+    padding: 12px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    background-color: transparent; 
+    color: var(--accent-color); 
+    border: 2px solid var(--accent-color); 
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+    /* Kiểu khi hover */
+    .series-action-btn:hover {
+        background-color: var(--accent-color);
+        color: #fff;
+    }
+    /* Class .favorited (khi đã nhấn) */
+    .series-action-btn.favorited {
+        background-color: var(--accent-color);
+        color: #fff;
+    }
+/* =========================================== */
+
+
+.series-meta-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+
+.series-tags-list {
+    margin-top: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 30px;
+}
+
+.tag-pill {
+    display: inline-block;
+    padding: 5px 12px;
+    background-color: var(--bg-main);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+    .tag-pill:hover {
+        background-color: var(--accent-color);
+        color: #fff;
+        border-color: var(--accent-color);
+    }
+
+.meta-item {
+    font-size: 1rem;
+}
+
+    .meta-item strong {
+        color: var(--text-primary);
+        margin-right: 8px;
+        width: 70px;
+        display: inline-block;
+    }
+
+    .meta-item span {
+        color: var(--text-secondary);
+    }
+
+/* Cột bên phải (trung tâm) */
+.series-right-col {
+    flex-grow: 1;
+    text-align: left;
+    min-width: 0;
+}
+
+/* Khối "Details" */
+.synopsis-section {
+    background-color: var(--bg-surface);
+    padding: 15px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 30px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+}
+
+    .synopsis-section h3 {
+        margin-top: 0;
+        font-size: 1.5rem;
+        color: var(--text-primary);
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 10px;
+    }
+
+    .synopsis-section p {
+        font-size: 1rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        white-space: pre-wrap;
+        margin-top: 15px;
+        margin-bottom: 0;
+    }
+
+/* Thanh Stats */
+.series-stats-bar {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+    padding: 15px 10px;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* Khối Chapter List */
+.chapter-list-section h3 {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin-bottom: 15px;
+}
+
+
+.volume-item {
+    margin-bottom: 25px;
+    display: flex;
+    gap: 20px;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* 2. Cột ảnh bìa bên trái */
+.volume-cover {
+    width: 130px;
+    flex-shrink: 0;
+}
+
+.volume-cover-img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    display: block;
+}
+
+/* 3. Cột nội dung bên phải */
+.volume-list-wrapper {
+    flex-grow: 1; 
+    min-width: 0; 
+}
+
+/* 4. Tiêu đề Volume */
+.volume-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    margin-bottom: 10px; 
+}
+
+/* 5. Danh sách chương */
+.chapter-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* 6. Mỗi mục chương */
+.chapter-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0; 
+    border-bottom: 1px solid var(--border-color);
+}
+
+    /* Bỏ viền cho mục cuối cùng */
+    .chapter-item:last-child {
+        border-bottom: none;
+    }
+
+    /* 7. Tiêu đề chương  */
+    .chapter-item .chapter-title {
+        font-weight: 500;
+        color: var(--text-secondary);
+        text-decoration: none;
+        /* Cắt chữ nếu quá dài */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+        .chapter-item .chapter-title:hover {
+            color: var(--accent-color);
+        }
+
+    /* 8. Ngày đăng chương (Không đổi) */
+    .chapter-item .chapter-date {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        flex-shrink: 0;
+        margin-left: 15px;
+    }
+
+    /* 9. Style cho nút "Xem thêm" */
+    .chapter-item.chapter-see-more {
+        padding-top: 10px;
+        border: none;
+        justify-content: flex-start; 
+    }
+
+.chapter-see-more a {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    text-decoration: none;
+}
+
+    .chapter-see-more a:hover {
+        color: var(--accent-color);
+    }
+
+
+    .chapter-item .chapter-title {
+        font-weight: 500;
+        color: var(--text-secondary);
+        text-decoration: none;
+    }
+
+        .chapter-item .chapter-title:hover {
+            color: var(--accent-color);
+        }
+
+    .chapter-item .chapter-date {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        flex-shrink: 0;
+        margin-left: 15px;
+    }
+
+
+/* ===== 2. CSS CHO POP-UP NOTIFICATION    ===== */
+
+@keyframes slideUpFadeIn {
+    from {
+        bottom: -100px;
+        opacity: 0;
+        transform: translateX(-50%);
+    }
+
+    to {
+        bottom: 20px;
+        opacity: 1;
+        transform: translateX(-50%);
+    }
+}
+
+.action-notification-bar {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    background-color: #cceee8;
+    border: 1px solid #99d7c9;
+    color: #004033;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 300px;
+    text-align: center;
+    animation: slideUpFadeIn 0.5s ease-out forwards;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+    .action-notification-bar.unfollow {
+        background-color: #fce8e6;
+        border-color: #f4c7c3;
+        color: #a50e0e;
+    }
+
+    .action-notification-bar .notification-icon {
+        font-size: 1.2rem;
+    }
+
+    .action-notification-bar .notification-text {
+        font-size: 0.95rem;
+    }
+
+
+/* ===== 3. CSS CHO CỘT SIDEBAR BÊN PHẢI ===== */
+
+.series-sidebar-col {
+    width: 300px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.sidebar-box {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    text-align: left;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.sidebar-box-header {
+    padding: 12px 15px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-box-content {
+    padding: 15px;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* CSS riêng cho hộp Uploader */
+.sidebar-box-header.uploader-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #27ae60;
+    color: white;
+    border-bottom: none;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.uploader-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid white;
+    background-color: #ecf0f1;
+    object-fit: cover;
+}
+
+.uploader-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: white;
+}
+
+.sidebar-box-content.uploader-name-value {
+    font-size: 1rem;
+    color: var(--text-primary);
+    border-bottom: 3px solid #c0392b;
+}
+
+    .sidebar-box-content.uploader-name-value strong {
+        display: block;
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+/* CSS cho hộp Chú thích thêm & Tóm tắt */
+.sidebar-box-content p {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* Nút Thảo luận */
+.create-post-btn {
+    width: 100%;
+    background-color: #2ecc71;
+    color: white;
+    font-weight: 700;
+    border: none;
+    padding: 10px;
+    font-size: 1rem;
+}
+
+    .create-post-btn:hover {
+        background-color: #27ae60;
+    }
+
+/* ===== 4. CSS CHO TÓM TẮT ===== */
+
+
+/* Container cho <p> tag */
+.description-content {
+    position: relative;
+}
+
+    .description-content.collapsed {
+        max-height: 120px;
+        overflow: hidden;
+        padding-bottom: 0;
+    }
+
+.description-overlay-toggle {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(to top, var(--bg-surface) 60%, transparent);
+    display: flex;
+    align-items: flex-end;
+    padding: 0 15px 10px 15px;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+    .description-overlay-toggle span {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: #2ecc71;
+        transition: color 0.2s;
+    }
+
+    .description-overlay-toggle:hover span {
+        color: #27ae60;
+    }
+
+/* Footer chứa nút "Thu gọn" */
+.description-toggle-footer {
+    padding: 0 15px 10px 15px;
+    text-align: left;
+    background-color: var(--bg-surface);
+    border-top: 1px solid var(--border-color);
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+/* Style cho nút "Thu gọn" (màu xanh) */
+.toggle-description-btn {
+    background: none;
+    border: none;
+    padding: 5px 0;
+    color: #2ecc71;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+    .toggle-description-btn:hover {
+        color: #27ae60;
+    }

@@ -9,6 +9,7 @@ namespace UserService.Controllers
 {
     [ApiController]
     [Route("api/user/reading-history")]
+    [Authorize]
     public class ReadingHistoryController : ControllerBase
     {
         private readonly IReadingHistoryService _readingHistoryService;
