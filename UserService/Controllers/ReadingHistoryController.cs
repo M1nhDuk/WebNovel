@@ -73,6 +73,7 @@ namespace UserService.Controllers
         }
 
         [HttpDelete]
+        [AllowAnonymous]
         public async Task<IActionResult> RemoveHistory([FromBody] RemoveReadingHistoryDto dto)
         {
             if (dto == null || dto.HistoryIds == null || !dto.HistoryIds.Any()) // Kiểm tra HistoryIds
