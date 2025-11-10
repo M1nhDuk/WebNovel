@@ -5,6 +5,7 @@ import Header from './components/layout/Header'
 import { Routes, Route } from 'react-router-dom'
 import BrowsePage from './pages/BrowsePage/BrowsePage'
 import SeriesDetailPage from './pages/SeriesDetailPage/SeriesDetailPage'
+import NovelDetailPage from './pages/NovelDetailPage/NovelDetailPage'
 
 function App() {
     return (
@@ -19,6 +20,8 @@ function App() {
                     <Route path="/browse" element={<BrowsePage />} />
 
                     <Route path="/series/:id" element={<SeriesDetailPage />} />
+
+                    <Route path="/series/:seriesId/novel/:novelId" element={<NovelDetailPage />} />
 
                 </Routes>
             </main>

@@ -102,7 +102,7 @@
     .meta-item strong {
         color: var(--text-primary);
         margin-right: 8px;
-        width: 70px;
+        width: 90px;
         display: inline-block;
     }
 
@@ -513,4 +513,118 @@
 
     .toggle-description-btn:hover {
         color: #27ae60;
+    }
+
+
+// COMMENT SECTION
+.comment-section {
+    margin-top: 30px;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+    /* Tiêu đề chính "Tổng bình luận" */
+    .comment-section h3 {
+        margin-top: 0;
+        font-size: 1.5rem;
+        color: var(--text-primary);
+        border-bottom: 1px solid var(--border-color);
+        padding: 15px 20px;
+        margin-bottom: 0; /* Xóa margin-bottom mặc định */
+    }
+
+// Login
+.comment-login-prompt {
+    padding: 20px;
+    font-size: 1rem;
+    color: var(--text-secondary);
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+    .comment-login-prompt a {
+        color: var(--accent-color);
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+        .comment-login-prompt a:hover {
+            text-decoration: underline;
+        }
+
+.comment-list-header {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    padding: 20px 20px 0 20px; 
+    margin: 0;
+    text-align: left;
+}
+
+/* Vùng chứa danh sách comment */
+.comment-list {
+    padding: 20px;
+    min-height: 100px;
+}
+
+.chapter-list-section.novel-page-list {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-bottom: 30px;
+}
+
+  
+    .chapter-list-section.novel-page-list h3 {
+        margin-top: 0;
+        font-size: 1.5rem;
+        color: var(--text-primary);
+        border-bottom: 1px solid var(--border-color);
+        padding: 15px 20px;
+        margin-bottom: 0;
+    }
+
+
+    .chapter-list-section.novel-page-list .chapter-list {
+        border: none;
+        border-radius: 0;
+        padding: 0 20px 10px 20px;
+    }
+
+
+    .chapter-list-section.novel-page-list .chapter-item {
+        background-color: transparent;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+        .chapter-list-section.novel-page-list .chapter-item:last-child {
+            border-bottom: none;
+        }
+
+
+        .chapter-list-section.novel-page-list .chapter-item .chapter-title {
+            color: var(--text-secondary); 
+            font-weight: 500;
+        }
+
+            .chapter-list-section.novel-page-list .chapter-item .chapter-title:hover {
+                color: var(--accent-color);
+            }
+
+.meta-item span {
+    color: var(--text-secondary);
+}
+
+.meta-item a {
+    text-decoration: none;
+    font-weight: 400; 
+}
+
+    .meta-item a:hover {
+        color: var(--accent-color);
+        text-decoration: underline; 
     }

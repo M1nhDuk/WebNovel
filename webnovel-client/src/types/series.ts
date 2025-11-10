@@ -1,8 +1,7 @@
-
 export interface SeriesListDto {
     series_Id: number;
     series_title: string;
-    cover_images?: string; 
+    cover_images?: string;
     category_id: number;
     categoryName?: string;
     status_id: number;
@@ -11,40 +10,51 @@ export interface SeriesListDto {
     type: string;
 }
 
-//import type { TagDto } from './filters';
-
-export interface ChapterSummaryDto {
+export interface ChapterDetailDto {
     chapter_id: number;
     title: string;
-    created_at: string; 
+    created_at: string;
 }
 
-export interface NovelSummary {
-    novel_id: number;
-    novel_title: string;
-    chapters: ChapterSummaryDto[];
-    cover_images: string;
+
+export interface NovelDetailDto {
+    series_Id: number | null;
+    novel_Id: number;
+    title: string; 
+    author: string;
+    artist: string | null;
+    cover_images: string | null;
+    updated_at: string;
+    novel_number: number;
+    uploader_id: string;
+    uploader_name: string;
+    uploader_avatar: string | null;
+    chapters: ChapterDetailDto[]; 
 }
 
 
 export interface NovelSeriesDetailDto {
     series_Id: number;
     series_title: string;
-    author: string;
-    artist: string;
+    author: string | null;
+    artist: string | null;
     description: string;
-    cover_images: string;
-    statusName: string;
-    categoryName: string;
-    type: string; 
-    tags: string[];
-    novels: NovelSummary[];
+    cover_images: string | null;
     word_count: number;
-    updated_at: string;
     views: number;
+    note: string | null;
+    created_at: string;
+    updated_at: string;
+    type: string;
+    uploader_id: string;
     uploader_name: string;
-    uploader_avatar: string;
-    note: string;
+    uploader_avatar: string | null;
+    category_id: number;
+    categoryName: string | null;
+    status_id: number;
+    statusName: string | null;
+    tags: string[];
+    novels: NovelDetailDto[]; 
 }
 
 export interface PagedResult<T> {
@@ -53,4 +63,3 @@ export interface PagedResult<T> {
     pageNumber: number;
     pageSize: number;
 }
-

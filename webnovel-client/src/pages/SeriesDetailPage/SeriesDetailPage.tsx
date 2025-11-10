@@ -2,7 +2,7 @@
 import { useParams, Link } from 'react-router-dom';
 import apiClient from '../../api/apiClient';
 import { API_ROUTES } from '../../api/apiRoutes';
-import type { NovelSeriesDetailDto } from '../../types/series';
+import type { NovelSeriesDetailDto } from '../../types/series'; 
 import {
     FaHeart,
     FaInfoCircle
@@ -24,12 +24,11 @@ const SeriesDetailPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-    const DESCRIPTION_THRESHOLD = 5;
+    const DESCRIPTION_THRESHOLD = 50; 
 
     const [expandedVolumes, setExpandedVolumes] = useState<Set<number>>(new Set());
 
-
-    const getImageUrl = (coverPath: string | undefined | null) => { // Thêm | null
+    const getImageUrl = (coverPath: string | undefined | null) => { 
         if (!coverPath) {
             return `${GATEWAY_URL}/images/covers/default_cover.jpg`;
         }
@@ -101,20 +100,17 @@ const SeriesDetailPage: React.FC = () => {
         return formatDistanceToNow(date, { locale: vi });
     };
 
-
     const toggleVolumeExpand = (volumeId: number) => {
         setExpandedVolumes(prev => {
             const newSet = new Set(prev);
             if (newSet.has(volumeId)) {
-                newSet.delete(volumeId); 
+                newSet.delete(volumeId);
             } else {
-                newSet.add(volumeId); 
+                newSet.add(volumeId);
             }
             return newSet;
         });
     };
-
-
 
     return (
         <div className="detail-page-container">
@@ -142,10 +138,9 @@ const SeriesDetailPage: React.FC = () => {
                 {/* === CỘT Ở GIỮA === */}
                 <section className="series-right-col">
 
-                    {/* (Phần Details - Giữ nguyên) */}
+                    {/* (Phần Details) */}
                     <div className="synopsis-section">
                         <h3>Details</h3>
-
                         <div className="series-tags-list">
                             <strong>Tags:</strong>
                             {(series.tags || []).map(tag => (
@@ -154,7 +149,6 @@ const SeriesDetailPage: React.FC = () => {
                                 </Link>
                             ))}
                         </div>
-
                         <div className="series-meta-info">
                             <div className="meta-item">
                                 <strong>Author:</strong>
@@ -173,14 +167,13 @@ const SeriesDetailPage: React.FC = () => {
                                 <span>{series.categoryName || 'N/A'}</span>
                             </div>
                         </div>
-
                         <div className="series-stats-bar">
                             <div className="stat-item">
-                                <span className="stat-label">Lần cuối</span>
+                                <span className="stat-label">Last Update</span>
                                 <span className="stat-value">{formatTimeAgo(series.updated_at)}</span>
                             </div>
                             <div className="stat-item">
-                                <span className="stat-label">Số từ</span>
+                                <span className="stat-label">Word count</span>
                                 <span className="stat-value">
                                     {series.word_count.toLocaleString('vi-VN')}
                                 </span>
@@ -235,31 +228,25 @@ const SeriesDetailPage: React.FC = () => {
                     {/* (Phần Volume & Chapter List) */}
                     <div className="chapter-list-section">
                         <h3>Volume & Chapter List</h3>
-
-
                         {series.novels.map(volume => {
-
-      
-                            const isExpanded = expandedVolumes.has(volume.novel_id);
-
-                 
+                            const isExpanded = expandedVolumes.has(volume.novel_Id);
                             const chaptersToShow = isExpanded
-                                ? volume.chapters 
-                                : volume.chapters.slice(0, 5); 
+                                ? volume.chapters
+                                : volume.chapters.slice(0, 5);
 
                             return (
-                                <div key={volume.novel_id} className="volume-item">
+                                <div key={volume.novel_Id} className="volume-item"> 
                                     <div className="volume-cover">
-                                        <Link to={`/series/${series.series_Id}`}>
+                                        <Link to={`/series/${series.series_Id}/novel/${volume.novel_Id}`}>
                                             <img
                                                 src={getImageUrl(volume.cover_images)}
-                                                alt={volume.novel_title}
+                                                alt={volume.title} 
                                                 className="volume-cover-img"
                                             />
                                         </Link>
                                     </div>
                                     <div className="volume-list-wrapper">
-                                        <h4 className="volume-title">{volume.novel_title}</h4>
+                                        <h4 className="volume-title">{volume.title}</h4> 
                                         <ul className="chapter-list">
 
                                             {chaptersToShow.map(chapter => (
@@ -268,18 +255,17 @@ const SeriesDetailPage: React.FC = () => {
                                                         to={`/series/${series.series_Id}/chapter/${chapter.chapter_id}`}
                                                         className="chapter-title"
                                                     >
-                                                        {chapter.title} 
+                                                        {chapter.title}
                                                     </Link>
                                                     <span className="chapter-date">{formatDate(chapter.created_at)}</span>
                                                 </li>
                                             ))}
 
-                                            {/* Chỉ hiển thị nút khi có nhiều hơn 5 chương */}
                                             {volume.chapters.length > 5 && (
                                                 <li className="chapter-item chapter-see-more">
                                                     <button
                                                         className="toggle-chapters-btn"
-                                                        onClick={() => toggleVolumeExpand(volume.novel_id)}
+                                                        onClick={() => toggleVolumeExpand(volume.novel_Id)} 
                                                     >
                                                         {isExpanded
                                                             ? "Thu gọn"
@@ -304,6 +290,21 @@ const SeriesDetailPage: React.FC = () => {
                             <p>No volumes or chapters have been added yet.</p>
                         )}
                     </div>
+
+                    {/* (Khối Comment) */}
+                    <section className="comment-section">
+                        <h3>Comments (n)</h3>
+                        <div className="comment-login-prompt">
+                            You need  {' '}
+                            <Link to="/login">Login</Link>
+                            {' '} hoặc {' '}
+                            <Link to="/register">Register</Link>
+                            {' '} to comment.
+                        </div>
+                        <h4 className="comment-list-header">Comment</h4>
+                        <div className="comment-list">
+                        </div>
+                    </section>
                 </section>
 
                 {/* === CỘT BÊN PHẢI (SIDEBAR) === */}
@@ -324,7 +325,7 @@ const SeriesDetailPage: React.FC = () => {
                     {series.note && (
                         <div className="sidebar-box">
                             <div className="sidebar-box-header">
-                                Chú thích thêm
+                                Note
                             </div>
                             <div className="sidebar-box-content">
                                 <p>{series.note}</p>
