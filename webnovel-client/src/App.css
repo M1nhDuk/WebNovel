@@ -41,9 +41,4 @@
   color: #888;
 }
 
-.main-content {
-    margin-left: 60px;
-    padding: 0;
-    width: calc(100% - 60px);
-    padding-top: 60px;
-}
+

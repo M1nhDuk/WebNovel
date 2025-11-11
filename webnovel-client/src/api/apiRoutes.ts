@@ -7,11 +7,11 @@ export const API_ROUTES = {
         LOGIN: '/auth/login',
         REFRESH_TOKEN: '/auth/refresh-token',
         FORGOT_PASSWORD: '/auth/forgot-password',
-        RESET_PASSWORD: '/auth/reset-password',
-        GET_EMAIL_FROM_TOKEN: '/auth/get-email-from-token',
         LOGOUT: '/auth/logout',
         UPLOAD_AVATAR: '/user/avatar',
         UPLOAD_BACKGROUND: '/user/background',
+        CHANGE_PASSWORD: '/user/change-password',
+        CHANGE_USERNAME: '/user/change-username',
     },
 
     // --- NovelService Routes ---

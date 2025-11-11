@@ -6,6 +6,7 @@ import type { CategoryDto, NovelStatusDto, TagDto } from '../../types/filters';
 import SeriesItem from '../../components/series/SeriesItem';
 import './BrowsePage.css';
 import { FaSortAlphaDown, FaSortAlphaUp } from 'react-icons/fa';
+import { useSearchParams } from 'react-router-dom';
 
 
 const sortOptions = ["Title", "Views", "WordCount", "UpdatedAt"];
@@ -14,6 +15,9 @@ const typeOptions = ["Series", "TRADITIONAL"];
 
 const BrowsePage: React.FC = () => {
 
+    const [searchParams] = useSearchParams();
+    const keyword = searchParams.get('q');
+
     const [seriesList, setSeriesList] = useState<SeriesListDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -21,7 +25,7 @@ const BrowsePage: React.FC = () => {
     const [totalRecords, setTotalRecords] = useState(0);
 
 
-    const [sortBy, setSortBy] = useState<string>('Title'); // M?c ??nh
+    const [sortBy, setSortBy] = useState<string>('Title'); 
     const [isAscending, setIsAscending] = useState<boolean>(true);
 
 
@@ -30,10 +34,10 @@ const BrowsePage: React.FC = () => {
     const [tags, setTags] = useState<TagDto[]>([]);
 
 
-    const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
-    const [selectedStatusIds, setSelectedStatusIds] = useState<number[]>([]);
-    const [selectedType, setSelectedType] = useState<string>(''); // 'Series' ho?c 'TRADITIONAL'
-    const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
+    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+    const [selectedStatusId, setSelectedStatusId] = useState<number | null>(null);
+    const [selectedType, setSelectedType] = useState<string>('');
+    const [selectedTagId, setSelectedTagId] = useState<number | null>(null);
 
 
     useEffect(() => {
@@ -58,27 +62,53 @@ const BrowsePage: React.FC = () => {
 
 
     useEffect(() => {
+        setPage(1);
+    }, [sortBy, isAscending, selectedCategoryId, selectedStatusId, selectedType, selectedTagId, keyword]);
+
+
+    useEffect(() => {
         const fetchSeries = async () => {
             setLoading(true);
             setError(null);
 
             const params = new URLSearchParams();
             params.append('pageNumber', page.toString());
-            params.append('pageSize', '18'); // 18 item m?i trang
-            params.append('sortBy', sortBy);
-            params.append('isAscending', String(isAscending));
+            params.append('pageSize', '18'); 
 
-            if (selectedType) {
-                params.append('filter.Type', selectedType);
+            let apiUrl: string;
+
+            if (keyword) {
+
+                apiUrl = API_ROUTES.SERIES.SEARCH_SERIES;
+                params.append('keyword', keyword);
+            } else {
+                
+                apiUrl = API_ROUTES.SERIES.GET_ALL_SERIES;
+                params.append('sortBy', sortBy);
+                params.append('isAscending', String(isAscending));
+
+                if (selectedType) {
+                    params.append('filter.Type', selectedType);
+                }
+
+                if (selectedCategoryId !== null) {
+                    params.append('filter.CategoryId', selectedCategoryId.toString());
+                }
+
+                if (selectedStatusId !== null) {
+                    params.append('filter.StatusId', selectedStatusId.toString());
+                }
+
+                if (selectedTagId !== null) {
+                    params.append('filter.TagId', selectedTagId.toString());
+                }
             }
-            selectedCategoryIds.forEach(id => params.append('filter.CategoryId', id.toString()));
-            selectedStatusIds.forEach(id => params.append('filter.StatusId', id.toString()));
-            selectedTagIds.forEach(id => params.append('filter.TagId', id.toString()));
+
 
             try {
                 const response = await apiClient.get<PagedResult<SeriesListDto>>(
-                    API_ROUTES.SERIES.GET_ALL_SERIES,
-                    { params } 
+                    apiUrl,
+                    { params }
                 );
                 if (page === 1) {
                     setSeriesList(response.data.items);
@@ -95,28 +125,25 @@ const BrowsePage: React.FC = () => {
         };
 
         fetchSeries();
-    }, [page, sortBy, isAscending, selectedCategoryIds, selectedStatusIds, selectedType, selectedTagIds]);
-
-    const handleCheckboxChange = (
-        id: number,
-        setter: React.Dispatch<React.SetStateAction<number[]>>
-    ) => {
-        setter(prevIds =>
-            prevIds.includes(id)
-                ? prevIds.filter(prevId => prevId !== id) 
-                : [...prevIds, id] 
-        );
-        setPage(1); 
-    };
+    }, [page, sortBy, isAscending, selectedCategoryId, selectedStatusId, selectedType, selectedTagId, keyword]);
 
 
+    //Type(string)
     const handleRadioChange = (
         value: string,
         setter: React.Dispatch<React.SetStateAction<string>>
     ) => {
         setter(value);
-        setPage(1); 
     }
+
+    //Rest(number)
+    const handleRadioIdChange = (
+        id: number | null,
+        setter: React.Dispatch<React.SetStateAction<number | null>>
+    ) => {
+        setter(id);
+    };
+
 
     const handleLoadMore = () => {
         if (seriesList.length < totalRecords) {
@@ -124,35 +151,41 @@ const BrowsePage: React.FC = () => {
         }
     };
 
+    const isFilteringDisabled = !!keyword;
+
     return (
         <div className="browse-page-container">
 
             <div className="browse-content">
-                <div className="sorting-controls">
-                    <select
-                        id="sort-by"
-                        value={sortBy}
-                        onChange={(e) => {
-                            setSortBy(e.target.value);
-                            setPage(1);
-                        }}
-                    >
-                        <option value="Title">SORTING FUNCTION</option> {/* Dòng m?c ??nh */}
-                        {sortOptions.map(opt => (
-                            <option key={opt} value={opt}>Sort by {opt}</option>
-                        ))}
-                    </select>
-                    <button
-                        className="sort-direction-btn"
-                        title={isAscending ? "Sort Descending" : "Sort Ascending"}
-                        onClick={() => {
-                            setIsAscending(!isAscending);
-                            setPage(1);
-                        }}
-                    >
-                        {isAscending ? <FaSortAlphaDown /> : <FaSortAlphaUp />}
-                    </button>
-                </div>
+                {keyword ? (
+                    <h2 style={{ textAlign: 'left', width: '100%' }}>Search results for: "{keyword}"</h2>
+                ) : (
+                    <div className="sorting-controls">
+                        <select
+                            id="sort-by"
+                            value={sortBy}
+                            onChange={(e) => {
+                                setSortBy(e.target.value);
+                                // setPage(1); 
+                            }}
+                        >
+                            <option value="Title">SORTING FUNCTION</option>
+                            {sortOptions.map(opt => (
+                                <option key={opt} value={opt}>Sort by {opt}</option>
+                            ))}
+                        </select>
+                        <button
+                            className="sort-direction-btn"
+                            title={isAscending ? "Sort Descending" : "Sort Ascending"}
+                            onClick={() => {
+                                setIsAscending(!isAscending);
+                                // setPage(1); 
+                            }}
+                        >
+                            {isAscending ? <FaSortAlphaDown /> : <FaSortAlphaUp />}
+                        </button>
+                    </div>
+                )}
 
                 {loading && page === 1 && <div>Loading series...</div>}
                 {error && <div style={{ color: 'red' }}>{error}</div>}
@@ -182,7 +215,7 @@ const BrowsePage: React.FC = () => {
             <aside className="browse-sidebar">
                 {/* Filter: Type */}
                 <div className="filter-box">
-                    <div className="filter-box-header">Filter function : type</div>
+                    <div className="filter-box-header">Type</div>
                     <div className="filter-box-content">
                         <div className="filter-item" key="type-all">
                             <input
@@ -192,6 +225,7 @@ const BrowsePage: React.FC = () => {
                                 value=""
                                 checked={selectedType === ''}
                                 onChange={(e) => handleRadioChange(e.target.value, setSelectedType)}
+                                disabled={isFilteringDisabled}
                             />
                             <label htmlFor="type-all">All Types</label>
                         </div>
@@ -204,6 +238,7 @@ const BrowsePage: React.FC = () => {
                                     value={type}
                                     checked={selectedType === type}
                                     onChange={(e) => handleRadioChange(e.target.value, setSelectedType)}
+                                    disabled={isFilteringDisabled}
                                 />
                                 <label htmlFor={`type-${type}`}>{type}</label>
                             </div>
@@ -215,15 +250,29 @@ const BrowsePage: React.FC = () => {
 
                 {/* Filter: Category */}
                 <div className="filter-box">
-                    <div className="filter-box-header">Filter function : category</div>
+                    <div className="filter-box-header">CATEGORY</div>
                     <div className="filter-box-content">
+                        <div className="filter-item" key="cat-all">
+                            <input
+                                type="radio"
+                                id="cat-all"
+                                name="filter-category" 
+                                checked={selectedCategoryId === null} 
+                                onChange={() => handleRadioIdChange(null, setSelectedCategoryId)}
+                                disabled={isFilteringDisabled}
+                            />
+                            <label htmlFor="cat-all">All Categories</label>
+                        </div>
+                        {/* Map qua các category */}
                         {categories.map(cat => (
                             <div className="filter-item" key={cat.category_id}>
                                 <input
-                                    type="checkbox"
+                                    type="radio"
                                     id={`cat-${cat.category_id}`}
-                                    checked={selectedCategoryIds.includes(cat.category_id)}
-                                    onChange={() => handleCheckboxChange(cat.category_id, setSelectedCategoryIds)}
+                                    name="filter-category"
+                                    checked={selectedCategoryId === cat.category_id}
+                                    onChange={() => handleRadioIdChange(cat.category_id, setSelectedCategoryId)}
+                                    disabled={isFilteringDisabled}
                                 />
                                 <label htmlFor={`cat-${cat.category_id}`}>{cat.category_name}</label>
                             </div>
@@ -235,15 +284,30 @@ const BrowsePage: React.FC = () => {
 
                 {/* Filter: Status */}
                 <div className="filter-box">
-                    <div className="filter-box-header">Filter function : status</div>
+                    <div className="filter-box-header">STATUS</div>
                     <div className="filter-box-content">
+         
+                        <div className="filter-item" key="status-all">
+                            <input
+                                type="radio"
+                                id="status-all"
+                                name="filter-status"
+                                checked={selectedStatusId === null}
+                                onChange={() => handleRadioIdChange(null, setSelectedStatusId)}
+                                disabled={isFilteringDisabled}
+                            />
+                            <label htmlFor="status-all">All Statuses</label>
+                        </div>
+                        {/* Map qua các status */}
                         {statuses.map(status => (
                             <div className="filter-item" key={status.statusId}>
                                 <input
-                                    type="checkbox"
+                                    type="radio"
                                     id={`status-${status.statusId}`}
-                                    checked={selectedStatusIds.includes(status.statusId)}
-                                    onChange={() => handleCheckboxChange(status.statusId, setSelectedStatusIds)}
+                                    name="filter-status"
+                                    checked={selectedStatusId === status.statusId}
+                                    onChange={() => handleRadioIdChange(status.statusId, setSelectedStatusId)}
+                                    disabled={isFilteringDisabled}
                                 />
                                 <label htmlFor={`status-${status.statusId}`}>{status.statusName}</label>
                             </div>
@@ -252,18 +316,32 @@ const BrowsePage: React.FC = () => {
                 </div>
 
 
-
                 {/* Filter: Tag */}
                 <div className="filter-box">
-                    <div className="filter-box-header">Filter function : Tag</div>
+                    <div className="filter-box-header">TAG</div>
                     <div className="filter-box-content">
+                      
+                        <div className="filter-item" key="tag-all">
+                            <input
+                                type="radio"
+                                id="tag-all"
+                                name="filter-tag"
+                                checked={selectedTagId === null}
+                                onChange={() => handleRadioIdChange(null, setSelectedTagId)}
+                                disabled={isFilteringDisabled}
+                            />
+                            <label htmlFor="tag-all">All Tags</label>
+                        </div>
+
                         {tags.map(tag => (
                             <div className="filter-item" key={tag.tagId}>
                                 <input
-                                    type="checkbox"
+                                    type="radio"
                                     id={`tag-${tag.tagId}`}
-                                    checked={selectedTagIds.includes(tag.tagId)}
-                                    onChange={() => handleCheckboxChange(tag.tagId, setSelectedTagIds)}
+                                    name="filter-tag"
+                                    checked={selectedTagId === tag.tagId}
+                                    onChange={() => handleRadioIdChange(tag.tagId, setSelectedTagId)}
+                                    disabled={isFilteringDisabled}
                                 />
                                 <label htmlFor={`tag-${tag.tagId}`}>{tag.tagName}</label>
                             </div>

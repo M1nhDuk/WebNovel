@@ -12,9 +12,11 @@ namespace AuthService.Services.Interface
         Task<TokenResponseDto?> RefreshTokenAsync(RefreshTokenRequestDto request);
         Task<bool> ConfirmEmailAsync(Guid userId, string token);
         Task ForgotPasswordAsync(string email);
-        Task<bool> ResetPasswordAsync(ResetPasswordDto resetPasswordDto);
-        Task<string?> GetEmailFromResetTokenAsync(string token);
+
         Task LogoutAsync(Guid userId);
+
+        Task<bool> ChangePasswordAsync(Guid userId, ChangePasswordDto dto);
+        Task<TokenResponseDto?> ChangeUsernameAsync(Guid userId, ChangeUsernameDto dto);
     }
 }
 

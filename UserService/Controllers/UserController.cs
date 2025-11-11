@@ -7,6 +7,7 @@ using System.ComponentModel.DataAnnotations;
 using UserService.Data;
 using UserService.Models;
 
+
 namespace UserService.Controllers
 {
     [ApiController]

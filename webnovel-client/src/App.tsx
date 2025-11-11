@@ -1,31 +1,42 @@
 import './App.css'
-import HomePage from './pages/HomePage/HomePage'
-import LeftSidebar from './components/layout/LeftSidebar'
-import Header from './components/layout/Header'
 import { Routes, Route } from 'react-router-dom'
+
+import HomePage from './pages/HomePage/HomePage'
 import BrowsePage from './pages/BrowsePage/BrowsePage'
 import SeriesDetailPage from './pages/SeriesDetailPage/SeriesDetailPage'
 import NovelDetailPage from './pages/NovelDetailPage/NovelDetailPage'
+import LoginPage from './pages/LoginPage/LoginPage'
+import RegisterPage from './pages/RegisterPage/RegisterPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage/ForgotPasswordPage'
+import AccountSettingsPage from './pages/AccountSettingsPage/AccountSettingsPage'
+import MainLayout from './components/layout/MainLayout'
+
 
 function App() {
     return (
-        <div className="app-layout">
-            <Header />
-            <LeftSidebar />
+        <Routes>
 
-            <main className="main-content">
-                <Routes>
-                    <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<LoginPage />} />
 
-                    <Route path="/browse" element={<BrowsePage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
-                    <Route path="/series/:id" element={<SeriesDetailPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-                    <Route path="/series/:seriesId/novel/:novelId" element={<NovelDetailPage />} />
+            <Route path="/" element={<MainLayout />}>
 
-                </Routes>
-            </main>
-        </div>
+                <Route index element={<HomePage />} />
+
+                <Route path="browse" element={<BrowsePage />} />
+
+                <Route path="series/:id" element={<SeriesDetailPage />} />
+
+                <Route path="series/:seriesId/novel/:novelId" element={<NovelDetailPage />} />
+
+                <Route path="/account-settings" element={<AccountSettingsPage />} />
+
+            </Route>
+
+        </Routes>
     )
 }
 
