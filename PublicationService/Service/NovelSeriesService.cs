@@ -14,6 +14,7 @@ using Shareds.DTOs.UserService;
 using System.Net.Http;
 using System.Net.Http.Json;
 using Microsoft.Extensions.Configuration;
+using Shareds.DTOs.AuthService;
 
 
 namespace NovelService.Service
@@ -26,6 +27,7 @@ namespace NovelService.Service
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly string _userServiceUrl;
+        private readonly string _authServiceUrl;
 
         public NovelSeriesService(
             NovelDbContext context, 
@@ -39,6 +41,9 @@ namespace NovelService.Service
             _configuration = configuration;
             _userServiceUrl = configuration["ServiceUrls:UserService"] ??
                               throw new InvalidOperationException("ServiceUrls:UserService không được cấu hình");
+            _authServiceUrl = _configuration.GetValue<string>("ServiceUrls:AuthService") ??
+                              throw new InvalidOperationException("ServiceUrls:AuthService không được cấu hình");
+
         }
 
 
@@ -241,11 +246,12 @@ namespace NovelService.Service
         {
             var seriesBase = await _context.Novel_Series.FindAsync(id);
 
-
             if (seriesBase == null)
             {
                 return null;
             }
+
+            NovelSeriesDetailDto detailDto;
 
             if (seriesBase.type == type.TRADITIONAL)
             {
@@ -260,7 +266,8 @@ namespace NovelService.Service
 
                 if (ts == null) return null;
 
-                return new ClassicSeriesDetailDto
+                //Gán giá trị cho detailDto
+                detailDto = new ClassicSeriesDetailDto
                 {
                     series_Id = ts.series_Id,
                     series_title = ts.series_title,
@@ -313,7 +320,8 @@ namespace NovelService.Service
 
                 if (s == null) return null;
 
-                return new NovelSeriesDetailDto
+                //Gán giá trị cho detailDto
+                detailDto = new NovelSeriesDetailDto
                 {
                     series_Id = s.series_Id,
                     series_title = s.series_title,
@@ -337,7 +345,6 @@ namespace NovelService.Service
                     // tags: chỉ lấy tên
                     Tags = s.NovelTags.Select(t => t.Tag.tagName).ToList(),
 
-
                     Novels = s.Novel.OrderBy(n => n.novel_number).Select(n => new NovelDetailDto
                     {
                         series_Id = n.series_Id,
@@ -359,11 +366,15 @@ namespace NovelService.Service
 
                         }).ToList()
 
-
                     }).ToList()
                 };
-            }     
+            }
+
+            await EnrichDtoWithUploaderInfo(detailDto);
+            return detailDto;
         }
+
+
 
         //View all
         public async Task<PagedResult<SeriesListDto>> GetAllSeriesAsync(
@@ -497,7 +508,7 @@ namespace NovelService.Service
                     ? query.OrderBy(s => s.updated_at)
                     : query.OrderByDescending(s => s.updated_at),
 
-                _ => query.OrderBy(s => s.series_Id) // fallback
+                _ => query.OrderBy(s => s.series_Id) 
             };
 
         }
@@ -609,7 +620,7 @@ namespace NovelService.Service
                 var notificationDto = new CreateNotificationDto
                 {
                     UserId = followerId,
-                    Type = "SeriesUpdate", // Dùng chuỗi
+                    Type = "SeriesUpdate",
                     Message = $"Series '{seriesTitle}' bạn theo dõi vừa có thông báo mới.",
                     LinkUrl = $"/series/{seriesId}"
                 };
@@ -635,6 +646,42 @@ namespace NovelService.Service
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Connection erro when send noctify to User {UserId}", dto.UserId);
+            }
+        }
+
+
+        private async Task EnrichDtoWithUploaderInfo(NovelSeriesDetailDto dto)
+        {
+            if (dto.uploader_id == Guid.Empty)
+            {
+                dto.uploader_name = "[Unknown]";
+                return;
+            }
+
+            try
+            {
+                var httpClient = _httpClientFactory.CreateClient();
+
+                var requestUrl = $"{_authServiceUrl}/api/internal/users/batch?ids={dto.uploader_id}";
+
+                var usersInfo = await httpClient.GetFromJsonAsync<List<UserInfoDto>>(requestUrl);
+
+                if (usersInfo != null && usersInfo.Count > 0)
+                {
+                    var userInfo = usersInfo[0];
+                    dto.uploader_name = userInfo.UserName ?? "[No Name]";
+                    dto.uploader_avatar = userInfo.AvatarThumbnail;
+                }
+                else
+                {
+                    dto.uploader_name = "[User Not Found]";
+                    _logger.LogWarning("User info not found for UploaderId {UploaderId}", dto.uploader_id);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to fetch uploader info for UploaderId {UploaderId} from AuthService", dto.uploader_id);
+                dto.uploader_name = "[Error]"; 
             }
         }
     }

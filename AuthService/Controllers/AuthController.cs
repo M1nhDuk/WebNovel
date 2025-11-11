@@ -60,14 +60,6 @@ namespace AuthService.Controllers
         }
 
 
-        //endpoint
-        [Authorize]
-        [HttpGet]
-        public IActionResult AuthenticantedOnlyEndPoint()
-        {
-            return Ok("You are authenticated");
-        }
-
         [Authorize(Roles = "Admin")]
         [HttpGet("admin-only")]
         public IActionResult AdminOnlyEndPoint()
@@ -79,45 +71,10 @@ namespace AuthService.Controllers
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
         {
-  
+
             await autheService.ForgotPasswordAsync(dto.Email);
 
-            return Ok("Email have been sent to your ib!");
-        }
-
-
-
-        [HttpPost("reset-password")]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
-        {
-            var result = await autheService.ResetPasswordAsync(resetPasswordDto);
-
-            if (!result)
-            {
-                return BadRequest("Invalid Token.");
-            }
-
-            return Ok("Reset password successfully");
-        }
-
-
-        
-        [HttpGet("get-email-from-token")]
-        public async Task<IActionResult> GetEmailFromResetToken([FromQuery] string token)
-        {
-            if (string.IsNullOrEmpty(token))
-            {
-                return BadRequest("Token is required.");
-            }
-
-            var email = await autheService.GetEmailFromResetTokenAsync(token);
-
-            if (email == null)
-            {                
-                return BadRequest("Invalid or expired token.");
-            }
-
-            return Ok(new { email });
+            return Ok("If your email exists, a new password has been sent.");
         }
 
 

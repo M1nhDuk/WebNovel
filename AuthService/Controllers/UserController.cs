@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using System.Security.Claims;
+using AuthService.Services.Interface; 
+using Shareds.DTOs.AuthService; 
+using Shareds.DTOs;
 
 namespace AuthService.Controllers
 {
@@ -16,12 +19,73 @@ namespace AuthService.Controllers
         private readonly AuthDbContext _context;
         private readonly IWebHostEnvironment _environment;
         private const long MaxFileSize = 15 * 1024 * 1024; //15mb
-        public UserController(AuthDbContext context, IWebHostEnvironment environment, ILogger logger)
+        private readonly IAutheService _autheService;
+        public UserController(AuthDbContext context, IWebHostEnvironment environment, ILogger<UserController> logger, IAutheService autheService) // <-- CẬP NHẬT CONSTRUCTOR
         {
             _context = context;
             _environment = environment;
             _logger = logger;
+            _autheService = autheService; 
         }
+
+
+        private Guid GetUserIdFromToken() 
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (Guid.TryParse(userIdStr, out Guid userId))
+            {
+                return userId;
+            }
+            throw new UnauthorizedAccessException("User ID not found in token.");
+        }
+
+
+        [HttpPost("change-username")]
+        public async Task<ActionResult<TokenResponseDto>> ChangeUsername([FromBody] ChangeUsernameDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            try
+            {
+                var userId = GetUserIdFromToken();
+                var tokenResponse = await _autheService.ChangeUsernameAsync(userId, dto);
+                return Ok(tokenResponse);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to change username for user {UserId}", GetUserIdFromToken());
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+
+
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            try
+            {
+                var userId = GetUserIdFromToken();
+                var success = await _autheService.ChangePasswordAsync(userId, dto);
+
+                if (!success)
+                {
+                    return BadRequest(new { message = "Password not correct." });
+                }
+
+                return Ok(new { message = "Change Password successfully." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error changing password for user {UserId}", GetUserIdFromToken());
+                return StatusCode(500, "Lỗi máy chủ nội bộ.");
+            }
+        }
+
+
+
 
         [HttpPost("avatar")]
         [RequestSizeLimit(MaxFileSize + 1024 * 1024)]

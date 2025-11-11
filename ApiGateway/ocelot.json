@@ -77,37 +77,9 @@
       "DangerousAcceptAnyServerCertificateValidator": true
     },
 
-    //1.6 Reset Password
-    {
-      "UpstreamPathTemplate": "/auth/reset-password",
-      "UpstreamHttpMethod": [ "POST" ],
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7154
-        }
-      ],
-      "DownstreamPathTemplate": "/api/Auth/reset-password",
-      "DangerousAcceptAnyServerCertificateValidator": true
-    },
+ 
 
-    //1.7 Get email from token
-    {
-      "UpstreamPathTemplate": "/auth/get-email-from-token",
-      "UpstreamHttpMethod": [ "GET" ],
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7154
-        }
-      ],
-      "DownstreamPathTemplate": "/api/Auth/get-email-from-token",
-      "DangerousAcceptAnyServerCertificateValidator": true
-    },
-
-    //1.8 Log out
+    //1.6 Log out
     {
       "UpstreamPathTemplate": "/auth/logout",
       "UpstreamHttpMethod": [ "POST" ],
@@ -128,7 +100,7 @@
 
     // --- UserController Routes ---
 
-    //1.9 Avata
+    //1.7 Avata
     {
       "UpstreamPathTemplate": "/user/avatar",
       "UpstreamHttpMethod": [ "POST" ],
@@ -148,7 +120,7 @@
       }
     },
 
-    //1.10 Back ground
+    //1.8 Back ground
     {
       "UpstreamPathTemplate": "/user/background",
       "UpstreamHttpMethod": [ "POST" ],
@@ -166,6 +138,47 @@
         "AllowedScopes": []
       }
     },
+
+
+    // 1.9 Channge Use Name
+    {
+      "UpstreamPathTemplate": "/user/change-username",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7154
+        }
+      ],
+      "DownstreamPathTemplate": "/api/User/change-username",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
+    // 1.10 Change Password
+    {
+      "UpstreamPathTemplate": "/user/change-password",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7154
+        }
+      ],
+      "DownstreamPathTemplate": "/api/User/change-password",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
+
 
 
     //2. Novel Service

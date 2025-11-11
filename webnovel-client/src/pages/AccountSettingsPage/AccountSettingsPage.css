@@ -1,0 +1,86 @@
+.settings-container {
+    max-width: 700px;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+.settings-box {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.settings-header {
+    padding: 15px 20px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.settings-form {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+
+    .settings-form .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+        .settings-form .form-group label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-align: left;
+        }
+
+        .settings-form .form-group input[type="text"],
+        .settings-form .form-group input[type="password"] {
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+    .settings-form .form-footer {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 15px;
+        margin-top: 10px;
+    }
+
+    .settings-form button {
+        padding: 10px 20px;
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+
+
+.settings-message {
+    padding: 10px;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+    .settings-message.success {
+        color: #004033;
+        background-color: #cceee8;
+        border: 1px solid #99d7c9;
+    }
+
+    .settings-message.error {
+        color: #a50e0e;
+        background-color: #fce8e6;
+        border: 1px solid #f4c7c3;
+    }

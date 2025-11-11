@@ -18,6 +18,36 @@ namespace AuthService.Services
 {
     public class AuthenticationService(AuthDbContext context, IConfiguration configuration, IEmailService emailService) : IAutheService
     {
+        private string GenerateRandomPassword(int length = 8)
+        {
+            const string validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+            var sb = new StringBuilder();
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                byte[] uintBuffer = new byte[sizeof(uint)];
+                for (int i = 0; i < length; i++)
+                {
+                    rng.GetBytes(uintBuffer);
+                    uint num = BitConverter.ToUInt32(uintBuffer, 0);
+                    sb.Append(validChars[(int)(num % (uint)validChars.Length)]);
+                }
+            }
+            return sb.ToString();
+        }
+
+
+        //Create Token
+        private async Task<TokenResponseDto> CreateTokenResponse(User? user, bool rememberMe = false)
+        {
+            return new TokenResponseDto
+            {
+                AccessToken = CreateToken(user),
+                RefreshToken = await GenerateAndSaveRefreshToken(user, rememberMe)
+            };
+        }
+
+
+
         public async Task<TokenResponseDto?> LoginAsync(LoginDto request)
         {
             var user = await context.Users.FirstOrDefaultAsync(u => u.Username == request.Username || u.Email == request.Username);
@@ -51,35 +81,51 @@ namespace AuthService.Services
         }
 
 
-
-        //Create Token
-        private async Task<TokenResponseDto> CreateTokenResponse(User? user, bool rememberMe = false)
-        {
-            return new TokenResponseDto
-            {
-                AccessToken = CreateToken(user),
-                RefreshToken = await GenerateAndSaveRefreshToken(user, rememberMe)
-            };
-        }
-
-
-
-        //Log out
-        public async  Task LogOutAsync(Guid userId)
+        public async Task<bool> ChangePasswordAsync(Guid userId, ChangePasswordDto dto)
         {
             var user = await context.Users.FindAsync(userId);
-            if (user is null) 
+            if (user == null)
             {
-                return;
+                throw new Exception("User not found.");
             }
 
-            user.RefreshToken = null;
-            user.RefreshTokenExpiryTime = null;
+            var passwordVerificationResult = new PasswordHasher<User>()
+                .VerifyHashedPassword(user, user.PasswordHash, dto.OldPassword);
+
+            if (passwordVerificationResult == PasswordVerificationResult.Failed)
+            {
+                return false; 
+            }
+
+            var newHashedPassword = new PasswordHasher<User>().HashPassword(user, dto.NewPassword);
+            user.PasswordHash = newHashedPassword;
 
             await context.SaveChangesAsync();
+            return true;
         }
 
 
+        public async Task<TokenResponseDto?> ChangeUsernameAsync(Guid userId, ChangeUsernameDto dto)
+        {
+            var user = await context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                throw new Exception("User not found.");
+            }
+
+
+            var newUsernameLower = dto.NewUsername.ToLower();
+            if (await context.Users.AnyAsync(u => u.Username.ToLower() == newUsernameLower && u.UserId != userId))
+            {
+                throw new Exception("Username already taken."); 
+            }
+
+
+            user.Username = dto.NewUsername;
+            await context.SaveChangesAsync();
+
+            return await CreateTokenResponse(user, false);
+        }
 
         //Register
         public async Task<User?> RegisterAsync(UserDto request)
@@ -166,13 +212,44 @@ namespace AuthService.Services
 
             var confirmationLink = $"https://localhost:7154/api/Auth/confirm-email?userId={user.UserId}&token={Uri.EscapeDataString(user.EmailConfirmationToken)}";
 
-            var emailBody = $"<p>Vui lòng nhấp vào liên kết dưới đây để hoàn tất:</p>" +
-                            $"<p><a href='{confirmationLink}'>Kích hoạt tài khoản</a></p>";
+            var emailBody = $"<p>CLick on the link:</p>" +
+                            $"<p><a href='{confirmationLink}'>to confirm your account</a></p>";
 
             await emailService.SendEmailAsync(user.Email, "Xác thực tài khoản", emailBody);
 
             return user;
         }
+
+
+
+        public async Task ForgotPasswordAsync(string email)
+        {
+            var user = await context.Users.FirstOrDefaultAsync(x => x.Email == email);
+            if (user != null)
+            {
+
+                string newPassword = GenerateRandomPassword();
+
+
+                var hashedPassword = new PasswordHasher<User>().HashPassword(user, newPassword);
+                user.PasswordHash = hashedPassword;
+
+
+                user.PasswordResetToken = null;
+                user.ResetTokenExpires = null;
+
+                await context.SaveChangesAsync();
+
+                string emailBody = $@"
+                <p>Your new password:</p>
+                <p><strong>{newPassword}</strong></p>
+                <br>
+                <p>Login your account with this password.</p>";
+
+                await emailService.SendEmailAsync(email, "Your new password", emailBody);
+            }
+        }
+
 
 
         public async Task<bool> ConfirmEmailAsync(Guid userId, string token)
@@ -267,73 +344,11 @@ namespace AuthService.Services
             {
                 user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(2); // Thời hạn ngắn
             }
-
-
-           // user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
             await context.SaveChangesAsync();
             return refreshToken;
         }
 
-        public async Task ForgotPasswordAsync(string email)
-        {
-            var user = await context.Users.FirstOrDefaultAsync(x => x.Email == email);
-            if (user != null)
-            {
-                user.PasswordResetToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-                user.ResetTokenExpires = DateTime.UtcNow.AddMinutes(60);
-
-                await context.SaveChangesAsync();
-
-                var resetLink = $"https://localhost:7154/api/Auth/reset-password?token={Uri.EscapeDataString(user.PasswordResetToken)}";
-
-                string emailBody = $@"
-                <p>Đây là email để test API đặt lại mật khẩu.</p>
-                <p>Sử dụng token dưới đây để gọi endpoint /api/Auth/reset-password.</p>
-                <p><strong>Token:</strong></p>
-                <p>{user.PasswordResetToken}</p>
-                <br>
-                <p><strong>Link đầy đủ (để tham khảo):</strong></p>
-                <p>{resetLink}</p>";
-
-
-                await emailService.SendEmailAsync(email, "Yêu Cầu Đặt Lại Mật Khẩu (TEST)", emailBody);
-            }
-        }
-
-        public async Task<bool> ResetPasswordAsync(ResetPasswordDto resetPasswordDto)
-        {
-            var user = await context.Users.FirstOrDefaultAsync(u => u.PasswordResetToken == resetPasswordDto.Token && u.ResetTokenExpires > DateTime.UtcNow);
-            
-            if (user == null)
-            {
-                return false;
-            }
-
-            var hashedPassword = new PasswordHasher<User>().HashPassword(user, resetPasswordDto.Password);
-            user.PasswordHash = hashedPassword;
-
-            // Vô hiệu hóa token sau khi đã sử dụng
-            user.PasswordResetToken = null;
-            user.ResetTokenExpires = null;
-
-            await context.SaveChangesAsync();
-
-            return true;
-
-        }
-
-
-        //Email Reset Password
-        public async Task<string?> GetEmailFromResetTokenAsync(string token)
-        {
-            // Tìm user có token hợp lệ và chưa hết hạn
-            var user = await context.Users.AsNoTracking().FirstOrDefaultAsync(u =>
-                u.PasswordResetToken == token &&
-                u.ResetTokenExpires > DateTime.UtcNow);
-
-           
-            return user?.Email;
-        }
+        
 
 
         //Log out
@@ -345,7 +360,6 @@ namespace AuthService.Services
                 return;
             }
 
-            // Xóa refresh token để vô hiệu hóa phiên đăng nhập
             user.RefreshToken = null;
             user.RefreshTokenExpiryTime = null;
 
