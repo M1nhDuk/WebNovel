@@ -9,6 +9,8 @@ import LoginPage from './pages/LoginPage/LoginPage'
 import RegisterPage from './pages/RegisterPage/RegisterPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage/ForgotPasswordPage'
 import AccountSettingsPage from './pages/AccountSettingsPage/AccountSettingsPage'
+import ProfilePage from './pages/ProfilePage/ProfilePage'
+
 import MainLayout from './components/layout/MainLayout'
 
 
@@ -31,6 +33,8 @@ function App() {
                 <Route path="series/:id" element={<SeriesDetailPage />} />
 
                 <Route path="series/:seriesId/novel/:novelId" element={<NovelDetailPage />} />
+
+                <Route path="/profile" element={<ProfilePage />} />
 
                 <Route path="/account-settings" element={<AccountSettingsPage />} />
 

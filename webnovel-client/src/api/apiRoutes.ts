@@ -12,6 +12,7 @@ export const API_ROUTES = {
         UPLOAD_BACKGROUND: '/user/background',
         CHANGE_PASSWORD: '/user/change-password',
         CHANGE_USERNAME: '/user/change-username',
+        GET_MY_PROFILE: '/user/me',
     },
 
     // --- NovelService Routes ---

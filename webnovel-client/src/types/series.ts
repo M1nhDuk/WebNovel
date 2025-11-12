@@ -57,6 +57,16 @@ export interface NovelSeriesDetailDto {
     novels: NovelDetailDto[]; 
 }
 
+export interface UserProfile {
+    userId: string;
+    username: string;
+    avatar: string | null;
+    avatarThumbnail: string | null;
+    backgroundImage: string | null;
+    role: string;
+}
+
+
 export interface PagedResult<T> {
     items: T[];
     totalRecords: number;
