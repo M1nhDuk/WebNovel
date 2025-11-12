@@ -178,7 +178,23 @@
       }
     },
 
-    // 1.11 Get My Profile
+    // 1.11 Images
+    {
+      "UpstreamPathTemplate": "/uploads/{everything}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7154
+        }
+      ],
+      "DownstreamPathTemplate": "/uploads/{everything}",
+      "DangerousAcceptAnyServerCertificateValidator": true
+    },
+
+
+    // 1.12 My Profile
     {
       "UpstreamPathTemplate": "/user/me",
       "UpstreamHttpMethod": [ "GET" ],
@@ -196,6 +212,7 @@
         "AllowedScopes": []
       }
     },
+
 
 
     //2. Novel Service
@@ -1231,22 +1248,6 @@
         }
       ],
       "DownstreamPathTemplate": "/images/{everything}",
-      "DangerousAcceptAnyServerCertificateValidator": true
-    },
-
-
-    //User images base
-    {
-      "UpstreamPathTemplate": "/uploads/{everything}",
-      "UpstreamHttpMethod": [ "GET" ],
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7154
-        }
-      ],
-      "DownstreamPathTemplate": "/uploads/{everything}",
       "DangerousAcceptAnyServerCertificateValidator": true
     }
 

@@ -202,9 +202,9 @@ namespace AuthService.Controllers
                 }
             }
 
-            // Cập nhật đường dẫn vào DB (chỉnh lại)
-            user.Avatar = $"{Request.Scheme}://{Request.Host}/uploads/{mainAvatarFileName}";
-            user.AvatarThumbnail = $"{Request.Scheme}://{Request.Host}/uploads/{thumbnailAvatarFileName}";
+            // Cập nhật đường dẫn vào DB 
+            user.Avatar = $"/uploads/{mainAvatarFileName}";
+            user.AvatarThumbnail = $"/uploads/{thumbnailAvatarFileName}";
 
             await _context.SaveChangesAsync();
 
@@ -309,7 +309,7 @@ namespace AuthService.Controllers
             }
 
 
-            user.BackgroundImage = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
+            user.BackgroundImage = $"/uploads/{fileName}";
             await _context.SaveChangesAsync();
 
             try
