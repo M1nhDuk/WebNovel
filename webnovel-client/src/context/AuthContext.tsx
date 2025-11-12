@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+ï»¿import { createContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import apiClient from '../api/apiClient';
 import { API_ROUTES } from '../api/apiRoutes';
 import type { UserProfile } from '../types/auth';
@@ -9,39 +9,51 @@ interface AuthContextType {
     isLoading: boolean;
     login: (credentials: LoginDto) => Promise<void>;
     logout: () => void;
+    refreshUserProfile: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const GATEWAY_URL = 'https://localhost:8000';
 
-// Hàm helper ?? chu?n hóa URL hình ?nh
-const getImageUrl = (imagePath: string | null | undefined) => {
+
+const getImageUrl = (imagePath: string | null | undefined, type: 'avatar' | 'background') => {
     if (!imagePath) {
-        return `${GATEWAY_URL}/images/default_avatar_thumb.png`;
+        return type === 'avatar'
+            ? `${GATEWAY_URL}/uploads/default_avatar_thumb.png`
+            : `${GATEWAY_URL}/uploads/default_background.jpg`;
     }
+
+
     if (imagePath.startsWith('http')) {
-        return imagePath; 
+        try {
+            const url = new URL(imagePath);
+            if (url.port === '7154') { 
+                return `${GATEWAY_URL}${url.pathname}`; 
+            }
+        } catch (e) {  }
+        return imagePath;
     }
+
     const formattedPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
-    return `${GATEWAY_URL}${formattedPath}`; 
+    return `${GATEWAY_URL}${formattedPath}`;
 };
 
-// Helper ?? ??nh d?ng ??i t??ng user v?i URL ??y ??
+
 const formatUserProfile = (user: UserProfile): UserProfile => ({
     ...user,
-    avatar: getImageUrl(user.avatar),
-    avatarThumbnail: getImageUrl(user.avatarThumbnail),
-    backgroundImage: getImageUrl(user.backgroundImage),
+    avatar: getImageUrl(user.avatar, 'avatar'),
+    avatarThumbnail: getImageUrl(user.avatarThumbnail, 'avatar'),
+    backgroundImage: getImageUrl(user.backgroundImage, 'background'),
 });
+
 
 // Component Provider
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // G?i API /user/me ?? l?y data
-    const fetchUser = useCallback(async () => {
+    const refreshUserProfile = useCallback(async () => {
         const token = localStorage.getItem('accessToken');
         if (!token) {
             setIsLoading(false);
@@ -50,7 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         try {
             const response = await apiClient.get<UserProfile>(API_ROUTES.AUTH.GET_MY_PROFILE);
-            setUser(formatUserProfile(response.data)); 
+            setUser(formatUserProfile(response.data));
         } catch (error) {
             console.error("Failed to fetch user:", error);
             localStorage.removeItem('accessToken');
@@ -62,20 +74,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 
     useEffect(() => {
-        fetchUser();
-    }, [fetchUser]);
+        refreshUserProfile();
+    }, [refreshUserProfile]);
 
-    // Hàm Login
+    // HÃ m Login
     const login = async (credentials: LoginDto) => {
         const response = await apiClient.post(API_ROUTES.AUTH.LOGIN, credentials);
         const { accessToken, refreshToken } = response.data;
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('refreshToken', refreshToken);
         apiClient.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-        await fetchUser(); 
+        await refreshUserProfile();
     };
 
-    // Hàm Logout
+    // HÃ m Logout
     const logout = () => {
         apiClient.post(API_ROUTES.AUTH.LOGOUT);
         setUser(null);
@@ -85,7 +97,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+        <AuthContext.Provider value={{ user, isLoading, login, logout, refreshUserProfile }}>
             {children}
         </AuthContext.Provider>
     );
