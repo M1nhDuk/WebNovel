@@ -77,7 +77,7 @@
       "DangerousAcceptAnyServerCertificateValidator": true
     },
 
- 
+
 
     //1.6 Log out
     {
@@ -178,7 +178,24 @@
       }
     },
 
-
+    // 1.11 Get My Profile
+    {
+      "UpstreamPathTemplate": "/user/me",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7154
+        }
+      ],
+      "DownstreamPathTemplate": "/api/User/me",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
 
 
     //2. Novel Service
@@ -1202,7 +1219,7 @@
 
 
 
-    //Images base
+    //Images publication base
     {
       "UpstreamPathTemplate": "/images/{everything}",
       "UpstreamHttpMethod": [ "GET" ],
@@ -1214,6 +1231,22 @@
         }
       ],
       "DownstreamPathTemplate": "/images/{everything}",
+      "DangerousAcceptAnyServerCertificateValidator": true
+    },
+
+
+    //User images base
+    {
+      "UpstreamPathTemplate": "/uploads/{everything}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7154
+        }
+      ],
+      "DownstreamPathTemplate": "/uploads/{everything}",
       "DangerousAcceptAnyServerCertificateValidator": true
     }
 

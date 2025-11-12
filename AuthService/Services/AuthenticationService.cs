@@ -199,9 +199,9 @@ namespace AuthService.Services
                 IsEmailConfirmed = false,
                 EmailConfirmationToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)),
                 Created_At = DateTime.UtcNow,
-                Avatar = "/images/default_avatar.png",
-                AvatarThumbnail = "/images/default_avatar_thumb.png",
-                BackgroundImage = "/images/default_background.jpg"
+                Avatar = "/uploads/default_avatar.png",
+                AvatarThumbnail = "/uploads/default_avatar_thumb.png",
+                BackgroundImage = "/uploads/default_background.jpg"
             };
 
             var hashedPassword = new PasswordHasher<User>().HashPassword(user, request.Password);

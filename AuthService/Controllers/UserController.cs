@@ -7,7 +7,7 @@ using System.Security.Claims;
 using AuthService.Services.Interface; 
 using Shareds.DTOs.AuthService; 
 using Shareds.DTOs;
-
+using Microsoft.EntityFrameworkCore;
 namespace AuthService.Controllers
 {
     [ApiController]
@@ -38,6 +38,45 @@ namespace AuthService.Controllers
             }
             throw new UnauthorizedAccessException("User ID not found in token.");
         }
+
+
+        [HttpGet("me")]
+        public async Task<ActionResult<UserProfileDto>> GetMyProfile()
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                var user = await _context.Users.FindAsync(userId);
+
+                if (user == null)
+                {
+                    return NotFound("User not found.");
+                }
+
+                var userProfile = new UserProfileDto
+                {
+                    UserId = user.UserId,
+                    Username = user.Username,
+                    Avatar = user.Avatar,
+                    AvatarThumbnail = user.AvatarThumbnail,
+                    BackgroundImage = user.BackgroundImage,
+                    Role = user.Role
+                };
+
+                return Ok(userProfile);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching profile for user {UserId}", GetUserIdFromToken());
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+
 
 
         [HttpPost("change-username")]

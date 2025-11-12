@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import apiClient from '../../api/apiClient';
-import { API_ROUTES } from '../../api/apiRoutes';
+import { useAuth } from '../../hooks/useAuth'; 
 import '../AuthForm.css';
 
 const LoginPage: React.FC = () => {
@@ -9,27 +8,17 @@ const LoginPage: React.FC = () => {
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
+
+    const { login, isLoading } = useAuth(); 
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
         setError(null);
 
         try {
-            const response = await apiClient.post(
-                API_ROUTES.AUTH.LOGIN,
-                { username, password, rememberMe }
-            );
-
-            const { accessToken, refreshToken } = response.data;
-
-            // Save token vào localStorage
-            localStorage.setItem('accessToken', accessToken);
-            localStorage.setItem('refreshToken', refreshToken);
-
-            navigate('/');
+            await login({ username, password, rememberMe });
+            navigate('/'); 
 
         } catch (err: any) {
             console.error("Login failed:", err);
@@ -38,7 +27,6 @@ const LoginPage: React.FC = () => {
             } else {
                 setError("Login failed. Please check your connection.");
             }
-            setLoading(false);
         }
     };
 
@@ -81,8 +69,8 @@ const LoginPage: React.FC = () => {
                     <label htmlFor="rememberMe">Remember me</label>
                 </div>
 
-                <button type="submit" disabled={loading}>
-                    {loading ? 'Logging in...' : 'Login'}
+                <button type="submit" disabled={isLoading}>
+                    {isLoading ? 'Logging in...' : 'Login'}
                 </button>
 
                 <div className="form-links">
