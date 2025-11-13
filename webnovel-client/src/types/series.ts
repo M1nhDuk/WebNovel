@@ -66,6 +66,16 @@ export interface UserProfile {
     role: string;
 }
 
+export interface CreateSeriesDto {
+    series_title: string;
+    artist?: string | null;
+    author?: string | null;
+    description: string;
+    note?: string | null;
+    status_id: number;
+    category_id: number | null;
+    TagIds?: number[] | null;
+}
 
 export interface PagedResult<T> {
     items: T[];

@@ -10,6 +10,7 @@ import RegisterPage from './pages/RegisterPage/RegisterPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage/ForgotPasswordPage'
 import AccountSettingsPage from './pages/AccountSettingsPage/AccountSettingsPage'
 import ProfilePage from './pages/ProfilePage/ProfilePage'
+import CreateSeriesPage from './pages/CreateSeriesPage/CreateSeriesPage'
 
 import MainLayout from './components/layout/MainLayout'
 
@@ -31,6 +32,8 @@ function App() {
                 <Route path="browse" element={<BrowsePage />} />
 
                 <Route path="series/:id" element={<SeriesDetailPage />} />
+
+                <Route path="create-series" element={<CreateSeriesPage />} />
 
                 <Route path="series/:seriesId/novel/:novelId" element={<NovelDetailPage />} />
 

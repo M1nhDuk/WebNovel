@@ -4,6 +4,7 @@ import apiClient from '../../api/apiClient';
 import { API_ROUTES } from '../../api/apiRoutes';
 import '../AuthForm.css';
 
+
 const RegisterPage: React.FC = () => {
     const [userName, setUserName] = useState('');
     const [email, setEmail] = useState('');
@@ -20,7 +21,7 @@ const RegisterPage: React.FC = () => {
         setError(null);
         setSuccess(null);
 
-        // Ki?m tra m?t kh?u kh?p
+        //Check matching password
         if (password !== confirmPassword) {
             setError("Password not match");
             setLoading(false);
