@@ -18,9 +18,9 @@ namespace AuthService.Controllers
         private readonly ILogger _logger;
         private readonly AuthDbContext _context;
         private readonly IWebHostEnvironment _environment;
-        private const long MaxFileSize = 15 * 1024 * 1024; //15mb
+        private const long MaxFileSize = 15 * 1024 * 1024; 
         private readonly IAutheService _autheService;
-        public UserController(AuthDbContext context, IWebHostEnvironment environment, ILogger<UserController> logger, IAutheService autheService) // <-- CẬP NHẬT CONSTRUCTOR
+        public UserController(AuthDbContext context, IWebHostEnvironment environment, ILogger<UserController> logger, IAutheService autheService)
         {
             _context = context;
             _environment = environment;
@@ -171,7 +171,7 @@ namespace AuthService.Controllers
                 return BadRequest("Invalid file type for avatar. Only JPG, PNG, and GIF are allowed.");
             }
 
-            // ngăn tên file trùng lặp khi upload file (300x300)
+            // ngăn tên file trùng lặp khi upload file 
             var mainAvatarFileName = $"{Guid.NewGuid()}_main{extension}";
             var mainAvatarFilePath = Path.Combine(uploads, mainAvatarFileName);
 
@@ -181,7 +181,7 @@ namespace AuthService.Controllers
 
             using (var originalImage = await Image.LoadAsync(file.OpenReadStream()))
             {
-                // Xử lý và lưu avatar chính (300x300)
+                // Xử lý và lưu avatar chính 
                 using (var mainAvatarImage = originalImage.Clone(x => x.Resize(new ResizeOptions
                 {
                     Size = new Size(300, 300),

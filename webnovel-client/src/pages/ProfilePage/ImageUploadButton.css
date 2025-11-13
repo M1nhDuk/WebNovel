@@ -1,0 +1,43 @@
+.image-upload-container {
+    position: relative;
+    display: inline-block;
+}
+
+.upload-btn-icon {
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    border-radius: 50%; /* Nút tròn */
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .upload-btn-icon:hover {
+        background-color: rgba(0, 0, 0, 0.8);
+        transform: scale(1.1);
+    }
+
+    .upload-btn-icon:disabled {
+        background-color: rgba(0, 0, 0, 0.3);
+        cursor: not-allowed;
+    }
+
+.upload-error {
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #e74c3c;
+    font-size: 0.8rem;
+    background-color: white;
+    padding: 2px 5px;
+    border-radius: 3px;
+    white-space: nowrap;
+}

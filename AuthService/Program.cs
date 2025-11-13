@@ -6,9 +6,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models; 
 using Scalar.AspNetCore;
+using Microsoft.Extensions.FileProviders;
+using System.IO;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Environment.WebRootPath = "wwroot";
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -62,6 +66,13 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "wwroot")),
+    RequestPath = "" 
+});
 
 app.UseAuthentication();
 
