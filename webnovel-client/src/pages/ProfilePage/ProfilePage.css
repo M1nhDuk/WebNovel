@@ -17,11 +17,12 @@
 
 .profile-info {
     position: absolute;
-    bottom: -50px; 
+    bottom: 20px;
     left: 40px;
     display: flex;
     align-items: flex-end;
     gap: 20px;
+    z-index: 3;
 }
 
 .profile-avatar-img {
@@ -51,7 +52,7 @@
 .my-series-section h2 {
     font-size: 1.8rem;
     color: var(--text-primary);
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 2px solid var(--text-primary);
     padding-bottom: 10px;
     margin-bottom: 20px;
     text-align: left;
@@ -65,14 +66,14 @@
 }
 
 
-/* === CSS  CHO CH?C N?NG UPLOAD === */
+/* === CSS CHO UPLOAD === */
 
 .upload-hover-container {
     position: relative;
     cursor: pointer;
 }
 
-/* L?p ph? màu ?en m? */
+
 .profile-overlay {
     position: absolute;
     top: 0;
@@ -80,7 +81,7 @@
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.4);
-    opacity: 0; 
+    opacity: 0;
     transition: opacity 0.2s ease-in-out;
     z-index: 1;
 }
@@ -91,21 +92,44 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    opacity: 0; 
+    opacity: 0;
     transition: opacity 0.2s ease-in-out, transform 0.2s;
     z-index: 2;
 }
 
-.upload-hover-container:hover .profile-overlay {
-    opacity: 1; 
+
+.upload-hover-container:hover > .profile-overlay {
+    opacity: 1;
 }
 
-.upload-hover-container:hover .profile-upload-button {
-    opacity: 1; 
-    transform: translate(-50%, -50%) scale(1.1); 
+.upload-hover-container:hover > .profile-upload-button {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+
+.profile-header.upload-hover-container:has(.profile-avatar-container.upload-hover-container:hover) > .profile-overlay {
+    opacity: 0;
+}
+
+
+.profile-header.upload-hover-container:has(.profile-avatar-container.upload-hover-container:hover) > .profile-upload-button {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.0); 
 }
 
 
 .profile-avatar-container .profile-overlay {
     border-radius: 50%;
+}
+
+.profile-white-backdrop {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100px;
+    background-color: var(--bg-surface); 
+    z-index: 1; 
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.05); 
 }

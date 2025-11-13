@@ -7,22 +7,25 @@ import SeriesItem from '../../components/series/SeriesItem';
 import './BrowsePage.css';
 import { FaSortAlphaDown, FaSortAlphaUp } from 'react-icons/fa';
 import { useSearchParams } from 'react-router-dom';
+import Pagination from '../../components/common/Pagination'
 
 
 const sortOptions = ["Title", "Views", "WordCount", "UpdatedAt"];
-
 const typeOptions = ["Series", "TRADITIONAL"];
+const PAGE_SIZE = 18;
+
 
 const BrowsePage: React.FC = () => {
 
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const keyword = searchParams.get('q');
+
+    const tagNameFromQuery = searchParams.get('tag');
 
     const [seriesList, setSeriesList] = useState<SeriesListDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [page, setPage] = useState(1);
-    const [totalRecords, setTotalRecords] = useState(0);
 
 
     const [sortBy, setSortBy] = useState<string>('Title'); 
@@ -39,7 +42,11 @@ const BrowsePage: React.FC = () => {
     const [selectedType, setSelectedType] = useState<string>('');
     const [selectedTagId, setSelectedTagId] = useState<number | null>(null);
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
 
+
+    //Load Filter
     useEffect(() => {
         const fetchFiltersData = async () => {
             try {
@@ -61,6 +68,31 @@ const BrowsePage: React.FC = () => {
     }, []);
 
 
+    //useEffect to find the tagId from the tagName in the URL
+    useEffect(() => {
+        if (tagNameFromQuery && tags.length > 0) {
+
+            // Find the corresponding tagId
+            const foundTag = tags.find(t =>
+                t.tagName.toLowerCase() === tagNameFromQuery.toLowerCase()
+            );
+
+            if (foundTag) {
+                //Set the radio filter to this ID
+                setSelectedTagId(foundTag.tagId);
+
+                // Clean up the URL parameter
+                const newParams = new URLSearchParams(searchParams);
+                newParams.delete('tag');
+                setSearchParams(newParams, { replace: true });
+            }
+        }
+      
+    }, [tagNameFromQuery, tags, searchParams, setSearchParams]);
+
+
+
+    //Filtered
     useEffect(() => {
         setPage(1);
     }, [sortBy, isAscending, selectedCategoryId, selectedStatusId, selectedType, selectedTagId, keyword]);
@@ -72,17 +104,15 @@ const BrowsePage: React.FC = () => {
             setError(null);
 
             const params = new URLSearchParams();
-            params.append('pageNumber', page.toString());
-            params.append('pageSize', '18'); 
+            params.append('pageNumber', currentPage.toString());
+            params.append('pageSize', PAGE_SIZE.toString());
 
             let apiUrl: string;
 
             if (keyword) {
-
                 apiUrl = API_ROUTES.SERIES.SEARCH_SERIES;
                 params.append('keyword', keyword);
             } else {
-                
                 apiUrl = API_ROUTES.SERIES.GET_ALL_SERIES;
                 params.append('sortBy', sortBy);
                 params.append('isAscending', String(isAscending));
@@ -90,32 +120,29 @@ const BrowsePage: React.FC = () => {
                 if (selectedType) {
                     params.append('filter.Type', selectedType);
                 }
-
                 if (selectedCategoryId !== null) {
                     params.append('filter.CategoryId', selectedCategoryId.toString());
                 }
-
                 if (selectedStatusId !== null) {
                     params.append('filter.StatusId', selectedStatusId.toString());
                 }
-
                 if (selectedTagId !== null) {
                     params.append('filter.TagId', selectedTagId.toString());
                 }
             }
-
 
             try {
                 const response = await apiClient.get<PagedResult<SeriesListDto>>(
                     apiUrl,
                     { params }
                 );
-                if (page === 1) {
-                    setSeriesList(response.data.items);
-                } else {
-                    setSeriesList(prevList => [...prevList, ...response.data.items]);
-                }
-                setTotalRecords(response.data.totalRecords);
+
+                setSeriesList(response.data.items);
+
+
+                setTotalPages(Math.ceil(response.data.totalRecords / PAGE_SIZE));
+                setCurrentPage(response.data.pageNumber);
+
             } catch (err) {
                 setError('Could not load series.');
                 console.error(err);
@@ -125,7 +152,9 @@ const BrowsePage: React.FC = () => {
         };
 
         fetchSeries();
-    }, [page, sortBy, isAscending, selectedCategoryId, selectedStatusId, selectedType, selectedTagId, keyword]);
+    }, [currentPage, sortBy, isAscending, selectedCategoryId, selectedStatusId, selectedType, selectedTagId, keyword]);
+
+
 
 
     //Type(string)
@@ -144,10 +173,11 @@ const BrowsePage: React.FC = () => {
         setter(id);
     };
 
-
-    const handleLoadMore = () => {
-        if (seriesList.length < totalRecords) {
-            setPage(prevPage => prevPage + 1);
+    //Pagination
+    const handlePageChange = (page: number) => {
+        if (page !== currentPage) {
+            setCurrentPage(page);
+            window.scrollTo(0, 0);
         }
     };
 
@@ -200,11 +230,13 @@ const BrowsePage: React.FC = () => {
                 </div>
 
                 {/*Load More Button */}
-                {seriesList.length < totalRecords && !loading && (
-                    <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
-                        <button onClick={handleLoadMore}>
-                            {loading ? 'Loading...' : 'Load More'}
-                        </button>
+                {!loading && totalPages > 1 && (
+                    <div style={{ display: 'flex', justifyContent: 'center', padding: '20px', width: '100%' }}>
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={handlePageChange}
+                        />
                     </div>
                 )}
             </div>
