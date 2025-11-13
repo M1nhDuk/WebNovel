@@ -21,7 +21,7 @@ const getImageUrl = (imagePath: string | null | undefined, type: 'avatar' | 'bac
     if (!imagePath) {
         return type === 'avatar'
             ? `${GATEWAY_URL}/uploads/default_avatar_thumb.png`
-            : `${GATEWAY_URL}/uploads/default_background.jpg`;
+            : `${GATEWAY_URL}/uploads/default_background.png`;
     }
 
 

@@ -6,12 +6,14 @@ import SeriesItem from '../../components/series/SeriesItem';
 import { useAuth } from '../../hooks/useAuth';
 import './ProfilePage.css';
 import { Link } from 'react-router-dom';
+import ImageUploadButton from './ImageUploadButton';
 
 const ProfilePage: React.FC = () => {
     const { user, isLoading: userLoading } = useAuth(); 
     const [seriesList, setSeriesList] = useState<SeriesListDto[]>([]);
     const [loadingSeries, setLoadingSeries] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
 
     useEffect(() => {
      
@@ -55,23 +57,43 @@ const ProfilePage: React.FC = () => {
 
     return (
         <div className="profile-page-container">
-            <header className="profile-header">
+
+            <header className="profile-header upload-hover-container">
                 <img
-                    src={user.backgroundImage || ''} 
+                    src={user.backgroundImage || ''}
                     alt="User background"
                     className="profile-background-img"
                 />
-                <div className="profile-info">
-                    <img
-                        src={user.avatar || ''} 
-                        alt="User avatar"
-                        className="profile-avatar-img"
+
+                <div className="profile-overlay"></div>
+                <div className="profile-upload-button">
+                    <ImageUploadButton
+                        apiEndpoint={API_ROUTES.AUTH.UPLOAD_BACKGROUND}
                     />
+                </div>
+
+
+                <div className="profile-info">
+                    <div className="profile-avatar-container upload-hover-container">
+                        <img
+                            src={user.avatar || ''}
+                            alt="User avatar"
+                            className="profile-avatar-img"
+                        />
+                        <div className="profile-overlay"></div>
+                        <div className="profile-upload-button">
+                            <ImageUploadButton
+                                apiEndpoint={API_ROUTES.AUTH.UPLOAD_AVATAR}
+                            />
+                        </div>
+                    </div>
                     <h1 className="profile-username">{user.username}</h1>
                 </div>
+
             </header>
 
             <section className="profile-content">
+
                 <div className="my-series-section">
                     <h2>My Series</h2>
                     {loadingSeries && <div>Loading series...</div>}
@@ -88,6 +110,7 @@ const ProfilePage: React.FC = () => {
                         </div>
                     )}
                 </div>
+
             </section>
         </div>
     );
