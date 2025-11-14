@@ -1,4 +1,6 @@
 
+export const GATEWAY_URL = 'https://localhost:8000';
+
 export const API_ROUTES = {
     // --- AuthService Routes ---
     AUTH: {
@@ -31,6 +33,9 @@ export const API_ROUTES = {
 
         CREATE_CLASSIC_SERIES: '/series/classic',
         UPDATE_CLASSIC_SERIES: (id: number | string) => `/series/${id}/classic`,
+
+        CREATE_NOVEL: (seriesId: number | string) => `/series/${seriesId}/novels`,
+        UPLOAD_NOVEL_COVER: (seriesId: number | string, novelId: number | string) => `/api/series/${seriesId}/novels/${novelId}/cover`,
     },
 
     CATEGORY: {

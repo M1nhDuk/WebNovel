@@ -12,6 +12,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import './SeriesDetailPage.css';
 
+
 const GATEWAY_URL = 'https://localhost:8000';
 
 const SeriesDetailPage: React.FC = () => {

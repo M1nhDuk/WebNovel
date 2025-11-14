@@ -19,6 +19,7 @@ const SeriesItem: React.FC<SeriesItemProps> = ({ series, type }) => {
         return `${GATEWAY_URL}${formattedPath}`;
     };
 
+
     const itemClass = type === 'slider' ? 'popular-thumb-item' : 'thumb-item-flow';
 
     return (
