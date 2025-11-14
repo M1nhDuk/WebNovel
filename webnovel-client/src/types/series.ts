@@ -110,6 +110,10 @@ export interface UpdateClassicSeriesDto extends UpdateNovelServiceDto {
     edition: string | null;
 }
 
+export interface AddNovelFormProps {
+    seriesId: number;
+    onNovelCreated: () => void;
+}
 
 export interface CreateNovelDto {
     series_Id: number;
@@ -121,6 +125,28 @@ export interface CreateNovelDto {
 export interface NovelUpdateDto {
     title?: string | null;
     cover_images?: string | null;
+}
+
+
+export interface AddChapterFormProps {
+    seriesId: number;
+    novelId?: number; 
+    seriesType: 'Series' | 'TRADITIONAL';
+    onChapterCreated: (newChapter: ChapterDetailDto) => void;
+
+}
+
+export interface FullChapterDto extends ChapterDetailDto {
+    content: string;
+}
+
+export interface EditChapterFormProps {
+    seriesId: number;
+    novelId?: number;
+    chapterId: number;
+    seriesType: 'Series' | 'TRADITIONAL';
+    onChapterUpdated: () => void;
+    onCancel: () => void;
 }
 
 export interface PagedResult<T> {

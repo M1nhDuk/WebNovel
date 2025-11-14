@@ -111,7 +111,7 @@ namespace NovelService.Service
 
             await _context.SaveChangesAsync();
 
-            return await GetNovelByID(series_Id, novel.novel_Id);
+            return await GetNovelByID(novel.novel_Id, series_Id);
         }
 
 

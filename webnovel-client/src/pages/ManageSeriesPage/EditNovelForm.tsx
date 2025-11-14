@@ -14,7 +14,7 @@ interface EditNovelFormProps {
 
 const EditNovelForm: React.FC<EditNovelFormProps> = ({ seriesId, novel, onNovelUpdated, onCancel }) => {
 
-    // State cho tiêu đề, được khởi tạo từ prop
+    // State cho tiêu đề
     const [title, setTitle] = useState(novel.title);
 
     // State cho file và ảnh preview

@@ -16,9 +16,12 @@ import {
     FaListOl
 } from 'react-icons/fa';
 
+<button title="Add Chapter"><FaPlus /></button>
 import EditSeriesForm from './EditSeriesForm';
 import AddNovelForm from './AddNovelForm';
 import EditNovelForm from './EditNovelForm'; 
+import AddChapterForm from './AddChapterForm';
+import EditChapterForm from './EditChapterForm';
 
 type EditingItem = {
     type: 'series' | 'novel' | 'chapter' | 'add-novel' | 'add-chapter';
@@ -70,6 +73,7 @@ interface SeriesHierarchyProps {
     setEditingItem: (item: EditingItem) => void;
     onRefresh: () => void;
 }
+
 const SeriesHierarchy: React.FC<SeriesHierarchyProps> = ({ series, setEditingItem }) => {
     const [expandedNovels, setExpandedNovels] = useState<Set<number>>(new Set());
     const [isSeriesExpanded, setIsSeriesExpanded] = useState(true);
@@ -122,7 +126,16 @@ const SeriesHierarchy: React.FC<SeriesHierarchyProps> = ({ series, setEditingIte
                                 >
                                     <FaPencilAlt />
                                 </button>
-                                <button title="Add Chapter"><FaPlus /></button>
+                                <button
+                                    title="Add Chapter"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        // Gán parentId là novel.novel_Id
+                                        setEditingItem({ type: 'add-chapter', id: series.series_Id, parentId: novel.novel_Id });
+                                    }}
+                                >
+                                    <FaPlus />
+                                </button>
                             </div>
                         </div>
                         {isExpanded && (
@@ -221,9 +234,6 @@ const ManageSeriesPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [editingItem, setEditingItem] = useState<EditingItem | null>(null);
 
-    const handleSetEditingItem = useCallback((item: EditingItem) => {
-        setEditingItem(item);
-    }, []);
 
     const fetchSeriesData = useCallback(async () => {
         if (!id) {
@@ -254,6 +264,22 @@ const ManageSeriesPage: React.FC = () => {
     }, [id, navigate]);
 
 
+
+    const handleSetEditingItem = useCallback((item: EditingItem) => {
+        if (item.type === 'add-novel' || item.type === 'add-chapter') {
+            setEditingItem(item);
+        } else {
+            fetchSeriesData()
+                .then(() => {
+                    setEditingItem(item);
+                })
+                .catch(err => {
+                    console.error("Failed to refresh data before editing:", err);
+                    setError("Could not load item details. Please refresh and try again.");
+                });
+        }
+    }, [fetchSeriesData]);
+
     useEffect(() => {
         setSeries(null);
         setEditingItem(null);
@@ -267,7 +293,7 @@ const ManageSeriesPage: React.FC = () => {
         }
     }, [id, fetchSeriesData]);
 
-
+    
 
     const handleRefreshData = () => {
         fetchSeriesData();
@@ -309,10 +335,33 @@ const ManageSeriesPage: React.FC = () => {
                 />;
 
             case 'chapter':
-                return <div key={key} className="editor-placeholder">Edit Chapter Form (ID: {editingItem.id}) (Coming Soon)</div>;
+                if (!editingItem.parentId) {
+                    return <div className="editor-placeholder">Error: Parent ID not found for chapter.</div>;
+                }
+                return <EditChapterForm
+                    key={key}
+                    seriesId={series.series_Id}
+                    seriesType={series.type}
+                    novelId={series.type === 'Series' ? editingItem.parentId : undefined}
+                    chapterId={editingItem.id}
+                    onChapterUpdated={() => {
+                        handleRefreshData();
+                        handleSetEditingItem({ type: 'series', id: series.series_Id });
+                    }}
+                    onCancel={() => handleSetEditingItem({ type: 'series', id: series.series_Id })}
+                />;
 
             case 'add-chapter':
-                return <div key={key} className="editor-placeholder">Add Chapter Form (for Series ID: {editingItem.id}) (Coming Soon)</div>;
+                return <AddChapterForm
+                    key={key}
+                    seriesId={series.series_Id}
+                    seriesType={series.type}
+                    novelId={editingItem.parentId}
+                    onChapterCreated={() => {
+                        handleRefreshData();
+                        handleSetEditingItem({ type: 'series', id: series.series_Id });
+                    }}
+                />;
 
             default:
                 return <div className="editor-placeholder">Select an item to edit.</div>;

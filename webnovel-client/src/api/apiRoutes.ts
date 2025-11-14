@@ -36,6 +36,13 @@ export const API_ROUTES = {
 
         CREATE_NOVEL: (seriesId: number | string) => `/series/${seriesId}/novels`,
         UPLOAD_NOVEL_COVER: (seriesId: number | string, novelId: number | string) => `/series/${seriesId}/novels/${novelId}/cover`,
+
+        CREATE_CHAPTER_FOR_NOVEL: (novelId: number | string) => `/novels/${novelId}/chapters`,
+        CREATE_CHAPTER_FOR_SERIES: (seriesId: number | string) => `/series/${seriesId}/chapters`,
+
+        //Edit
+        CHAPTER_FOR_NOVEL: (novelId: number | string, chapterId: number | string) => `/novels/${novelId}/chapters/${chapterId}`,
+        CHAPTER_FOR_SERIES: (seriesId: number | string, chapterId: number | string) => `/series/${seriesId}/chapters/${chapterId}`,
     },
 
     CATEGORY: {
