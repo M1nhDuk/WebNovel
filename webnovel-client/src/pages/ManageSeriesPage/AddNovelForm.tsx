@@ -102,6 +102,7 @@ const AddNovelForm: React.FC<AddNovelFormProps> = ({ seriesId, onNovelCreated })
         setLoading(false);
         setSuccess(`Volume "${title.trim()}" created successfully!`);
         resetForm(); // Xóa form
+        onNovelCreated();
         
     };
 
