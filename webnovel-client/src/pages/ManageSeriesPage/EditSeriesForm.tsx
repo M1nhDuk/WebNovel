@@ -66,9 +66,9 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
         fetchFiltersData();
     }, []);
 
+    
     useEffect(() => {
         if (series && allTags.length > 0) {
-
             const seriesTagIds = series.tags
                 .map(tagName => allTags.find(t => t.tagName === tagName)?.tagId)
                 .filter((id): id is number => id !== undefined);
@@ -97,14 +97,18 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
         }
     }, [series, allTags]); 
 
+    
     useEffect(() => {
         const formattedPath = series.cover_images?.startsWith('/') ? series.cover_images : `/${series.cover_images}`;
         setCoverPreview(`${GATEWAY_URL}${formattedPath || '/images/covers/default_cover.jpg'}`);
 
-        // Reset file đã chọn khi đổi series
+       
         setSelectedFile(null);
+        setSubmitSuccess(null);
+        setSubmitError(null);
 
-    }, [series.series_Id]);
+    }, [series.series_Id]); 
+
 
 
 
@@ -229,6 +233,7 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
             }
         }
 
+       
         if (selectedFile) {
             const uploadData = new FormData();
             uploadData.append('file', selectedFile);
@@ -245,19 +250,20 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
                     ? new URL(response.data.coverUrl).pathname
                     : response.data.coverUrl;
 
+               
                 setCoverPreview(`${GATEWAY_URL}${newCoverPath}`);
-                setSelectedFile(null);
+                setSelectedFile(null); 
 
                 setSubmitSuccess("Cover image updated! Saving details...");
 
             } catch (err: any) {
                 setSubmitError(err.response?.data?.message || "Cover upload failed. Aborting save.");
                 setLoading(false);
-                return;
+                return; 
             }
         }
 
-
+        
         try {
             const basePayload: Omit<CreateSeriesDto, 'cover_images'> = {
                 series_title: formData.series_title!,
@@ -295,7 +301,7 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
 
             setSubmitSuccess("Series details updated successfully!");
 
-         
+           
             onSeriesUpdate();
 
         } catch (err: any) {
@@ -305,11 +311,12 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
         }
     };
 
+
     if (allTags.length === 0 || !formData.series_title) {
         return <div>Loading form data...</div>;
     }
 
-  
+    // JSX
     return (
         <form onSubmit={handleSubmit} className="create-series-form">
             <h2>Edit Series Details</h2>

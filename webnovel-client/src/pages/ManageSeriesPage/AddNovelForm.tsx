@@ -2,7 +2,7 @@
 import apiClient from '../../api/apiClient';
 import { API_ROUTES, GATEWAY_URL } from '../../api/apiRoutes'; 
 import type { CreateNovelDto, NovelDetailDto } from '../../types/series';
-import '../CreateSeriesPage/CreateSeriesPage.css'; // Tái sử dụng CSS
+import '../CreateSeriesPage/CreateSeriesPage.css'; 
 import { FaUpload } from 'react-icons/fa';
 
 interface AddNovelFormProps {
@@ -147,7 +147,7 @@ const AddNovelForm: React.FC<AddNovelFormProps> = ({ seriesId, onNovelCreated })
                         accept="image/png, image/jpeg"
                         style={{ display: 'none' }}
                         onChange={handleFileChange} 
-                        disabled={loading} // Bị khóa khi đang submit
+                        disabled={loading} 
                     />
                 </div>
                 <small style={{ color: 'var(--text-secondary)', marginTop: '5px' }}>
