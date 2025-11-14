@@ -1232,10 +1232,6 @@
     },
 
 
-
-
-
-
     //Images publication base
     {
       "UpstreamPathTemplate": "/images/{everything}",
@@ -1249,7 +1245,24 @@
       ],
       "DownstreamPathTemplate": "/images/{everything}",
       "DangerousAcceptAnyServerCertificateValidator": true
+    },
+
+
+
+    //chuyển tiếp các yêu cầu xem ảnh
+    {
+      "UpstreamPathTemplate": "/images-assest/{everything}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7002
+        }
+      ],
+      "DownstreamPathTemplate": "/images/{everything}"
     }
+
 
   ],
 

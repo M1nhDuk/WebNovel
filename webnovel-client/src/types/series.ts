@@ -33,6 +33,7 @@ export interface NovelDetailDto {
 }
 
 
+
 export interface NovelSeriesDetailDto {
     series_Id: number;
     series_title: string;
@@ -106,6 +107,13 @@ export interface UpdateClassicSeriesDto extends UpdateNovelServiceDto {
     publisher: string | null;
     publish_date: string | null; 
     edition: string | null;
+}
+
+
+export interface CreateNovelDto {
+    series_Id: number;
+    title: string;
+    cover_images: string | null;
 }
 
 
