@@ -278,4 +278,50 @@
     gap: 15px;
 }
 
+
+/* --- CSS CHO COMPONENT REORDER KÉO-THẢ --- */
+
+.reorder-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--bg-main);
+}
+
+.reorder-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: grab;
+    background-color: var(--bg-surface);
+    transition: background-color 0.2s;
+}
+
+    .reorder-item:last-child {
+        border-bottom: none;
+    }
+
+    .reorder-item.dragging {
+        background-color: var(--bg-main);
+        opacity: 0.7;
+    }
+
+    .reorder-item:hover {
+        background-color: var(--bg-main);
+    }
+
+.reorder-drag-handle {
+    margin-right: 15px;
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+}
+
+.reorder-item-title {
+    flex-grow: 1;
+    color: var(--text-primary);
+    font-weight: 500;
+}
    
