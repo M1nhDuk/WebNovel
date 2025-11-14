@@ -2,7 +2,7 @@
 import { useParams, Link } from 'react-router-dom';
 import apiClient from '../../api/apiClient';
 import { API_ROUTES } from '../../api/apiRoutes';
-import type { NovelSeriesDetailDto } from '../../types/series'; 
+import type { NovelSeriesDetailDto } from '../../types/series';
 import {
     FaHeart,
     FaInfoCircle
@@ -25,11 +25,11 @@ const SeriesDetailPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-    const DESCRIPTION_THRESHOLD = 50; 
+    const DESCRIPTION_THRESHOLD = 50;
 
     const [expandedVolumes, setExpandedVolumes] = useState<Set<number>>(new Set());
 
-    const getImageUrl = (coverPath: string | undefined | null) => { 
+    const getImageUrl = (coverPath: string | undefined | null) => {
         if (!coverPath) {
             return `${GATEWAY_URL}/images/covers/default_cover.jpg`;
         }
@@ -229,25 +229,27 @@ const SeriesDetailPage: React.FC = () => {
                     {/* (Phần Volume & Chapter List) */}
                     <div className="chapter-list-section">
                         <h3>Volume & Chapter List</h3>
-                        {series.novels.map(volume => {
+
+                        {/* === HIỂN THỊ NẾU LÀ WEB NOVEL (CÓ VOLUME) === */}
+                        {series.type === 'Series' && series.novels.length > 0 && series.novels.map(volume => {
                             const isExpanded = expandedVolumes.has(volume.novel_Id);
                             const chaptersToShow = isExpanded
                                 ? volume.chapters
                                 : volume.chapters.slice(0, 5);
 
                             return (
-                                <div key={volume.novel_Id} className="volume-item"> 
+                                <div key={volume.novel_Id} className="volume-item">
                                     <div className="volume-cover">
                                         <Link to={`/series/${series.series_Id}/novel/${volume.novel_Id}`}>
                                             <img
                                                 src={getImageUrl(volume.cover_images)}
-                                                alt={volume.title} 
+                                                alt={volume.title}
                                                 className="volume-cover-img"
                                             />
                                         </Link>
                                     </div>
                                     <div className="volume-list-wrapper">
-                                        <h4 className="volume-title">{volume.title}</h4> 
+                                        <h4 className="volume-title">{volume.title}</h4>
                                         <ul className="chapter-list">
 
                                             {chaptersToShow.map(chapter => (
@@ -266,7 +268,7 @@ const SeriesDetailPage: React.FC = () => {
                                                 <li className="chapter-item chapter-see-more">
                                                     <button
                                                         className="toggle-chapters-btn"
-                                                        onClick={() => toggleVolumeExpand(volume.novel_Id)} 
+                                                        onClick={() => toggleVolumeExpand(volume.novel_Id)}
                                                     >
                                                         {isExpanded
                                                             ? "Thu gọn"
@@ -287,10 +289,37 @@ const SeriesDetailPage: React.FC = () => {
                             );
                         })}
 
-                        {series.novels.length === 0 && (
+                        {/* === HIỂN THỊ NẾU LÀ CLASSIC NOVEL (CHỈ CÓ CHAPTER) === */}
+                        {series.type === 'TRADITIONAL' && series.chapters && series.chapters.length > 0 && (
+                            <div className="volume-item">
+                                <div className="volume-list-wrapper" style={{ width: "100%" }}>
+                                    <h4 className="volume-title">Chapters</h4>
+                                    <ul className="chapter-list">
+                                        {series.chapters.map(chapter => (
+                                            <li key={chapter.chapter_id} className="chapter-item">
+                                                <Link
+                                                    to={`/series/${series.series_Id}/chapter/${chapter.chapter_id}`}
+                                                    className="chapter-title"
+                                                >
+                                                    {chapter.title}
+                                                </Link>
+                                                <span className="chapter-date">{formatDate(chapter.created_at)}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* === HIỂN THỊ NẾU KHÔNG CÓ GÌ === */}
+                        {series.type === 'Series' && series.novels.length === 0 && (
                             <p>No volumes or chapters have been added yet.</p>
                         )}
+                        {series.type === 'TRADITIONAL' && (!series.chapters || series.chapters.length === 0) && (
+                            <p>No chapters have been added yet.</p>
+                        )}
                     </div>
+
 
                     {/* (Khối Comment) */}
                     <section className="comment-section">
