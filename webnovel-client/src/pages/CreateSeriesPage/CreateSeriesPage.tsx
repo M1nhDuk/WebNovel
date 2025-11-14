@@ -3,14 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import apiClient from '../../api/apiClient';
 import { API_ROUTES } from '../../api/apiRoutes';
 import type { CategoryDto, NovelStatusDto, TagDto } from '../../types/filters';
-import type { NovelSeriesDetailDto, CreateSeriesDto } from '../../types/series';
+import type { NovelSeriesDetailDto, CreateSeriesDto, CreateTraditionalSeriesDto } from '../../types/series';
 import './CreateSeriesPage.css';
+
+type SeriesFormData = CreateTraditionalSeriesDto;
+
+//Check ISBN
+const isbn10Regex = /^[0-9]{9}[0-9xX]$/;
+
+const isbn13Regex = /^(978|979)[0-9]{10}$/;
+
 
 const CreateSeriesPage: React.FC = () => {
     const navigate = useNavigate();
 
-    // State cho dữ liệu form
-    const [formData, setFormData] = useState<CreateSeriesDto>({
+    const [seriesType, setSeriesType] = useState<'Series' | 'TRADITIONAL'>('Series');
+
+    const [formData, setFormData] = useState<Partial<SeriesFormData>>({
         series_title: '',
         author: '',
         artist: '',
@@ -18,14 +27,17 @@ const CreateSeriesPage: React.FC = () => {
         note: '',
         category_id: 0,
         status_id: 0,
+        ISBN_10: '',
+        ISBN_13: '',
+        publisher: '',
+        publish_date: '',
+        edition: '',
     });
 
-    // --- LOGIC CHO TAGS ---
     const [selectedTags, setSelectedTags] = useState<number[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const tagContainerRef = useRef<HTMLDivElement>(null);
- 
 
     const [categories, setCategories] = useState<CategoryDto[]>([]);
     const [statuses, setStatuses] = useState<NovelStatusDto[]>([]);
@@ -59,7 +71,6 @@ const CreateSeriesPage: React.FC = () => {
         fetchFiltersData();
     }, []);
 
-    // Xử lý click bên ngoài để đóng dropdown
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (tagContainerRef.current && !tagContainerRef.current.contains(event.target as Node)) {
@@ -74,13 +85,25 @@ const CreateSeriesPage: React.FC = () => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: name === 'category_id' || name === 'status_id' ? parseInt(value, 10) : value
-        }));
+
+        //Chỉ nhập số ở ISBN
+        if (name === 'ISBN_13' || name === 'ISBN_10') {
+            
+            const allowedChars = (name === 'ISBN_10') ? /[^0-9xX]/g : /[^0-9]/g;
+            const cleanedValue = value.replace(allowedChars, '');
+
+            setFormData(prev => ({
+                ...prev,
+                [name]: cleanedValue
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: name === 'category_id' || name === 'status_id' ? parseInt(value, 10) : value
+            }));
+        }
     };
 
-   
     const getTagById = (id: number): TagDto | undefined => allTags.find(t => t.tagId === id);
 
     const handleTagSelect = (tag: TagDto) => {
@@ -98,18 +121,17 @@ const CreateSeriesPage: React.FC = () => {
     const filteredTags = allTags.filter(tag =>
         tag.tagName.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitError(null);
 
-        // Validation
-        if (!formData.series_title.trim()) {
+        // Validation chung
+        if (!formData.series_title?.trim()) {
             setSubmitError("Title cannot be empty.");
             return;
         }
-        if (!formData.description.trim()) {
+        if (!formData.description?.trim()) {
             setSubmitError("Synopsis cannot be empty.");
             return;
         }
@@ -126,16 +148,61 @@ const CreateSeriesPage: React.FC = () => {
             return;
         }
 
+        if (seriesType === 'TRADITIONAL') {
+            // ISBN-13 
+            if (!formData.ISBN_13?.trim()) {
+                setSubmitError("ISBN-13 is required for Classical Novel.");
+                return;
+            }
+            if (!isbn13Regex.test(formData.ISBN_13.trim())) {
+                setSubmitError("ISBN-13 must be 13 digits and start with 978 or 979.");
+                return;
+            }
+
+            // ISBN-10
+            if (formData.ISBN_10 && formData.ISBN_10.trim() !== '') {
+                if (!isbn10Regex.test(formData.ISBN_10.trim())) {
+                    setSubmitError("ISBN-10 must be 10 characters (9 digits + 1 digit or 'X').");
+                    return;
+                }
+            }
+        }
+
+
         setIsLoading(true);
-        const payload: CreateSeriesDto = {
-            ...formData,
+
+        const basePayload: CreateSeriesDto = {
+            series_title: formData.series_title!,
+            author: formData.author,
+            artist: formData.artist,
+            description: formData.description!,
+            note: formData.note,
+            category_id: formData.category_id!,
+            status_id: formData.status_id!,
             TagIds: selectedTags
         };
 
         try {
-            const response = await apiClient.post<NovelSeriesDetailDto>(API_ROUTES.SERIES.CREATE_SERIES, payload);
+            let response;
+            if (seriesType === 'TRADITIONAL') {
+                const traditionalPayload: CreateTraditionalSeriesDto = {
+                    ...basePayload,
+                    ISBN_10: formData.ISBN_10,
+                    ISBN_13: formData.ISBN_13!,
+                    publisher: formData.publisher,
+                    publish_date: formData.publish_date || null,
+                    edition: formData.edition,
+                };
+
+                response = await apiClient.post<NovelSeriesDetailDto>(API_ROUTES.SERIES.CREATE_CLASSIC_SERIES, traditionalPayload);
+
+            } else {
+                response = await apiClient.post<NovelSeriesDetailDto>(API_ROUTES.SERIES.CREATE_SERIES, basePayload);
+            }
+
             const newSeriesId = response.data.series_Id;
             navigate(`/series/${newSeriesId}`);
+
         } catch (err: any) {
             console.error("Failed to create series:", err);
             setSubmitError(err.response?.data?.message || "An error occurred while creating the series.");
@@ -143,6 +210,7 @@ const CreateSeriesPage: React.FC = () => {
             setIsLoading(false);
         }
     };
+
 
     if (isLoading && !categories.length) {
         return <div className="create-series-container">Loading data...</div>;
@@ -157,10 +225,8 @@ const CreateSeriesPage: React.FC = () => {
             <div className="create-series-container">
                 <h1>Create Series</h1>
 
-
                 <form className="create-series-form" onSubmit={handleSubmit}>
 
-                    
                     <div className="form-group">
                         <label htmlFor="series_title">Title <span>*</span></label>
                         <input
@@ -196,6 +262,94 @@ const CreateSeriesPage: React.FC = () => {
                             disabled={isLoading}
                         />
                     </div>
+
+                    <div className="form-group">
+                        <label>Series Type <span>*</span></label>
+                        <div className="form-group-radio">
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="seriesType"
+                                    value="Series"
+                                    checked={seriesType === 'Series'}
+                                    onChange={() => setSeriesType('Series')}
+                                />
+                                Web Novel
+                            </label>
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="seriesType"
+                                    value="TRADITIONAL"
+                                    checked={seriesType === 'TRADITIONAL'}
+                                    onChange={() => setSeriesType('TRADITIONAL')}
+                                />
+                                Classical Novel
+                            </label>
+                        </div>
+                    </div>
+
+                    {seriesType === 'TRADITIONAL' && (
+                        <>
+                            <div className="form-group">
+                                <label htmlFor="ISBN_13">ISBN-13 <span>*</span></label>
+                                <input
+                                    type="text"
+                                    id="ISBN_13"
+                                    name="ISBN_13"
+                                    value={formData.ISBN_13 || ''}
+                                    onChange={handleInputChange}
+                                    disabled={isLoading}
+                                    maxLength={13}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="ISBN_10">ISBN-10</label>
+                                <input
+                                    type="text"
+                                    id="ISBN_10"
+                                    name="ISBN_10"
+                                    value={formData.ISBN_10 || ''}
+                                    onChange={handleInputChange}
+                                    disabled={isLoading}
+                                    maxLength={10}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="publisher">Publisher</label>
+                                <input
+                                    type="text"
+                                    id="publisher"
+                                    name="publisher"
+                                    value={formData.publisher || ''}
+                                    onChange={handleInputChange}
+                                    disabled={isLoading}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="edition">Edition</label>
+                                <input
+                                    type="text"
+                                    id="edition"
+                                    name="edition"
+                                    value={formData.edition || ''}
+                                    onChange={handleInputChange}
+                                    disabled={isLoading}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="publish_date">Publish Date</label>
+                                <input
+                                    type="date"
+                                    id="publish_date"
+                                    name="publish_date"
+                                    value={formData.publish_date || ''}
+                                    onChange={handleInputChange}
+                                    disabled={isLoading}
+                                />
+                            </div>
+                        </>
+                    )}
 
                     <div className="form-group">
                         <label htmlFor="category_id">Category <span>*</span></label>
@@ -319,7 +473,6 @@ const CreateSeriesPage: React.FC = () => {
                         </select>
                     </div>
 
-                    
                     {submitError && (
                         <div className="form-error-message">{submitError}</div>
                     )}

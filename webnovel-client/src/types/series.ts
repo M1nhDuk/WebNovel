@@ -77,6 +77,14 @@ export interface CreateSeriesDto {
     TagIds?: number[] | null;
 }
 
+
+export interface CreateTraditionalSeriesDto extends CreateSeriesDto {
+    ISBN_10?: string | null;
+    ISBN_13: string;
+    publisher?: string | null;
+    publish_date?: string | null; 
+    edition?: string | null;
+}
 export interface PagedResult<T> {
     items: T[];
     totalRecords: number;
