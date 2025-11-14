@@ -1,14 +1,10 @@
 ﻿import React, { useState } from 'react';
 import apiClient from '../../api/apiClient';
 import { API_ROUTES, GATEWAY_URL } from '../../api/apiRoutes'; 
-import type { CreateNovelDto, NovelDetailDto } from '../../types/series';
+import type { CreateNovelDto, NovelDetailDto, AddNovelFormProps } from '../../types/series';
 import '../CreateSeriesPage/CreateSeriesPage.css'; 
 import { FaUpload } from 'react-icons/fa';
 
-interface AddNovelFormProps {
-    seriesId: number;
-    onNovelCreated: () => void; 
-}
 
 const AddNovelForm: React.FC<AddNovelFormProps> = ({ seriesId, onNovelCreated }) => {
 
@@ -129,7 +125,7 @@ const AddNovelForm: React.FC<AddNovelFormProps> = ({ seriesId, onNovelCreated })
                 />
             </div>
 
-            {/* --- Trường Cover Image  --- */}
+            {/* --- Cover Image  --- */}
             <div className="form-group">
                 <label>Cover Image</label>
                 <div className="cover-upload-wrapper">
