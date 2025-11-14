@@ -2,7 +2,6 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using NovelService.Controllers.NovelService.Controllers;
 using NovelService.Data;
 using NovelService.Models;
 using NovelService.Service.Interfaces;
@@ -10,7 +9,7 @@ using Shareds.DTOs.Novel;
 using System;
 using System.Security.Claims;
 
-namespace PublicationService.Controllers
+namespace NovelService.Controllers
 {
     [ApiController]
     [Route("api/series/{series_Id:int}/novels")]
@@ -67,7 +66,7 @@ namespace PublicationService.Controllers
 
         [HttpPut("{novel_Id:int}")]
         [Authorize]
-        public async Task<IActionResult> UpdateNovel(int id, [FromBody] NovelUpdateDto dto, [FromRoute] int series_Id)
+        public async Task<IActionResult> UpdateNovel(int novel_Id, [FromBody] NovelUpdateDto dto, [FromRoute] int series_Id)
         {
 
             if (dto == null)
@@ -75,7 +74,8 @@ namespace PublicationService.Controllers
             try
             {
                 var uploaderId = GetUserIdFromToken();
-                var result = await _novelService.UpdateNovelAsync(id, dto, uploaderId, series_Id);
+                var result = await _novelService.UpdateNovelAsync(novel_Id, dto, uploaderId, series_Id);
+
                 if (result == null)
                     return NotFound(new { message = "Novel not found" });
 
@@ -87,7 +87,7 @@ namespace PublicationService.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Update Novel failed for id={Id}", id);
+                _logger.LogError(ex, "Update Novel failed for id={Id}", novel_Id);
                 return BadRequest(new { message = ex.Message });
             }
         }
@@ -227,11 +227,11 @@ namespace PublicationService.Controllers
 
                 novel.cover_images = relativePath;
                 
-                novel.updated_at = DateTime.Now;
+               
 
                 _context.Novels.Update(novel);
 
-                novel.NovelSeries.updated_at = DateTime.UtcNow;
+              
                 _context.Novel_Series.Update(novel.NovelSeries);
 
 

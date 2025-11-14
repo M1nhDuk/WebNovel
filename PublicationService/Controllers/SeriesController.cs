@@ -14,9 +14,6 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace NovelService.Controllers
 {
-
-    namespace NovelService.Controllers
-    {
         [ApiController]
         [Route("api")]
         public class SeriesController : ControllerBase
@@ -343,4 +340,3 @@ namespace NovelService.Controllers
 
         }
     }
-}

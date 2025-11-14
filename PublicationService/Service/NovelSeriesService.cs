@@ -172,7 +172,7 @@ namespace NovelService.Service
                 }
             }
 
-            series.updated_at = DateTime.UtcNow;
+         //   series.updated_at = DateTime.UtcNow;
 
             _context.Novel_Series.Update(series);
             await _context.SaveChangesAsync();

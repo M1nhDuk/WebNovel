@@ -5,6 +5,7 @@ import apiClient from '../../api/apiClient';
 import { API_ROUTES } from '../../api/apiRoutes';
 import type { NovelSeriesDetailDto, ChapterDetailDto } from '../../types/series';
 import './ManageSeriesPage.css';
+
 import {
     FaPencilAlt,
     FaPlus,
@@ -17,12 +18,11 @@ import {
 
 import EditSeriesForm from './EditSeriesForm';
 import AddNovelForm from './AddNovelForm';
-
-
+import EditNovelForm from './EditNovelForm'; 
 
 type EditingItem = {
     type: 'series' | 'novel' | 'chapter' | 'add-novel' | 'add-chapter';
-    id: number; 
+    id: number;
     parentId?: number;
 };
 
@@ -113,7 +113,15 @@ const SeriesHierarchy: React.FC<SeriesHierarchyProps> = ({ series, setEditingIte
                             <FaBook />
                             <span>{novel.title}</span>
                             <div className="tree-item-actions">
-                                <button title="Edit Volume"><FaPencilAlt /></button>
+                                <button
+                                    title="Edit Volume"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setEditingItem({ type: 'novel', id: novel.novel_Id });
+                                    }}
+                                >
+                                    <FaPencilAlt />
+                                </button>
                                 <button title="Add Chapter"><FaPlus /></button>
                             </div>
                         </div>
@@ -125,7 +133,15 @@ const SeriesHierarchy: React.FC<SeriesHierarchyProps> = ({ series, setEditingIte
                                             <FaFileAlt />
                                             <span>{chapter.title}</span>
                                             <div className="tree-item-actions">
-                                                <button title="Edit Chapter"><FaPencilAlt /></button>
+                                                <button
+                                                    title="Edit Chapter"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setEditingItem({ type: 'chapter', id: chapter.chapter_id, parentId: novel.novel_Id });
+                                                    }}
+                                                >
+                                                    <FaPencilAlt />
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -146,7 +162,15 @@ const SeriesHierarchy: React.FC<SeriesHierarchyProps> = ({ series, setEditingIte
                         <FaFileAlt />
                         <span>{chapter.title}</span>
                         <div className="tree-item-actions">
-                            <button title="Edit Chapter"><FaPencilAlt /></button>
+                            <button
+                                title="Edit Chapter"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingItem({ type: 'chapter', id: chapter.chapter_id, parentId: series.series_Id });
+                                }}
+                            >
+                                <FaPencilAlt />
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -199,7 +223,7 @@ const ManageSeriesPage: React.FC = () => {
 
     const handleSetEditingItem = useCallback((item: EditingItem) => {
         setEditingItem(item);
-    }, []); 
+    }, []);
 
     const fetchSeriesData = useCallback(async () => {
         if (!id) {
@@ -213,10 +237,17 @@ const ManageSeriesPage: React.FC = () => {
                 API_ROUTES.SERIES.GET_BY_ID(id)
             );
             setSeries(response.data);
-        } catch (err) {
+        } catch (err: any) { 
             console.error("Failed to fetch series details:", err);
-            setError("Could not load series details.");
-            navigate('/profile');
+            if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+                setError("You are not authorized to manage this series.");
+                navigate('/profile'); 
+            } else if (err.response && err.response.status === 404) {
+                setError("Series not found.");
+                navigate('/profile'); 
+            } else {
+                setError("Could not load series details.");
+            }
         } finally {
             setLoading(false);
         }
@@ -235,7 +266,7 @@ const ManageSeriesPage: React.FC = () => {
             });
         }
     }, [id, fetchSeriesData]);
-    
+
 
 
     const handleRefreshData = () => {
@@ -248,7 +279,7 @@ const ManageSeriesPage: React.FC = () => {
         if (!editingItem) return <div className="editor-placeholder">Select an item to edit.</div>;
 
         const key: Key = editingItem.type === 'series'
-            ? series.series_Id 
+            ? series.series_Id
             : `${editingItem.type}-${editingItem.id}`;
 
         switch (editingItem.type) {
@@ -256,12 +287,33 @@ const ManageSeriesPage: React.FC = () => {
                 return <EditSeriesForm key={key} series={series} onSeriesUpdate={handleRefreshData} />;
 
             case 'add-novel':
-                return <AddNovelForm key={key} seriesId={series.series_Id} onNovelCreated={handleRefreshData} />;
+                return <AddNovelForm key={key} seriesId={series.series_Id} onNovelCreated={() => {
+                    handleRefreshData();
+
+                    // Sau khi tạo xong, quay lại edit series
+                    setEditingItem({ type: 'series', id: series.series_Id });
+                }} />;
 
             case 'novel':
-                return <div key={key} className="editor-placeholder">Edit Novel Form (ID: {editingItem.id}) (Coming Soon)</div>;
+                const novelToEdit = series.novels.find(n => n.novel_Id === editingItem.id);
+                if (!novelToEdit) return <div className="editor-placeholder">Error: Novel not found.</div>;
+
+                return <EditNovelForm
+                    key={key}
+                    seriesId={series.series_Id}
+                    novel={novelToEdit}
+                    onNovelUpdated={() => {
+                        handleRefreshData();
+                    }}
+                    onCancel={() => setEditingItem({ type: 'series', id: series.series_Id })}
+                />;
+
             case 'chapter':
                 return <div key={key} className="editor-placeholder">Edit Chapter Form (ID: {editingItem.id}) (Coming Soon)</div>;
+
+            case 'add-chapter':
+                return <div key={key} className="editor-placeholder">Add Chapter Form (for Series ID: {editingItem.id}) (Coming Soon)</div>;
+
             default:
                 return <div className="editor-placeholder">Select an item to edit.</div>;
         }
@@ -277,7 +329,7 @@ const ManageSeriesPage: React.FC = () => {
                 <SeriesHierarchy
                     series={series}
                     setEditingItem={handleSetEditingItem}
-                    onRefresh={handleRefreshData} 
+                    onRefresh={handleRefreshData}
                 />
             </aside>
             <main className="editor-panel">
@@ -285,5 +337,5 @@ const ManageSeriesPage: React.FC = () => {
             </main>
         </div>
     );
-}; 
+};
 export default ManageSeriesPage;
