@@ -201,7 +201,8 @@ const CreateSeriesPage: React.FC = () => {
             }
 
             const newSeriesId = response.data.series_Id;
-            navigate(`/series/${newSeriesId}`);
+
+            navigate(`/manage/series/${newSeriesId}`);
 
         } catch (err: any) {
             console.error("Failed to create series:", err);
@@ -219,14 +220,14 @@ const CreateSeriesPage: React.FC = () => {
     if (loadError) {
         return <div className="create-series-container error-message">{loadError}</div>;
     }
-
+  
     return (
         <div className="create-series-page-wrapper">
             <div className="create-series-container">
                 <h1>Create Series</h1>
 
                 <form className="create-series-form" onSubmit={handleSubmit}>
-
+                    
                     <div className="form-group">
                         <label htmlFor="series_title">Title <span>*</span></label>
                         <input
@@ -490,5 +491,7 @@ const CreateSeriesPage: React.FC = () => {
         </div>
     );
 };
+
+
 
 export default CreateSeriesPage;
