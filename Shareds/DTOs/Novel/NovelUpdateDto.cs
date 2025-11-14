@@ -9,7 +9,7 @@ namespace Shareds.DTOs.Novel
 {
     public class NovelUpdateDto
     {
-        public int series_Id {  get; set; }
+       // public int series_Id {  get; set; }
 
         [Required]
         public string? title { get; set; }

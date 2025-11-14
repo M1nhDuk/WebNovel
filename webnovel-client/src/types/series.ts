@@ -79,6 +79,7 @@ export interface CreateSeriesDto {
 }
 
 
+
 export interface CreateTraditionalSeriesDto extends CreateSeriesDto {
     ISBN_10?: string | null;
     ISBN_13: string;
@@ -117,6 +118,10 @@ export interface CreateNovelDto {
 }
 
 
+export interface NovelUpdateDto {
+    title?: string | null;
+    cover_images?: string | null;
+}
 
 export interface PagedResult<T> {
     items: T[];

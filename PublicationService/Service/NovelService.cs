@@ -108,7 +108,6 @@ namespace NovelService.Service
             if (!string.IsNullOrWhiteSpace(dto.cover_images))
                 novel.cover_images = dto.cover_images;
 
-            novel.updated_at = DateTime.Now;
 
             await _context.SaveChangesAsync();
 
