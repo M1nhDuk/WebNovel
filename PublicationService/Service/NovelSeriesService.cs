@@ -107,7 +107,7 @@ namespace NovelService.Service
             }
         }
 
-       
+        
 
         //Update
         public async Task<NovelSeriesDetailDto?> UpdateSeriesAsync(int seriesId, UpdateNovelService dto, Guid uploaderId) 
@@ -188,7 +188,7 @@ namespace NovelService.Service
 
             return await GetByIdAsync(series.series_Id);
         }
-
+        
 
         //Delete
         public async Task<bool> DeleteSeriesById(int id, Guid uploader_Id) 
@@ -197,10 +197,10 @@ namespace NovelService.Service
                 .Include(s => s.Novel)
                     .ThenInclude(s => s.Chapters)
                 .FirstOrDefaultAsync(s => s.series_Id == id);
-
+        
             if (series == null)
                 throw new InvalidOperationException("Series not found");
-
+        
             //kiểm tra quyền
             if (series.uploader_id != uploader_Id)
                 throw new UnauthorizedAccessException("You are not allowed to delete this series");

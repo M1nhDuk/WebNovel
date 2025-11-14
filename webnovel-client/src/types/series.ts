@@ -45,7 +45,7 @@ export interface NovelSeriesDetailDto {
     note: string | null;
     created_at: string;
     updated_at: string;
-    type: string;
+    type: 'Series' | 'TRADITIONAL';
     uploader_id: string;
     uploader_name: string;
     uploader_avatar: string | null;
@@ -65,6 +65,49 @@ export interface UserProfile {
     backgroundImage: string | null;
     role: string;
 }
+
+export interface CreateSeriesDto {
+    series_title: string;
+    artist?: string | null;
+    author?: string | null;
+    description: string;
+    note?: string | null;
+    status_id: number;
+    category_id: number | null;
+    TagIds?: number[] | null;
+}
+
+
+export interface CreateTraditionalSeriesDto extends CreateSeriesDto {
+    ISBN_10?: string | null;
+    ISBN_13: string;
+    publisher?: string | null;
+    publish_date?: string | null; 
+    edition?: string | null;
+}
+
+
+export interface UpdateNovelServiceDto {
+    series_Id: number;
+    series_title: string;
+    artist: string | null;
+    author: string | null;
+    description: string;
+    cover_images: string | null;
+    note: string | null;
+    category_id: number | null;
+    status_id: number | null;
+    TagIds: number[] | null;
+}
+
+export interface UpdateClassicSeriesDto extends UpdateNovelServiceDto {
+    ISBN_10: string | null;
+    ISBN_13: string; 
+    publisher: string | null;
+    publish_date: string | null; 
+    edition: string | null;
+}
+
 
 
 export interface PagedResult<T> {

@@ -7,7 +7,6 @@ import { Link } from 'react-router-dom';
 import SeriesItem from '../../components/series/SeriesItem';
 
 
-
 interface SeriesSectionProps {
     title: string;
     subTitle: string;
@@ -112,9 +111,7 @@ const HomePage = () => {
     }
 
     // Logic slice
-
     const featuredSeries = seriesList.slice(0, 5);
-
 
     const webNovels = seriesList.filter(s => s.categoryName === "Translated").slice(0, 9);
     const classicNovels = seriesList.filter(s => s.categoryName === "Original").slice(0, 9);

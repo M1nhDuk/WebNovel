@@ -43,7 +43,7 @@ namespace NovelService.Service
                     author = dto.author,
                     artist = dto.artist,
                     description = dto.description,
-                    cover_images = dto.cover_images,
+                    cover_images = string.IsNullOrEmpty(dto.cover_images) ? "/images/covers/default_cover.jpg" : dto.cover_images,
                     note = dto.note,
                     uploader_id = uploaderId,
                     category_id = dto.category_id ?? throw new ArgumentNullException(nameof(dto.category_id)),

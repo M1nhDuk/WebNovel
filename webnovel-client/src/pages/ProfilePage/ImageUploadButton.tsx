@@ -38,6 +38,7 @@ const ImageUploadButton: React.FC<ImageUploadButtonProps> = ({ apiEndpoint }) =>
             setError(err.response?.data?.message || "Upload failed.");
         } finally {
             setIsLoading(false);
+
             // Reset input upload ảnh
             if (fileInputRef.current) {
                 fileInputRef.current.value = "";

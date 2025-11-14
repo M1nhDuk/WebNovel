@@ -1,0 +1,243 @@
+﻿/* Layout 2 cột chính */
+.manage-series-layout {
+    display: flex;
+    width: 100%;
+    min-height: calc(100vh - 60px);
+    background-color: var(--bg-main);
+}
+
+.hierarchy-panel {
+    width: 350px;
+    flex-shrink: 0;
+    background-color: var(--bg-surface);
+    border-right: 1px solid var(--border-color);
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.editor-panel {
+    flex-grow: 1;
+    padding: 20px 40px;
+    overflow-y: auto;
+}
+
+.editor-placeholder {
+    padding: 40px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+}
+
+/* CSS cho Cây cấu trúc (Hierarchy) */
+.hierarchy-container {
+    text-align: left;
+}
+
+.tree-item {
+    margin-bottom: 5px;
+}
+
+.tree-item-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 5px;
+    transition: background-color 0.2s;
+}
+
+    .tree-item-label svg {
+        color: var(--text-secondary);
+        font-size: 0.9em;
+        flex-shrink: 0;
+    }
+
+    .tree-item-label span {
+        flex-grow: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: default;
+    }
+
+/* Nút bấm Đóng/Mở */
+.tree-toggle-btn {
+    background: none;
+    border: none;
+    padding: 0 4px;
+    margin: 0;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 1em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .tree-toggle-btn:hover {
+        color: var(--accent-color);
+    }
+
+.tree-item-label.empty {
+    color: var(--text-secondary);
+    font-style: italic;
+    font-size: 0.9em;
+    padding-left: 30px;
+}
+
+
+.tree-item-children {
+    padding-left: 24px;
+    border-left: 1px dashed var(--border-color);
+    margin-left: 24px;
+}
+
+/* Nút bấm actions (hiện khi hover) */
+.tree-item-actions {
+    display: none;
+    flex-shrink: 0;
+}
+
+.tree-item-label:hover {
+    background-color: var(--bg-main);
+}
+
+    .tree-item-label:hover .tree-item-actions {
+        display: block;
+    }
+
+.tree-item-actions button {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    padding: 4px;
+    cursor: pointer;
+}
+
+    .tree-item-actions button:hover {
+        color: var(--accent-color);
+    }
+
+/* Nút bấm ở gốc (Series) */
+.tree-item.series .tree-item-label {
+    cursor: context-menu; /* Đổi con trỏ thành chuột phải */
+}
+
+    .tree-item.series .tree-item-label strong {
+        font-size: 1.1rem;
+        color: var(--text-primary);
+    }
+
+    .tree-item.series .tree-item-label a {
+        text-decoration: none;
+        color: inherit;
+        cursor: pointer; /* Giữ con trỏ link */
+    }
+
+        .tree-item.series .tree-item-label a:hover strong {
+            color: var(--accent-color);
+        }
+
+/* XÓA BỎ .tree-item.series .tree-item-controls 
+  VÌ CHÚNG TA KHÔNG CÒN DÙNG NÚT INLINE NỮA
+*/
+
+
+/* ================================= */
+/* === CSS MỚI CHO CONTEXT MENU === */
+/* ================================= */
+.series-context-menu {
+    position: fixed; /* Hiển thị nổi trên mọi thứ */
+    z-index: 1000;
+    width: 200px;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+}
+
+.context-menu-item {
+    background: none;
+    border: none;
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+    .context-menu-item:hover {
+        background-color: var(--bg-main);
+        color: var(--accent-color);
+    }
+
+    .context-menu-item svg {
+        font-size: 0.9em;
+        color: var(--text-secondary);
+    }
+
+    .context-menu-item:hover svg {
+        color: var(--accent-color);
+    }
+
+
+/* CSS cho Form Sửa (Dùng lại của CreateSeries) */
+.editor-panel .create-series-form {
+    max-width: 800px;
+    margin: 0;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+}
+
+    .editor-panel .create-series-form h2 {
+        text-align: left;
+        font-size: 1.8rem;
+        color: var(--text-primary);
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 10px;
+        margin-top: 0;
+    }
+
+/* (Các style còn lại của form và upload ảnh giữ nguyên) */
+.cover-upload-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.cover-preview {
+    width: 150px;
+    height: auto;
+    border-radius: 5px;
+    border: 1px solid var(--border-color);
+}
+
+.cover-upload-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 15px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    background-color: var(--bg-surface);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+    .cover-upload-button:hover {
+        background-color: var(--bg-main);
+        color: var(--text-primary);
+    }
