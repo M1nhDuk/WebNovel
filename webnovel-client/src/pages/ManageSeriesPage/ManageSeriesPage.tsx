@@ -199,28 +199,20 @@ const ManageSeriesPage: React.FC = () => {
 
     const handleSetEditingItem = useCallback((item: EditingItem) => {
         setEditingItem(item);
-    }, []);
+    }, []); 
 
-    const fetchSeriesData = useCallback(async (forceReload = false, switchToSeriesEdit = false) => {
+    const fetchSeriesData = useCallback(async () => {
         if (!id) {
             setError("Series ID is missing.");
             setLoading(false);
             return;
         }
-
         setLoading(true);
-
         try {
             const response = await apiClient.get<NovelSeriesDetailDto>(
                 API_ROUTES.SERIES.GET_BY_ID(id)
             );
             setSeries(response.data);
-
-            if (!editingItem || switchToSeriesEdit) {
-                setEditingItem({ type: 'series', id: response.data.series_Id });
-            }
-
-
         } catch (err) {
             console.error("Failed to fetch series details:", err);
             setError("Could not load series details.");
@@ -228,7 +220,7 @@ const ManageSeriesPage: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [id, navigate, editingItem]); 
+    }, [id, navigate]);
 
 
     useEffect(() => {
@@ -236,18 +228,18 @@ const ManageSeriesPage: React.FC = () => {
         setEditingItem(null);
 
         if (id) {
-            fetchSeriesData(false);
+            fetchSeriesData().then(() => {
+                if (id) {
+                    setEditingItem({ type: 'series', id: parseInt(id, 10) });
+                }
+            });
         }
-    }, [id]); 
+    }, [id, fetchSeriesData]);
+    
 
 
-    const handleRefreshAndEditSeries = () => {
-        fetchSeriesData(true, true); // (forceReload = true, switchToSeriesEdit = true)
-    };
-
-
-    const handleRefreshTree = () => {
-        fetchSeriesData(true, false); // (forceReload = true, switchToSeriesEdit = false)
+    const handleRefreshData = () => {
+        fetchSeriesData();
     };
 
 
@@ -261,12 +253,10 @@ const ManageSeriesPage: React.FC = () => {
 
         switch (editingItem.type) {
             case 'series':
-                
-                return <EditSeriesForm key={key} series={series} onSeriesUpdate={handleRefreshAndEditSeries} />;
+                return <EditSeriesForm key={key} series={series} onSeriesUpdate={handleRefreshData} />;
 
             case 'add-novel':
-                
-                return <AddNovelForm key={key} seriesId={series.series_Id} onNovelCreated={handleRefreshTree} />;
+                return <AddNovelForm key={key} seriesId={series.series_Id} onNovelCreated={handleRefreshData} />;
 
             case 'novel':
                 return <div key={key} className="editor-placeholder">Edit Novel Form (ID: {editingItem.id}) (Coming Soon)</div>;
@@ -287,7 +277,7 @@ const ManageSeriesPage: React.FC = () => {
                 <SeriesHierarchy
                     series={series}
                     setEditingItem={handleSetEditingItem}
-                    onRefresh={handleRefreshTree} 
+                    onRefresh={handleRefreshData} 
                 />
             </aside>
             <main className="editor-panel">
@@ -295,6 +285,5 @@ const ManageSeriesPage: React.FC = () => {
             </main>
         </div>
     );
-};
-
+}; 
 export default ManageSeriesPage;
