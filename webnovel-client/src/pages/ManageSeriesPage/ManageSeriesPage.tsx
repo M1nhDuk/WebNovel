@@ -18,13 +18,15 @@ import {
 import EditSeriesForm from './EditSeriesForm';
 import AddNovelForm from './AddNovelForm';
 
+
+
 type EditingItem = {
     type: 'series' | 'novel' | 'chapter' | 'add-novel' | 'add-chapter';
-    id: number; // ID của mục (hoặc ID của cha nếu đang add)
+    id: number; 
     parentId?: number;
 };
 
-// --- Component ContextMenu (Không đổi) ---
+// --- Component ContextMenu ---
 interface SeriesContextMenuProps {
     visible: boolean; x: number; y: number; seriesType: 'Series' | 'TRADITIONAL';
     onEdit: () => void; onAddVolume: () => void; onReorder: () => void; onAddChapter: () => void;
@@ -62,7 +64,7 @@ const SeriesContextMenu: React.FC<SeriesContextMenuProps> = ({
     );
 };
 
-// --- Component Hierarchy (Không đổi) ---
+// --- Component Hierarchy---
 interface SeriesHierarchyProps {
     series: NovelSeriesDetailDto;
     setEditingItem: (item: EditingItem) => void;
@@ -184,9 +186,8 @@ const SeriesHierarchy: React.FC<SeriesHierarchyProps> = ({ series, setEditingIte
 };
 
 
-// ===================================
-// COMPONENT TRANG CHÍNH (CHA) - ĐÃ SỬA LỖI
-// ===================================
+// COMPONENT TRANG CHÍNH (CHA)
+
 const ManageSeriesPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
@@ -255,8 +256,8 @@ const ManageSeriesPage: React.FC = () => {
         if (!editingItem) return <div className="editor-placeholder">Select an item to edit.</div>;
 
         const key: Key = editingItem.type === 'series'
-            ? series.updated_at || series.series_Id 
-            : `${editingItem.type}-${editingItem.id}`; 
+            ? series.series_Id 
+            : `${editingItem.type}-${editingItem.id}`;
 
         switch (editingItem.type) {
             case 'series':

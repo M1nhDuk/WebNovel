@@ -35,7 +35,7 @@ export const API_ROUTES = {
         UPDATE_CLASSIC_SERIES: (id: number | string) => `/series/${id}/classic`,
 
         CREATE_NOVEL: (seriesId: number | string) => `/series/${seriesId}/novels`,
-        UPLOAD_NOVEL_COVER: (seriesId: number | string, novelId: number | string) => `/api/series/${seriesId}/novels/${novelId}/cover`,
+        UPLOAD_NOVEL_COVER: (seriesId: number | string, novelId: number | string) => `/series/${seriesId}/novels/${novelId}/cover`,
     },
 
     CATEGORY: {

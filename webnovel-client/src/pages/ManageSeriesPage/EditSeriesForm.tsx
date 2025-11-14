@@ -26,11 +26,9 @@ type FormDataType = Partial<CreateTraditionalSeriesDto>;
 
 const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate }) => {
 
-    // Tách state như CreateSeriesPage
     const [formData, setFormData] = useState<FormDataType>({});
     const [selectedTags, setSelectedTags] = useState<number[]>([]);
 
-    const [coverPreview, setCoverPreview] = useState<string | null>(null);
 
     const [categories, setCategories] = useState<CategoryDto[]>([]);
     const [statuses, setStatuses] = useState<NovelStatusDto[]>([]);
@@ -44,7 +42,11 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
 
- 
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+    const [coverPreview, setCoverPreview] = useState<string | null>(null);
+
+
     useEffect(() => {
         const fetchFiltersData = async () => {
             try {
@@ -64,9 +66,7 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
         fetchFiltersData();
     }, []);
 
-
     useEffect(() => {
-
         if (series && allTags.length > 0) {
 
             const seriesTagIds = series.tags
@@ -94,11 +94,19 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
             });
 
             setSelectedTags(seriesTagIds);
-
-            const formattedPath = series.cover_images?.startsWith('/') ? series.cover_images : `/${series.cover_images}`;
-            setCoverPreview(`${GATEWAY_URL}${formattedPath}`);
         }
     }, [series, allTags]); 
+
+    useEffect(() => {
+        const formattedPath = series.cover_images?.startsWith('/') ? series.cover_images : `/${series.cover_images}`;
+        setCoverPreview(`${GATEWAY_URL}${formattedPath || '/images/covers/default_cover.jpg'}`);
+
+        // Reset file đã chọn khi đổi series
+        setSelectedFile(null);
+
+    }, [series.series_Id]);
+
+
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -152,35 +160,17 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
     );
 
 
-    const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file) return;
-
-        setLoading(true);
-        setSubmitError(null);
-        setSubmitSuccess(null);
-
-        const uploadData = new FormData();
-        uploadData.append('file', file);
-
-        try {
-            const response = await apiClient.post(
-                API_ROUTES.SERIES.UPLOAD_COVER(series.series_Id),
-                uploadData,
-                { headers: { 'Content-Type': 'multipart/form-data' } }
-            );
-
-            const newCoverPath = response.data.coverUrl.startsWith('http')
-                ? new URL(response.data.coverUrl).pathname
-                : response.data.coverUrl;
-
-            setCoverPreview(`${GATEWAY_URL}${newCoverPath}`);
-            setSubmitSuccess("Cover image updated!");
-            onSeriesUpdate();
-        } catch (err: any) {
-            setSubmitError(err.response?.data?.message || "Cover upload failed.");
-        } finally {
-            setLoading(false);
+        if (file) {
+            if (file.type === "image/jpeg" || file.type === "image/png") {
+                setSelectedFile(file);
+                setCoverPreview(URL.createObjectURL(file));
+                setSubmitError(null);
+            } else {
+                setSubmitError("Invalid file type. Please select a JPG or PNG image.");
+                setSelectedFile(null);
+            }
         }
     };
 
@@ -193,7 +183,7 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
         setSubmitError(null);
         setSubmitSuccess(null);
 
-        // Validation
+        //VALIDATION 
         if (!formData.series_title?.trim()) {
             setSubmitError("Title cannot be empty.");
             setLoading(false);
@@ -219,7 +209,6 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
             setLoading(false);
             return;
         }
-
         if (series.type === 'TRADITIONAL') {
             if (!formData.ISBN_13?.trim()) {
                 setSubmitError("ISBN-13 is required for Classical Novel.");
@@ -239,6 +228,35 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
                 }
             }
         }
+
+        if (selectedFile) {
+            const uploadData = new FormData();
+            uploadData.append('file', selectedFile);
+
+            try {
+                setSubmitSuccess("Uploading cover image..."); 
+                const response = await apiClient.post(
+                    API_ROUTES.SERIES.UPLOAD_COVER(series.series_Id),
+                    uploadData,
+                    { headers: { 'Content-Type': 'multipart/form-data' } }
+                );
+
+                const newCoverPath = response.data.coverUrl.startsWith('http')
+                    ? new URL(response.data.coverUrl).pathname
+                    : response.data.coverUrl;
+
+                setCoverPreview(`${GATEWAY_URL}${newCoverPath}`);
+                setSelectedFile(null);
+
+                setSubmitSuccess("Cover image updated! Saving details...");
+
+            } catch (err: any) {
+                setSubmitError(err.response?.data?.message || "Cover upload failed. Aborting save.");
+                setLoading(false);
+                return;
+            }
+        }
+
 
         try {
             const basePayload: Omit<CreateSeriesDto, 'cover_images'> = {
@@ -276,20 +294,22 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
             }
 
             setSubmitSuccess("Series details updated successfully!");
+
+         
             onSeriesUpdate();
 
         } catch (err: any) {
-            setSubmitError(err.response?.data?.message || "Failed to update series.");
+            setSubmitError(err.response?.data?.message || "Failed to update series details.");
         } finally {
             setLoading(false);
         }
     };
 
-    if (!formData || allTags.length === 0) { 
+    if (allTags.length === 0 || !formData.series_title) {
         return <div>Loading form data...</div>;
     }
 
-    // JSX (Không đổi)
+  
     return (
         <form onSubmit={handleSubmit} className="create-series-form">
             <h2>Edit Series Details</h2>
@@ -302,14 +322,14 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
                 <div className="cover-upload-wrapper">
                     {coverPreview && <img src={coverPreview} alt="Cover preview" className="cover-preview" />}
                     <label htmlFor="cover-upload-input" className="cover-upload-button">
-                        <FaUpload /> {coverPreview ? 'Change Image' : 'Choose Image'}
+                        <FaUpload /> {selectedFile ? 'Change Image' : (coverPreview && !coverPreview.includes('default_cover')) ? 'Change Image' : 'Choose Image'}
                     </label>
                     <input
                         id="cover-upload-input"
                         type="file"
                         accept="image/png, image/jpeg"
                         style={{ display: 'none' }}
-                        onChange={handleCoverUpload}
+                        onChange={handleFileChange}
                         disabled={loading}
                     />
                 </div>
