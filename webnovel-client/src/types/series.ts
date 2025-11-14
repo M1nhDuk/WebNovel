@@ -58,6 +58,13 @@ export interface NovelSeriesDetailDto {
     tags: string[];
     novels: NovelDetailDto[]; 
     chapters?: ChapterDetailDto[];
+
+    //Classic attri
+    ISBN_10?: string | null;
+    ISBN_13?: string | null;
+    publisher?: string | null;
+    publish_date?: string | null;
+    edition?: string | null;
 }
 
 export interface UserProfile {
