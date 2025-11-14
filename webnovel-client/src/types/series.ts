@@ -1,4 +1,4 @@
-export interface SeriesListDto {
+﻿export interface SeriesListDto {
     series_Id: number;
     series_title: string;
     cover_images?: string;
@@ -14,6 +14,7 @@ export interface ChapterDetailDto {
     chapter_id: number;
     title: string;
     created_at: string;
+    chapter_number: number;
 }
 
 
@@ -56,6 +57,7 @@ export interface NovelSeriesDetailDto {
     statusName: string | null;
     tags: string[];
     novels: NovelDetailDto[]; 
+    chapters?: ChapterDetailDto[];
 }
 
 export interface UserProfile {
@@ -154,4 +156,49 @@ export interface PagedResult<T> {
     totalRecords: number;
     pageNumber: number;
     pageSize: number;
+}
+
+export type EditingItem = {
+    type: 'series' | 'novel' | 'chapter' | 'add-novel' | 'add-chapter' | 'reorder-novels' | 'reorder-chapters';
+    id: number; // seriesId (cho reorder-novels) hoặc novelId (cho reorder-chapters) hoặc seriesId (cho reorder-chapters TRADITIONAL)
+    parentId?: number; // seriesId (khi id là novelId)
+};
+
+export interface SeriesContextMenuProps {
+    visible: boolean; x: number; y: number; seriesType: 'Series' | 'TRADITIONAL';
+    onEdit: () => void; onAddVolume: () => void; onReorder: () => void; onAddChapter: () => void
+    onDeleteSeries: () => void;
+}
+
+export interface NovelContextMenuProps {
+    visible: boolean; x: number; y: number;
+    onEdit: () => void;
+    onAddChapter: () => void;
+    onReorderChapters: () => void;
+    onDelete: () => void;
+}
+
+export interface ReorderableItem {
+    id: number;
+    title: string;
+}
+
+export interface ReorderableListProps {
+    items: ReorderableItem[];
+    listTitle: string;
+    onSave: (orderedIds: number[]) => Promise<void>;
+    onCancel: () => void;
+}
+
+export interface SeriesHierarchyProps {
+    series: NovelSeriesDetailDto;
+    setEditingItem: (item: EditingItem) => void;
+    onRefresh: () => void;
+    onDeleteSeries: () => void;
+    onReorderTrigger: () => void;
+    onEditNovel: (novelId: number) => void;
+    onAddChapterToNovel: (novelId: number) => void;
+    onReorderChapters: (novelId: number) => void;
+    onDeleteNovel: (novelId: number) => void;
+    onDeleteChapter: (chapterId: number, parentId: number) => void;
 }

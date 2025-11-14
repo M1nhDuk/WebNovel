@@ -86,8 +86,8 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
                 note: series.note || '',
                 category_id: series.category_id,
                 status_id: series.status_id,
-                ISBN_10: (series as any).isbn_10 || '',
-                ISBN_13: (series as any).isbn_13 || '',
+                ISBN_10: (series as any).ISBN_10 || '',
+                ISBN_13: (series as any).ISBN_13 || '',
                 publisher: (series as any).publisher || '',
                 publish_date: publishDate,
                 edition: (series as any).edition || '',
@@ -95,7 +95,7 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
 
             setSelectedTags(seriesTagIds);
         }
-    }, [series, allTags]); 
+    }, [series, allTags]);
 
     
     useEffect(() => {

@@ -60,6 +60,17 @@ namespace NovelService.Service
                     edition = dto.edition
                 };
 
+                if (dto.TagIds != null && dto.TagIds.Any())
+                {
+                    foreach (var tagId in dto.TagIds.Distinct())
+                    {
+                        ts.NovelTags.Add(new NovelTag
+                        {
+                            tagID = tagId
+                        });
+                    }
+                }
+
 
                 _context.ClassicSeries.Add(ts);
                 await _context.SaveChangesAsync();
@@ -73,9 +84,6 @@ namespace NovelService.Service
                 var createdDto = await _novelSeriesService.GetByIdAsync(ts.series_Id);
 
                 return createdDto as ClassicSeriesDetailDto;
-
-
-
             }
             catch (Exception ex)
             {
