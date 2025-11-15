@@ -61,7 +61,7 @@ const ChangeUsernameForm: React.FC = () => {
     );
 };
 
-// --- Component Form ??i M?t Kh?u ---
+// --- Component Form Password ---
 const ChangePasswordForm: React.FC = () => {
     const [oldPassword, setOldPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');

@@ -5,6 +5,7 @@ import {
     FaHistory,
     FaBookmark,
     FaThLarge,
+    FaTags,
     FaChevronDown
 } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
@@ -31,6 +32,11 @@ const LeftSidebar: React.FC = () => {
                 <li>
                     <Link to="/browse" title="Browse All">
                         <FaThLarge className="sidebar-icon" />
+                    </Link>
+                </li>
+                <li>
+                    <Link to="/tags" title="Tags/Genres" className={location.pathname === '/tags' ? 'active' : ''}>
+                        <FaTags className="sidebar-icon" />
                     </Link>
                 </li>
                 <li>

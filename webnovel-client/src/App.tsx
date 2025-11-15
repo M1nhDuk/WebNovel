@@ -12,6 +12,7 @@ import AccountSettingsPage from './pages/AccountSettingsPage/AccountSettingsPage
 import ProfilePage from './pages/ProfilePage/ProfilePage'
 import CreateSeriesPage from './pages/CreateSeriesPage/CreateSeriesPage'
 import ReadingHistoryPage from './pages/ReadingHistoryPage/ReadingHistoryPage'
+import TagsPage from './pages/TagsPage/TagsPage'
 
 import ManageSeriesPage from './pages/ManageSeriesPage/ManageSeriesPage'
 
@@ -34,6 +35,8 @@ function App() {
                 <Route index element={<HomePage />} />
 
                 <Route path="browse" element={<BrowsePage />} />
+
+                <Route path="tags" element={<TagsPage />} />
 
                 <Route path="series/:id" element={<SeriesDetailPage />} />
 
