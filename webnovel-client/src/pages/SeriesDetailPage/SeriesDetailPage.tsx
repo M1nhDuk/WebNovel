@@ -180,7 +180,7 @@ const SeriesDetailPage: React.FC = () => {
                                 </span>
                             </div>
                             <div className="stat-item">
-                                <span className="stat-label">Lượt xem</span>
+                                <span className="stat-label">View</span>
                                 <span className="stat-value">
                                     {series.views.toLocaleString('vi-VN')}
                                 </span>

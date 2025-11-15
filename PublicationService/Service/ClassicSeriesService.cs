@@ -30,7 +30,7 @@ namespace NovelService.Service
         {
             if (string.IsNullOrEmpty(dto.series_title)) throw new InvalidOperationException("Series title is required");
             if (string.IsNullOrEmpty(dto.description)) throw new InvalidOperationException("Description is required");
-            if (string.IsNullOrEmpty(dto.ISBN_13)) throw new InvalidOperationException("ISBN_13 is required for Traditional Series");
+            if (string.IsNullOrEmpty(dto.iSBN_13)) throw new InvalidOperationException("iSBN_13 is required for Traditional Series");
             if (string.IsNullOrEmpty(dto.author)) throw new InvalidOperationException("Author is required");
 
 
@@ -53,8 +53,8 @@ namespace NovelService.Service
                     type = type.TRADITIONAL,
 
                     // ClassicSeries specific
-                    ISBN_10 = dto.ISBN_10,
-                    ISBN_13 = dto.ISBN_13,
+                    iSBN_10 = dto.iSBN_10,
+                    iSBN_13 = dto.iSBN_13,
                     publisher = dto.publisher,
                     publish_date = dto.publish_date,
                     edition = dto.edition
@@ -114,8 +114,8 @@ namespace NovelService.Service
             await _novelSeriesService.UpdateSeriesAsync(seriesId, dto, uploaderId);
 
             //Cập nhật các thuộc tính riêng của ClassicSeries
-            series.ISBN_10 = dto.ISBN_10 ?? series.ISBN_10;
-            series.ISBN_13 = dto.ISBN_13 ?? series.ISBN_13;
+            series.iSBN_10 = dto.iSBN_10 ?? series.iSBN_10;
+            series.iSBN_13 = dto.iSBN_13 ?? series.iSBN_13;
             series.publisher = dto.publisher ?? series.publisher;
             series.publish_date = dto.publish_date ?? series.publish_date;
             series.edition = dto.edition ?? series.edition;

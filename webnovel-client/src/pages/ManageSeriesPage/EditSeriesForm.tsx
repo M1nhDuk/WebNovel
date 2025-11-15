@@ -66,7 +66,7 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
         fetchFiltersData();
     }, []);
 
-    
+
     useEffect(() => {
         if (series && allTags.length > 0) {
             const seriesTagIds = series.tags
@@ -86,8 +86,8 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
                 note: series.note || '',
                 category_id: series.category_id,
                 status_id: series.status_id,
-                ISBN_10: (series as any).ISBN_10 || '',
-                ISBN_13: (series as any).ISBN_13 || '',
+                iSBN_10: series.iSBN_10 || '',
+                iSBN_13: series.iSBN_13 || '',
                 publisher: (series as any).publisher || '',
                 publish_date: publishDate,
                 edition: (series as any).edition || '',
@@ -97,17 +97,17 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
         }
     }, [series, allTags]);
 
-    
+
     useEffect(() => {
         const formattedPath = series.cover_images?.startsWith('/') ? series.cover_images : `/${series.cover_images}`;
         setCoverPreview(`${GATEWAY_URL}${formattedPath || '/images/covers/default_cover.jpg'}`);
 
-       
+
         setSelectedFile(null);
         setSubmitSuccess(null);
         setSubmitError(null);
 
-    }, [series.series_Id]); 
+    }, [series.series_Id]);
 
 
 
@@ -128,8 +128,8 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
 
-        if (name === 'ISBN_13' || name === 'ISBN_10') {
-            const allowedChars = (name === 'ISBN_10') ? /[^0-9xX]/g : /[^0-9]/g;
+        if (name === 'iSBN_13' || name === 'iSBN_10') {
+            const allowedChars = (name === 'iSBN_10') ? /[^0-9xX]/g : /[^0-9]/g;
             const cleanedValue = value.replace(allowedChars, '');
 
             setFormData(prev => ({
@@ -143,6 +143,8 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
             }));
         }
     };
+
+
 
 
     const getTagById = (id: number): TagDto | undefined => allTags.find(t => t.tagId === id);
@@ -214,18 +216,18 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
             return;
         }
         if (series.type === 'TRADITIONAL') {
-            if (!formData.ISBN_13?.trim()) {
+            if (!formData.iSBN_13?.trim()) {
                 setSubmitError("ISBN-13 is required for Classical Novel.");
                 setLoading(false);
                 return;
             }
-            if (!isbn13Regex.test(formData.ISBN_13.trim())) {
+            if (!isbn13Regex.test(formData.iSBN_13.trim())) {
                 setSubmitError("ISBN-13 must be 13 digits and start with 978 or 979.");
                 setLoading(false);
                 return;
             }
-            if (formData.ISBN_10 && formData.ISBN_10.trim() !== '') {
-                if (!isbn10Regex.test(formData.ISBN_10.trim())) {
+            if (formData.iSBN_10 && formData.iSBN_10.trim() !== '') {
+                if (!isbn10Regex.test(formData.iSBN_10.trim())) {
                     setSubmitError("ISBN-10 must be 10 characters (9 digits + 1 digit or 'X').");
                     setLoading(false);
                     return;
@@ -233,13 +235,13 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
             }
         }
 
-       
+
         if (selectedFile) {
             const uploadData = new FormData();
             uploadData.append('file', selectedFile);
 
             try {
-                setSubmitSuccess("Uploading cover image..."); 
+                setSubmitSuccess("Uploading cover image...");
                 const response = await apiClient.post(
                     API_ROUTES.SERIES.UPLOAD_COVER(series.series_Id),
                     uploadData,
@@ -250,20 +252,20 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
                     ? new URL(response.data.coverUrl).pathname
                     : response.data.coverUrl;
 
-               
+
                 setCoverPreview(`${GATEWAY_URL}${newCoverPath}`);
-                setSelectedFile(null); 
+                setSelectedFile(null);
 
                 setSubmitSuccess("Cover image updated! Saving details...");
 
             } catch (err: any) {
                 setSubmitError(err.response?.data?.message || "Cover upload failed. Aborting save.");
                 setLoading(false);
-                return; 
+                return;
             }
         }
 
-        
+
         try {
             const basePayload: Omit<CreateSeriesDto, 'cover_images'> = {
                 series_title: formData.series_title!,
@@ -282,8 +284,8 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
                 finalPayload = {
                     ...basePayload,
                     series_Id: series.series_Id,
-                    ISBN_10: formData.ISBN_10 || null,
-                    ISBN_13: formData.ISBN_13!,
+                    iSBN_10: formData.iSBN_10 || null,
+                    iSBN_13: formData.iSBN_13!,
                     publisher: formData.publisher || null,
                     publish_date: formData.publish_date || null,
                     edition: formData.edition || null,
@@ -301,7 +303,7 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
 
             setSubmitSuccess("Series details updated successfully!");
 
-           
+
             onSeriesUpdate();
 
         } catch (err: any) {
@@ -371,18 +373,18 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
                 <>
                     <div className="form-row">
                         <div className="form-group">
-                            <label htmlFor="ISBN_13">ISBN-13 <span>*</span></label>
+                            <label htmlFor="iSBN_13">ISBN-13 <span>*</span></label>
                             <input
-                                type="text" id="ISBN_13" name="ISBN_13"
-                                value={formData.ISBN_13 || ''} onChange={handleInputChange}
+                                type="text" id="iSBN_13" name="iSBN_13"
+                                value={formData.iSBN_13 || ''} onChange={handleInputChange}
                                 disabled={loading} maxLength={13}
                             />
                         </div>
                         <div className="form-group">
-                            <label htmlFor="ISBN_10">ISBN-10</label>
+                            <label htmlFor="iSBN_10">ISBN-10</label>
                             <input
-                                type="text" id="ISBN_10" name="ISBN_10"
-                                value={formData.ISBN_10 || ''} onChange={handleInputChange}
+                                type="text" id="iSBN_10" name="iSBN_10"
+                                value={formData.iSBN_10 || ''} onChange={handleInputChange}
                                 disabled={loading} maxLength={10}
                             />
                         </div>

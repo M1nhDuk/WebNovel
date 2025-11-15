@@ -16,7 +16,6 @@ import type {
     SeriesHierarchyProps
 } from '../../types/series';
 
-
 import './ManageSeriesPage.css';
 
 import {
@@ -36,9 +35,6 @@ import AddNovelForm from './AddNovelForm';
 import EditNovelForm from './EditNovelForm';
 import AddChapterForm from './AddChapterForm';
 import EditChapterForm from './EditChapterForm';
-
-
-
 
 
 

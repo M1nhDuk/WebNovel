@@ -12,11 +12,11 @@ namespace Shareds.DTOs.ClassicSeries
     {
         [Required]
         [StringLength(10, ErrorMessage = "ISBN-10 limit 10 character")]
-        public string? ISBN_10 { get; set; }
+        public string? iSBN_10 { get; set; }
 
         [Required]
         [StringLength(13, ErrorMessage = "ISBN-13 limit 13 character")]
-        public string? ISBN_13 { get; set; }
+        public string? iSBN_13 { get; set; }
 
         [Required]
         public string? publisher { get; set; }

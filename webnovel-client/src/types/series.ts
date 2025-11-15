@@ -60,8 +60,8 @@ export interface NovelSeriesDetailDto {
     chapters?: ChapterDetailDto[];
 
     //Classic attri
-    ISBN_10?: string | null;
-    ISBN_13?: string | null;
+    iSBN_10?: string | null; 
+    iSBN_13?: string | null; 
     publisher?: string | null;
     publish_date?: string | null;
     edition?: string | null;
@@ -90,8 +90,8 @@ export interface CreateSeriesDto {
 
 
 export interface CreateTraditionalSeriesDto extends CreateSeriesDto {
-    ISBN_10?: string | null;
-    ISBN_13: string;
+    iSBN_10?: string | null; 
+    iSBN_13: string; 
     publisher?: string | null;
     publish_date?: string | null; 
     edition?: string | null;
@@ -112,8 +112,8 @@ export interface UpdateNovelServiceDto {
 }
 
 export interface UpdateClassicSeriesDto extends UpdateNovelServiceDto {
-    ISBN_10: string | null;
-    ISBN_13: string; 
+    iSBN_10: string | null; 
+    iSBN_13: string; 
     publisher: string | null;
     publish_date: string | null; 
     edition: string | null;
@@ -168,7 +168,7 @@ export interface PagedResult<T> {
 export type EditingItem = {
     type: 'series' | 'novel' | 'chapter' | 'add-novel' | 'add-chapter' | 'reorder-novels' | 'reorder-chapters';
     id: number; // seriesId (cho reorder-novels) hoặc novelId (cho reorder-chapters) hoặc seriesId (cho reorder-chapters TRADITIONAL)
-    parentId?: number; // seriesId (khi id là novelId)
+    parentId?: number; 
 };
 
 export interface SeriesContextMenuProps {
