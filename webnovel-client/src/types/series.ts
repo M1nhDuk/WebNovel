@@ -209,3 +209,14 @@ export interface SeriesHierarchyProps {
     onDeleteNovel: (novelId: number) => void;
     onDeleteChapter: (chapterId: number, parentId: number) => void;
 }
+
+export interface AdminUserDto {
+    userId: string;
+    username: string | null;
+    email: string | null;
+    role: string | null;
+    isEmailConfirmed: boolean;
+    isLocked: boolean;
+    createdAt: string | null;
+    avatarThumbnail: string | null;
+}

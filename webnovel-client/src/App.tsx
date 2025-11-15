@@ -13,6 +13,7 @@ import ProfilePage from './pages/ProfilePage/ProfilePage'
 import CreateSeriesPage from './pages/CreateSeriesPage/CreateSeriesPage'
 import ReadingHistoryPage from './pages/ReadingHistoryPage/ReadingHistoryPage'
 import TagsPage from './pages/TagsPage/TagsPage'
+import AdminDashboardPage from './pages/AdminPage/AdminDashboardPage'
 
 import ManageSeriesPage from './pages/ManageSeriesPage/ManageSeriesPage'
 
@@ -51,6 +52,8 @@ function App() {
                 <Route path="/account-settings" element={<AccountSettingsPage />} />
 
                 <Route path="history" element={<ReadingHistoryPage />} />
+
+                <Route path="/admin" element={<AdminDashboardPage />} />
 
             </Route>
 
