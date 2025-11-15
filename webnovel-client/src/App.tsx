@@ -11,6 +11,8 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage/ForgotPasswordPage'
 import AccountSettingsPage from './pages/AccountSettingsPage/AccountSettingsPage'
 import ProfilePage from './pages/ProfilePage/ProfilePage'
 import CreateSeriesPage from './pages/CreateSeriesPage/CreateSeriesPage'
+import ReadingHistoryPage from './pages/ReadingHistoryPage/ReadingHistoryPage'
+
 import ManageSeriesPage from './pages/ManageSeriesPage/ManageSeriesPage'
 
 
@@ -44,6 +46,8 @@ function App() {
                 <Route path="/profile" element={<ProfilePage />} />
 
                 <Route path="/account-settings" element={<AccountSettingsPage />} />
+
+                <Route path="history" element={<ReadingHistoryPage />} />
 
             </Route>
 

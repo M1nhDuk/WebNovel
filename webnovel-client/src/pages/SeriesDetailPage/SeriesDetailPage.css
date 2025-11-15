@@ -624,3 +624,14 @@
         color: var(--accent-color);
         text-decoration: underline; 
     }
+
+.series-tags-list.collapsed {
+    max-height: 70px;
+    overflow: hidden;
+    margin-bottom: 5px; 
+}
+
+.tags-toggle-footer {
+    text-align: left;
+    margin-bottom: 20px;
+}
