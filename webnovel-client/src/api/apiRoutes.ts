@@ -45,6 +45,10 @@ export const API_ROUTES = {
         CHAPTER_FOR_SERIES: (seriesId: number | string, chapterId: number | string) => `/series/${seriesId}/chapters/${chapterId}`,
     },
 
+    USER: { 
+        READING_HISTORY: '/user/reading-history',
+    },
+
     CATEGORY: {
         GET_ALL: '/categories',
     },

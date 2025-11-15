@@ -77,8 +77,6 @@
       "DangerousAcceptAnyServerCertificateValidator": true
     },
 
-
-
     //1.6 Log out
     {
       "UpstreamPathTemplate": "/auth/logout",
@@ -608,7 +606,7 @@
     {
       "UpstreamPathTemplate": "/series/{seriesId}/chapters/reorder",
       "UpstreamHttpMethod": [ "POST" ],
-      "DownstreamScheme": "httpsH",
+      "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
@@ -1116,8 +1114,64 @@
 
 
     // --- Reading History ---
+    {
+      // 7.1 Reading History (GET) 
+      "UpstreamPathTemplate": "/user/reading-history",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7048
+        }
+      ],
+      "DownstreamPathTemplate": "/api/user/reading-history",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
+    {
+      // 7.2 Reading History (POST to Add/Update)
+      "UpstreamPathTemplate": "/user/reading-history/{seriesId}",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7048
+        }
+      ],
+      "DownstreamPathTemplate": "/api/user/reading-history/{seriesId}",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
 
 
+
+    {
+      // 7.3 Reading History (DELETE) 
+      "UpstreamPathTemplate": "/user/reading-history",
+      "UpstreamHttpMethod": [ "DELETE" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7048
+        }
+      ],
+      "DownstreamPathTemplate": "/api/user/reading-history",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
 
 
     // -- User Setting ---
@@ -1127,7 +1181,9 @@
 
     // Interaction Service
 
-    // --- Comment ---
+       // --- Comment ---
+
+
 
     // 10.1 Xem comment của series
     {

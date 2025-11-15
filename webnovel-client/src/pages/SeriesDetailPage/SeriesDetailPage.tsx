@@ -5,9 +5,11 @@ import { API_ROUTES } from '../../api/apiRoutes';
 import type { NovelSeriesDetailDto } from '../../types/series';
 import {
     FaHeart,
-    FaInfoCircle
+    FaInfoCircle,
+    FaPencilAlt
 } from 'react-icons/fa';
 
+import { useAuth } from '../../hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import './SeriesDetailPage.css';
@@ -24,8 +26,15 @@ const SeriesDetailPage: React.FC = () => {
     const [series, setSeries] = useState<NovelSeriesDetailDto | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
     const DESCRIPTION_THRESHOLD = 50;
+
+    const { user } = useAuth();
+
+    const [isTagsExpanded, setIsTagsExpanded] = useState(false);
+    const TAGS_THRESHOLD = 15;
+
 
     const [expandedVolumes, setExpandedVolumes] = useState<Set<number>>(new Set());
 
@@ -36,6 +45,23 @@ const SeriesDetailPage: React.FC = () => {
         const formattedPath = coverPath.startsWith('/') ? coverPath : `/${coverPath}`;
         return `${GATEWAY_URL}${formattedPath}`;
     };
+
+    //Save reading history
+    const logReadingHistory = async (seriesId: string) => {
+        if (!user || !seriesId) return;
+
+        try {
+            // Gọi POST API tới /api/user/reading-history/{seriesId}
+            await apiClient.post(
+                `${API_ROUTES.USER.READING_HISTORY}/${seriesId}`
+            );
+            console.log(`Reading history updated for Series ID: ${seriesId}`);
+        } catch (err) {
+            console.warn("Failed to log reading history:", err);
+        }
+    };
+
+
 
     useEffect(() => {
         if (!id) return;
@@ -58,7 +84,12 @@ const SeriesDetailPage: React.FC = () => {
         };
 
         fetchSeriesDetail();
-    }, [id]);
+
+        if (user) {
+            logReadingHistory(id);
+        }
+
+    }, [id, user]);
 
 
     useEffect(() => {
@@ -113,6 +144,12 @@ const SeriesDetailPage: React.FC = () => {
         });
     };
 
+    //Check quyền
+    const isUploader = user && series.uploader_id === user.userId;
+    const isAdmin = user && user.role === 'Admin'; 
+    const canEdit = isUploader || isAdmin;
+
+
     return (
         <div className="detail-page-container">
             <h1 className="series-title-header">{series.series_title}</h1>
@@ -133,6 +170,23 @@ const SeriesDetailPage: React.FC = () => {
                         <FaHeart style={{ marginRight: '8px' }} />
                         {isFavorited ? 'Đã theo dõi' : 'Theo dõi'}
                     </button>
+
+                    {canEdit && (
+                        <Link to={`/manage/series/${series.series_Id}`} style={{ display: 'block', textDecoration: 'none', marginTop: '10px' }}>
+                            <button
+                                className="series-action-btn" 
+                                style={{
+                                    backgroundColor: 'var(--accent-color)',
+                                    color: '#fff',
+                                    border: '2px solid var(--accent-color)'
+                                }}
+                            >
+                                <FaPencilAlt style={{ marginRight: '8px' }} />
+                                Edit Series
+                            </button>
+                        </Link>
+                    )}
+
                 </aside>
 
 
@@ -142,14 +196,39 @@ const SeriesDetailPage: React.FC = () => {
                     {/* (Phần Details) */}
                     <div className="synopsis-section">
                         <h3>Details</h3>
-                        <div className="series-tags-list">
-                            <strong>Tags:</strong>
-                            {(series.tags || []).map(tag => (
-                                <Link to={`/browse?tag=${tag}`} className="tag-pill" key={tag}>
-                                    {tag}
-                                </Link>
-                            ))}
-                        </div>
+                        {(() => {
+                            const areTagsLong = series.tags.length > TAGS_THRESHOLD;
+                            const tagsToShow = areTagsLong && !isTagsExpanded
+                                ? series.tags.slice(0, TAGS_THRESHOLD)
+                                : series.tags;
+
+                            return (
+                                <>
+                                    <div
+                                        className={`series-tags-list ${areTagsLong && !isTagsExpanded ? 'collapsed' : ''}`}
+                                    >
+                                        <strong>Tags:</strong>
+                                        {tagsToShow.map(tag => (
+                                            <Link to={`/browse?tag=${tag}`} className="tag-pill" key={tag}>
+                                                {tag}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                    {areTagsLong && (
+                                        <div className="tags-toggle-footer">
+                                            <button
+                                                className="toggle-description-btn" 
+                                                onClick={() => setIsTagsExpanded(prev => !prev)}
+                                            >
+                                                {isTagsExpanded ? 'Thu gọn' : '.............'}
+                                            </button>
+                                        </div>
+                                    )}
+                                </>
+                            );
+                        })()}
+
+
                         <div className="series-meta-info">
                             <div className="meta-item">
                                 <strong>Author:</strong>
@@ -167,7 +246,44 @@ const SeriesDetailPage: React.FC = () => {
                                 <strong>Category:</strong>
                                 <span>{series.categoryName || 'N/A'}</span>
                             </div>
+
+                            {/* Hiển thị thêm thông tin nếu type là TRADITIONAL */}
+                            {series.type === 'TRADITIONAL' && (
+                                <>
+                                    {series.iSBN_13 && (
+                                        <div className="meta-item">
+                                            <strong>ISBN-13:</strong>
+                                            <span>{series.iSBN_13}</span>
+                                        </div>
+                                    )}
+                                    {series.iSBN_10 && (
+                                        <div className="meta-item">
+                                            <strong>ISBN-10:</strong>
+                                            <span>{series.iSBN_10}</span>
+                                        </div>
+                                    )}
+                                    {series.publisher && (
+                                        <div className="meta-item">
+                                            <strong>Publisher:</strong>
+                                            <span>{series.publisher}</span>
+                                        </div>
+                                    )}
+                                    {series.publish_date && (
+                                        <div className="meta-item">
+                                            <strong>Published:</strong>
+                                            <span>{formatDate(series.publish_date)}</span>
+                                        </div>
+                                    )}
+                                    {series.edition && (
+                                        <div className="meta-item">
+                                            <strong>Edition:</strong>
+                                            <span>{series.edition}</span>
+                                        </div>
+                                    )}
+                                </>
+                            )}        
                         </div>
+
                         <div className="series-stats-bar">
                             <div className="stat-item">
                                 <span className="stat-label">Last Update</span>
