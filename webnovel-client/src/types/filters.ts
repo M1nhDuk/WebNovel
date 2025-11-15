@@ -11,4 +11,5 @@ export interface NovelStatusDto {
 export interface TagDto {
     tagId: number;
     tagName: string;
+    description?: string | null;
 }

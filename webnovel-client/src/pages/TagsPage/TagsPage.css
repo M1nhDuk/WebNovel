@@ -1,0 +1,71 @@
+﻿.admin-tags-page-container {
+    max-width: 1000px;
+    margin: 20px auto;
+    padding: 20px;
+    text-align: left;
+}
+
+.genres-header {
+    font-size: 1.5rem;
+    font-weight: 700;
+    padding: 15px 20px;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 8px 8px 0 0;
+    color: var(--text-primary);
+}
+
+.genres-list {
+    border: 1px solid var(--border-color);
+    border-top: none;
+    background-color: var(--bg-surface);
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+}
+
+/* KHỐI CHỨA MỖI TAG VÀ MÔ TẢ */
+.tag-list-item {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s;
+    /* Loại bỏ border-top */
+}
+
+    .tag-list-item:last-child {
+        border-bottom: none;
+    }
+
+    /* Style cho Tên Tag */
+    .tag-list-item .tag-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        text-decoration: none;
+        display: block;
+        margin-bottom: 5px;
+    }
+
+        .tag-list-item .tag-name:hover {
+            color: var(--accent-color);
+        }
+
+    /* Style cho Mô tả */
+    .tag-list-item .tag-description {
+        font-size: 0.95rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+    }
+
+
+    .tag-list-item:nth-child(odd) {
+        background-color: var(--bg-surface); /* Màu trắng */
+    }
+
+    .tag-list-item:nth-child(even) {
+        background-color: #ebf5ff; 
+    }
+
+    /* Khi hover, ưu tiên màu chính */
+    .tag-list-item:hover {
+        background-color: #f0f0f0;
+    }
