@@ -271,10 +271,10 @@ namespace NovelService.Migrations
                 {
                     b.HasBaseType("NovelService.Models.NovelSeries");
 
-                    b.Property<string>("ISBN_10")
+                    b.Property<string>("iSBN_10")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("ISBN_13")
+                    b.Property<string>("iSBN_13")
                         .IsRequired()
                         .HasColumnType("longtext");
 

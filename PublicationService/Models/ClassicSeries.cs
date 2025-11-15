@@ -6,8 +6,8 @@ namespace NovelService.Models
     public class ClassicSeries: NovelSeries
     {
    
-        public string? ISBN_10 { get; set; }
-        public required string ISBN_13 { get; set; }
+        public string? iSBN_10 { get; set; }
+        public required string iSBN_13 { get; set; }
         public string? publisher { get; set; }
         public DateTime? publish_date { get; set; }
         public string? edition { get; set; }

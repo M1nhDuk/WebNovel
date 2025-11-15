@@ -288,8 +288,8 @@ namespace NovelService.Service
                     uploader_id = ts.uploader_id,
 
                     // Các trường riêng của ClassicSeries
-                    ISBN_10 = ts.ISBN_10,
-                    ISBN_13 = ts.ISBN_13,
+                    iSBN_10 = ts.iSBN_10,
+                    iSBN_13 = ts.iSBN_13,
                     publisher = ts.publisher,
                     publish_date = ts.publish_date,
                     edition = ts.edition,

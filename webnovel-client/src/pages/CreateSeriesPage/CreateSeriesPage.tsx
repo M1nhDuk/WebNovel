@@ -10,7 +10,6 @@ type SeriesFormData = CreateTraditionalSeriesDto;
 
 //Check ISBN
 const isbn10Regex = /^[0-9]{9}[0-9xX]$/;
-
 const isbn13Regex = /^(978|979)[0-9]{10}$/;
 
 
@@ -27,8 +26,8 @@ const CreateSeriesPage: React.FC = () => {
         note: '',
         category_id: 0,
         status_id: 0,
-        ISBN_10: '',
-        ISBN_13: '',
+        iSBN_10: '',
+        iSBN_13: '',
         publisher: '',
         publish_date: '',
         edition: '',
@@ -86,10 +85,9 @@ const CreateSeriesPage: React.FC = () => {
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
 
-        //Chỉ nhập số ở ISBN
-        if (name === 'ISBN_13' || name === 'ISBN_10') {
-            
-            const allowedChars = (name === 'ISBN_10') ? /[^0-9xX]/g : /[^0-9]/g;
+        if (name === 'iSBN_13' || name === 'iSBN_10') {
+
+            const allowedChars = (name === 'iSBN_10') ? /[^0-9xX]/g : /[^0-9]/g;
             const cleanedValue = value.replace(allowedChars, '');
 
             setFormData(prev => ({
@@ -149,19 +147,18 @@ const CreateSeriesPage: React.FC = () => {
         }
 
         if (seriesType === 'TRADITIONAL') {
-            // ISBN-13 
-            if (!formData.ISBN_13?.trim()) {
+            if (!formData.iSBN_13?.trim()) {
                 setSubmitError("ISBN-13 is required for Classical Novel.");
                 return;
             }
-            if (!isbn13Regex.test(formData.ISBN_13.trim())) {
+            if (!isbn13Regex.test(formData.iSBN_13.trim())) {
                 setSubmitError("ISBN-13 must be 13 digits and start with 978 or 979.");
                 return;
             }
 
-            // ISBN-10
-            if (formData.ISBN_10 && formData.ISBN_10.trim() !== '') {
-                if (!isbn10Regex.test(formData.ISBN_10.trim())) {
+            if (formData.iSBN_10 && formData.iSBN_10.trim() !== '') {
+
+                if (!isbn10Regex.test(formData.iSBN_10.trim())) {
                     setSubmitError("ISBN-10 must be 10 characters (9 digits + 1 digit or 'X').");
                     return;
                 }
@@ -187,8 +184,8 @@ const CreateSeriesPage: React.FC = () => {
             if (seriesType === 'TRADITIONAL') {
                 const traditionalPayload: CreateTraditionalSeriesDto = {
                     ...basePayload,
-                    ISBN_10: formData.ISBN_10,
-                    ISBN_13: formData.ISBN_13!,
+                    iSBN_10: formData.iSBN_10,
+                    iSBN_13: formData.iSBN_13!,
                     publisher: formData.publisher,
                     publish_date: formData.publish_date || null,
                     edition: formData.edition,
@@ -220,14 +217,14 @@ const CreateSeriesPage: React.FC = () => {
     if (loadError) {
         return <div className="create-series-container error-message">{loadError}</div>;
     }
-  
+
     return (
         <div className="create-series-page-wrapper">
             <div className="create-series-container">
                 <h1>Create Series</h1>
 
                 <form className="create-series-form" onSubmit={handleSubmit}>
-                    
+
                     <div className="form-group">
                         <label htmlFor="series_title">Title <span>*</span></label>
                         <input
@@ -292,25 +289,25 @@ const CreateSeriesPage: React.FC = () => {
 
                     {seriesType === 'TRADITIONAL' && (
                         <>
-                            <div className="form-group">
-                                <label htmlFor="ISBN_13">ISBN-13 <span>*</span></label>
+                            <div className="form-group">                         
+                                <label htmlFor="iSBN_13">ISBN-13 <span>*</span></label>
                                 <input
                                     type="text"
-                                    id="ISBN_13"
-                                    name="ISBN_13"
-                                    value={formData.ISBN_13 || ''}
+                                    id="iSBN_13"
+                                    name="iSBN_13"
+                                    value={formData.iSBN_13 || ''}
                                     onChange={handleInputChange}
                                     disabled={isLoading}
                                     maxLength={13}
                                 />
                             </div>
                             <div className="form-group">
-                                <label htmlFor="ISBN_10">ISBN-10</label>
+                                <label htmlFor="iSBN_10">ISBN-10</label>
                                 <input
                                     type="text"
-                                    id="ISBN_10"
-                                    name="ISBN_10"
-                                    value={formData.ISBN_10 || ''}
+                                    id="iSBN_10"
+                                    name="iSBN_10"
+                                    value={formData.iSBN_10 || ''}
                                     onChange={handleInputChange}
                                     disabled={isLoading}
                                     maxLength={10}
