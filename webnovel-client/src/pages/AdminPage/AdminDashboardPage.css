@@ -1,0 +1,107 @@
+﻿/* webnovel-client/src/pages/AdminPage/AdminDashboardPage.css */
+
+.admin-page-container {
+    display: flex;
+    min-height: calc(100vh - 60px);
+    background-color: var(--bg-main);
+    /* Loại bỏ padding-left để sidebar dính sát lề trái của main-content */
+}
+
+/* Sidebar */
+.admin-sidebar {
+    width: 250px;
+    flex-shrink: 0;
+    background-color: var(--bg-surface);
+    border-right: 1px solid var(--border-color);
+    padding: 20px 0;
+    box-sizing: border-box;
+    text-align: left;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+}
+
+.admin-sidebar-header {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    margin: 0 20px 20px 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.admin-sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.admin-sidebar li {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text-primary);
+    transition: background-color 0.15s, color 0.15s;
+    gap: 10px;
+}
+
+    .admin-sidebar li svg {
+        font-size: 1.1em;
+        flex-shrink: 0;
+    }
+
+    .admin-sidebar li:hover {
+        background-color: var(--bg-main);
+        color: var(--accent-color);
+    }
+
+    .admin-sidebar li.active {
+        background-color: var(--accent-color);
+        color: #FFFFFF;
+    }
+
+        .admin-sidebar li.active:hover {
+            background-color: #3e5770;
+            color: #FFFFFF;
+        }
+
+.admin-sidebar .menu-divider {
+    border-top: 1px solid var(--border-color);
+    margin: 10px 0;
+    height: 0;
+    padding: 0;
+    pointer-events: none;
+}
+
+/* Main Content Area */
+.admin-main-content {
+    flex-grow: 1;
+    padding: 20px 40px;
+    text-align: left;
+}
+
+    .admin-main-content h2 {
+        font-size: 2rem;
+        color: var(--text-primary);
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 10px;
+        margin-top: 0;
+        margin-bottom: 30px;
+    }
+
+    .admin-main-content p {
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+.admin-welcome {
+    color: var(--text-secondary);
+    font-weight: 400;
+    font-size: 1.8rem !important;
+    border: none !important;
+}
+
+.admin-loading-container {
+    padding: 40px;
+    text-align: center;
+}

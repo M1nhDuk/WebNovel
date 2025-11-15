@@ -1,0 +1,114 @@
+﻿.admin-panel-container {
+    background-color: #FFFFFF; 
+    color: #333333; 
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.admin-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+    .admin-controls input,
+    .admin-controls select {
+        padding: 8px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        background-color: #fff; /* Nền trắng */
+        color: #333; /* Chữ đen */
+        font-size: 0.9rem;
+    }
+
+.admin-user-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff; /* Nền trắng */
+    color: #333; /* Chữ đen */
+}
+
+    .admin-user-table th,
+    .admin-user-table td {
+        border: 1px solid var(--border-color);
+        padding: 10px 12px;
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    .admin-user-table thead {
+        background-color: #f9f9f9; 
+    }
+
+    .admin-user-table th {
+        font-weight: 600;
+    }
+
+.user-avatar-thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--border-color);
+}
+
+.user-status-badge {
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #fff;
+    text-transform: uppercase;
+}
+
+.badge-verified {
+    background-color: #27ae60; /* Green */
+}
+
+.badge-unverified {
+    background-color: #f39c12; /* Orange */
+}
+
+.badge-locked {
+    background-color: #e74c3c; /* Red */
+}
+
+.admin-actions select {
+    margin-right: 5px;
+    padding: 5px;
+    font-size: 0.9rem;
+    border: 1px solid var(--border-color);
+    background-color: #fff;
+    color: #333;
+}
+
+.admin-actions button {
+    padding: 5px 10px;
+    font-size: 0.85rem;
+    margin-left: 5px;
+    color: #fff;
+}
+
+.btn-lock {
+    background-color: #e67e22; /* Orange */
+}
+
+.btn-unlock {
+    background-color: #27ae60; /* Green */
+}
+
+.btn-delete {
+    background-color: #c0392b; /* Dark Red */
+}
+
+.btn-save {
+    background-color: var(--accent-color); 
+}
+
+.admin-pagination {
+    margin-top: 20px;
+    background-color: #fff;
+    padding-top: 10px;
+}

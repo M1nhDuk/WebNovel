@@ -1,16 +1,16 @@
-﻿import React, { useState, useEffect, useRef } from 'react'; 
+﻿import React, { useState, useEffect, useRef } from 'react';
 import './CSS/Header.css';
 import {
     FaSearch,
     FaHeart,
     FaBell,
     FaUserCircle,
-    FaHistory,      
-    FaBookmark,     
-    FaCog,          
-    FaSignOutAlt,   
-    FaUser,                
-} from 'react-icons/fa'; 
+    FaHistory,
+    FaBookmark,
+    FaCog,
+    FaSignOutAlt,
+    FaUser,
+} from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -50,12 +50,21 @@ const UserDropdownMenu: React.FC<UserMenuProps> = ({ onLogout, onClose, user }) 
                 {/* --- Divider --- */}
                 <li className="menu-divider"></li>
 
+                {/* --- ADMIN LINK --- */}
+                {user && user.role === 'Admin' && (
+                    <li>
+                        <Link to="/admin" onClick={onClose}>
+                            <FaCog /> 
+                            <span> Admin Dashboard </span>
+                        </Link>
+                    </li>
+                )}
+
                 {/* Account Settings) */}
                 <li>
                     <Link to="/account-settings" onClick={onClose}>
                         <FaCog />
                         <span> Change UseName/Password </span>
-
                     </Link>
                 </li>
 
@@ -78,7 +87,7 @@ const Header: React.FC = () => {
     const menuRef = useRef<HTMLDivElement>(null);
 
     const navigate = useNavigate();
-    const { user, isLoading, logout } = useAuth(); 
+    const { user, isLoading, logout } = useAuth();
 
     const handleSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter' && searchQuery.trim() !== '') {
@@ -139,7 +148,7 @@ const Header: React.FC = () => {
                         {/* Wrapper  Profile Link and Dropdown Menu */}
                         <div
                             className="user-profile-wrapper"
-                            // Gắn sự kiện click để mở/đóng menu (chỉ khi user tồn tại)
+
                             onClick={handleToggleMenu}
                             ref={menuRef}
                         >
@@ -159,7 +168,7 @@ const Header: React.FC = () => {
                             )}
                         </div>
 
-                      
+
                         <Link to="/favorites" className="header-icon-btn" title="Favorites">
                             <FaHeart />
                         </Link>
