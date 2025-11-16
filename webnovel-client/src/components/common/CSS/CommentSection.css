@@ -1,0 +1,139 @@
+﻿/* Styling chung cho container và header */
+.comment-section {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-top: 30px;
+    padding: 20px;
+    text-align: left;
+}
+
+    .comment-section h3 {
+        font-size: 1.5rem;
+        color: var(--text-primary);
+        margin-top: 0;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 10px;
+    }
+
+/* Khối Input/Editor */
+.comment-input-area {
+    margin-bottom: 20px;
+}
+
+.report-link {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.comment-editor textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    resize: vertical;
+    box-sizing: border-box;
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+.comment-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+    .comment-actions button {
+        padding: 8px 15px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        background-color: #27ae60; /* Màu xanh lá cây tương tự nút Đăng bình luận */
+        color: white;
+        border: none;
+    }
+
+        .comment-actions button:hover:not(:disabled) {
+            background-color: #2ecc71;
+        }
+
+.comment-login-prompt {
+    padding: 15px;
+    background-color: var(--bg-main);
+    border-radius: 4px;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+/* Danh sách Bình luận */
+.comment-list-header {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin: 20px 0 15px 0;
+}
+
+.comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.comment-item {
+    display: flex;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+    .comment-item:last-child {
+        border-bottom: none;
+    }
+
+.comment-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 15px;
+    flex-shrink: 0;
+    object-fit: cover;
+}
+
+.comment-content-wrapper {
+    flex-grow: 1;
+}
+
+.comment-author {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+}
+
+.comment-text {
+    margin: 0 0 5px 0;
+    color: var(--text-secondary);
+    white-space: pre-wrap;
+    font-size: 0.95rem;
+}
+
+.comment-meta {
+    font-size: 0.8rem;
+    color: #999;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.comment-action-link {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+    .comment-action-link:hover {
+        text-decoration: underline;
+    }

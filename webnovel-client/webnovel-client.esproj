@@ -13,7 +13,6 @@
     <Folder Include="src\context\" />
     <Folder Include="src\hooks\" />
     <Folder Include="src\pages\ForgotPasswordPage\" />
-    <Folder Include="src\pages\AdminPage\" />
     <Folder Include="src\pages\ReadingHistoryPage\" />
     <Folder Include="src\pages\RegisterPage\" />
     <Folder Include="src\router\" />

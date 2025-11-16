@@ -15,6 +15,7 @@ export interface ChapterDetailDto {
     title: string;
     created_at: string;
     chapter_number: number;
+    word_count: number;
 }
 
 

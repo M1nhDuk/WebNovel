@@ -49,6 +49,31 @@ export const API_ROUTES = {
         READING_HISTORY: '/user/reading-history',
     },
 
+    ADMIN: {
+        // Publication Metadata
+        GET_CATEGORIES: '/api/admin/publication/categories',
+        CREATE_CATEGORY: '/api/admin/publication/categories',
+        UPDATE_CATEGORY: (id: number | string) => `/api/admin/publication/categories/${id}`,
+        DELETE_CATEGORY: (id: number | string) => `/api/admin/publication/categories/${id}`,
+
+        GET_TAGS: '/api/admin/publication/tags',
+        CREATE_TAG: '/api/admin/publication/tags',
+        UPDATE_TAG: (id: number | string) => `/api/admin/publication/tags/${id}`,
+        DELETE_TAG: (id: number | string) => `/api/admin/publication/tags/${id}`,
+
+        GET_STATUSES: '/api/admin/publication/statuses',
+        CREATE_STATUS: '/api/admin/publication/statuses',
+        UPDATE_STATUS: (id: number | string) => `/api/admin/publication/statuses/${id}`,
+        DELETE_STATUS: (id: number | string) => `/api/admin/publication/statuses/${id}`,
+
+        // Content Deletion
+        DELETE_SERIES: (id: number | string) => `/api/admin/publication/series/${id}`,
+        DELETE_NOVEL: (id: number | string) => `/api/admin/publication/novels/${id}`,
+        DELETE_CHAPTER: (id: number | string) => `/api/admin/publication/chapters/${id}`,
+    },
+
+
+
     CATEGORY: {
         GET_ALL: '/categories',
     },

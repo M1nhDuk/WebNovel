@@ -9,6 +9,7 @@ import {
     FaBookmark,
     FaCog,
     FaSignOutAlt,
+    FaPencilAlt,
     FaUser,
 } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
@@ -46,6 +47,10 @@ const UserDropdownMenu: React.FC<UserMenuProps> = ({ onLogout, onClose, user }) 
                         <span> Book mark</span>
                     </Link>
                 </li>
+                <Link to="/create-series" onClick={onClose}> 
+                    <FaPencilAlt />
+                    <span> Create Stories </span>
+                </Link>
 
                 {/* --- Divider --- */}
                 <li className="menu-divider"></li>

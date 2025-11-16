@@ -53,6 +53,7 @@ namespace InteractionService.Controllers
         }
 
         [HttpGet("series/{seriesId:int}/comments")]
+        [AllowAnonymous]
         public async Task<ActionResult<PagedResult<CommentDto>>> GetSeriesComments(int seriesId, [FromQuery] int page = 1, [FromQuery] int size = 20)
         {
             try
@@ -95,6 +96,7 @@ namespace InteractionService.Controllers
 
 
         [HttpGet("chapters/{chapterId:int}/comments")]
+        [AllowAnonymous]
         public async Task<ActionResult<PagedResult<CommentDto>>> GetChapterComments(int chapterId, [FromQuery] int page = 1, [FromQuery] int size = 20)
         {
             try
@@ -114,6 +116,7 @@ namespace InteractionService.Controllers
 
 
         [HttpGet("comments/{parentCommentId:guid}/replies")]
+        [Authorize]
         public async Task<ActionResult<PagedResult<CommentDto>>> GetCommentReplies(Guid parentCommentId, [FromQuery] int page = 1, [FromQuery] int size = 10)
         {
             try
