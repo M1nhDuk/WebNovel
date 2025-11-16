@@ -82,13 +82,17 @@
     border: 1px solid var(--border-color);
     background-color: #fff;
     color: #333;
+    width: 100%; 
+    box-sizing: border-box;
 }
 
 .admin-actions button {
     padding: 5px 10px;
     font-size: 0.85rem;
-    margin-left: 5px;
+    margin-left: 0px;
     color: #fff;
+    width: 100%; 
+    box-sizing: border-box;
 }
 
 .btn-lock {
@@ -101,10 +105,12 @@
 
 .btn-delete {
     background-color: #c0392b; /* Dark Red */
+    margin-top: 5px; 
 }
 
 .btn-save {
-    background-color: var(--accent-color); 
+    background-color: var(--accent-color);
+    margin-top: 5px; 
 }
 
 .admin-pagination {

@@ -4,7 +4,7 @@ import type { AdminUserDto } from '../../types/series';
 import type { PagedResult } from '../../types/series';
 import Pagination from '../../components/common/Pagination';
 import { useAuth } from '../../hooks/useAuth';
-import './UserManagementPanel.css'; 
+import './CSS/UserManagementPanel.css'; 
 
 const GATEWAY_URL = 'https://localhost:8000';
 const PAGE_SIZE = 10;

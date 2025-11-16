@@ -12,7 +12,7 @@ const Footer: React.FC = () => {
                 <div className="footer-section footer-about">
                     <div className="footer-logo">W E B N O V E L</div>
                     <p>
-                        A platform for readers and writers of web novels. Built with React and .NET Core.
+                        A platform for readers and writers of web novels.
                     </p>
                     <p className="footer-copyright">
                         &copy; {currentYear} WebNovel Project. All rights reserved.

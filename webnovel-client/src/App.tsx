@@ -14,6 +14,7 @@ import CreateSeriesPage from './pages/CreateSeriesPage/CreateSeriesPage'
 import ReadingHistoryPage from './pages/ReadingHistoryPage/ReadingHistoryPage'
 import TagsPage from './pages/TagsPage/TagsPage'
 import AdminDashboardPage from './pages/AdminPage/AdminDashboardPage'
+import ChapterDetailPage from './pages/ChapterDetailPage/ChapterDetailPage'
 
 import ManageSeriesPage from './pages/ManageSeriesPage/ManageSeriesPage'
 
@@ -46,6 +47,8 @@ function App() {
                 <Route path="/manage/series/:id" element={<ManageSeriesPage />} />
 
                 <Route path="series/:seriesId/novel/:novelId" element={<NovelDetailPage />} />
+
+                <Route path="series/:seriesId/chapter/:chapterId" element={<ChapterDetailPage />} />
 
                 <Route path="/profile" element={<ProfilePage />} />
 

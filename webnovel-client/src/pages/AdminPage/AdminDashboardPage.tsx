@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { Navigate } from 'react-router-dom';
-import './AdminDashboardPage.css';
+import './CSS/AdminDashboardPage.css';
 import {
-    FaUsers, FaBook, FaTags, FaChartLine, FaExclamationTriangle, FaCog
+    FaUsers, FaTags, FaChartLine, FaExclamationTriangle
 } from 'react-icons/fa';
 import UserManagementPanel from './UserManagementPanel';
-
+import PublicationMetaPanel from './PublicationMetaPanel';
 
 const AdminDashboardPage: React.FC = () => {
     const { user, isLoading } = useAuth();
@@ -31,20 +31,8 @@ const AdminDashboardPage: React.FC = () => {
                         <p>Functionality: Delete Series/Novel/Chapter (AdminNovelController).</p>
                     </>
                 );
-            case 'publication_content':
-                return (
-                    <>
-                        <h2>Publication Content Management</h2>
-                        <p>Functionality: Delete Series/Novel/Chapter (AdminNovelController).</p>
-                    </>
-                );
             case 'publication_meta':
-                return (
-                    <>
-                        <h2>Category & Tag Management</h2>
-                        <p>Functionality: CRUD Categories, Tags, Statuses (AdminNovelController).</p>
-                    </>
-                );
+                return <PublicationMetaPanel />;
             default:
                 return <h2 className="admin-welcome">Welcome, {user.username}. Select an item from the sidebar.</h2>;
         }
@@ -58,21 +46,15 @@ const AdminDashboardPage: React.FC = () => {
                     <li className={selectedMenu === 'users' ? 'active' : ''} onClick={() => setSelectedMenu('users')}>
                         <FaUsers /> <span>User Management</span>
                     </li>
-                    <li className={selectedMenu === 'publication_content' ? 'active' : ''} onClick={() => setSelectedMenu('publication_content')}>
-                        <FaBook /> <span>Publication Content</span>
-                    </li>
                     <li className={selectedMenu === 'publication_meta' ? 'active' : ''} onClick={() => setSelectedMenu('publication_meta')}>
                         <FaTags /> <span>Categories & Tags</span>
                     </li>
                     <li className={selectedMenu === 'reports' ? 'active' : ''} onClick={() => setSelectedMenu('reports')}>
-                        <FaExclamationTriangle /> <span>Report Processing</span>
+                        <FaExclamationTriangle /> <span>Comment Manage</span>
                     </li>
                     <li className="menu-divider"></li>
                     <li className={selectedMenu === 'analytics' ? 'active' : ''} onClick={() => setSelectedMenu('analytics')}>
                         <FaChartLine /> <span>Statistics & Analytics</span>
-                    </li>
-                    <li className={selectedMenu === 'settings' ? 'active' : ''} onClick={() => setSelectedMenu('settings')}>
-                        <FaCog /> <span>System Settings</span>
                     </li>
                 </ul>
             </aside>

@@ -1305,9 +1305,6 @@
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
-      },
-      "RouteClaimsRequirement": {
-        "Role": "Admin"
       }
     },
 
@@ -1327,9 +1324,6 @@
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
-      },
-      "RouteClaimsRequirement": {
-        "Role": "Admin"
       }
     },
 
@@ -1349,9 +1343,6 @@
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
-      },
-      "RouteClaimsRequirement": {
-        "Role": "Admin"
       }
     },
 
@@ -1371,9 +1362,6 @@
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
-      },
-      "RouteClaimsRequirement": {
-        "Role": "Admin"
       }
     },
 
@@ -1393,9 +1381,6 @@
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
-      },
-      "RouteClaimsRequirement": {
-        "Role": "Admin"
       }
     },
 
@@ -1417,9 +1402,6 @@
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
-      },
-      "RouteClaimsRequirement": {
-        "Role": "Admin"
       }
     },
     // 12.2. Quản lý Danh mục (Category): PUT / DELETE by ID
@@ -1438,9 +1420,6 @@
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
-      },
-      "RouteClaimsRequirement": {
-        "Role": "Admin"
       }
     },
 
@@ -1460,9 +1439,6 @@
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
-      },
-      "RouteClaimsRequirement": {
-        "Role": "Admin"
       }
     },
 
@@ -1482,9 +1458,6 @@
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
-      },
-      "RouteClaimsRequirement": {
-        "Role": "Admin"
       }
     },
 
@@ -1504,9 +1477,6 @@
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
-      },
-      "RouteClaimsRequirement": {
-        "Role": "Admin"
       }
     },
 
@@ -1526,9 +1496,6 @@
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
-      },
-      "RouteClaimsRequirement": {
-        "Role": "Admin"
       }
     },
 
@@ -1548,9 +1515,6 @@
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
-      },
-      "RouteClaimsRequirement": {
-        "Role": "Admin"
       }
     },
 
@@ -1570,9 +1534,6 @@
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
-      },
-      "RouteClaimsRequirement": {
-        "Role": "Admin"
       }
     },
 
@@ -1592,9 +1553,6 @@
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
-      },
-      "RouteClaimsRequirement": {
-        "Role": "Admin"
       }
     },
 
@@ -1617,9 +1575,6 @@
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
-      },
-      "RouteClaimsRequirement": {
-        "Role": "Admin"
       }
     },
 
