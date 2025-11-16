@@ -1,0 +1,184 @@
+﻿.bookmarks-page-container {
+    max-width: 1000px;
+    margin: 20px auto;
+    padding: 20px;
+    text-align: left;
+}
+
+    .bookmarks-page-container h1 {
+        font-size: 2rem;
+        color: var(--text-primary);
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 10px;
+        margin-bottom: 30px;
+    }
+
+.bookmarks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* --- MỚI: Khối cho mỗi Series --- */
+.bookmark-group-item {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: box-shadow 0.2s;
+}
+
+    .bookmark-group-item:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+/* --- MỚI: Header của Series (Cover, Title, Arrow) --- */
+.bookmark-series-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px;
+    cursor: pointer;
+}
+
+.bookmark-series-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-grow: 1;
+    min-width: 0; /* Cho phép text-overflow hoạt động */
+    text-decoration: none;
+}
+
+.bookmark-cover {
+    width: 50px; /* Nhỏ hơn so với favorites */
+    height: 75px;
+    object-fit: cover;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.bookmark-series-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary); /* Màu tiêu đề chính */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bookmark-series-info:hover .bookmark-series-title {
+    color: var(--accent-color);
+}
+
+.bookmark-toggle-arrow {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    padding: 5px;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+    .bookmark-toggle-arrow.toggled {
+        transform: rotate(180deg);
+    }
+
+/* --- MỚI: Danh sách chapter xổ xuống --- */
+.bookmark-chapter-list {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out;
+    background-color: var(--bg-main); /* Màu nền hơi khác để phân biệt */
+    border-top: 1px solid var(--border-color);
+}
+
+    .bookmark-chapter-list.open {
+        max-height: 1000px; /* Giá trị lớn để chứa nhiều chapter */
+    }
+
+/* --- MỚI: Item cho mỗi chapter/bookmark --- */
+.bookmark-chapter-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 15px;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.bookmark-chapter-list .bookmark-chapter-item:last-child {
+    border-bottom: none;
+}
+
+.bookmark-chapter-details {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.bookmark-chapter-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-decoration: none;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+    .bookmark-chapter-title:hover {
+        color: var(--accent-color);
+        text-decoration: underline;
+    }
+
+.bookmark-chapter-context {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-top: 4px;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bookmark-chapter-actions {
+    flex-shrink: 0;
+    margin-left: 15px;
+}
+
+.bookmark-delete-btn {
+    background-color: transparent;
+    color: #e74c3c;
+    border: none;
+    padding: 5px 10px;
+    font-size: 1rem;
+    transition: color 0.2s;
+}
+
+    .bookmark-delete-btn:hover {
+        color: #c0392b;
+        background-color: transparent;
+    }
+
+    .bookmark-delete-btn:disabled {
+        opacity: 0.5;
+    }
+
+.bookmarks-empty {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.bookmarks-error {
+    color: #e74c3c;
+    text-align: center;
+    padding: 20px;
+    border: 1px solid #f4c7c3;
+    background-color: #fce8e6;
+    border-radius: 4px;
+    margin-top: 20px;
+}

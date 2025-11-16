@@ -164,11 +164,6 @@
     margin-left: 0; /* Mặc định */
 }
 
-/* Khi sidebar mở, đẩy cột giữa sang phải */
-.chapter-page-layout.sidebar-visible .chapter-content-main {
-    /* Tạm thời vô hiệu hóa trên desktop, chỉ áp dụng cho mobile */
-    /* margin-left: 280px; */
-}
 
 /* Khung giấy trắng */
 .chapter-content-wrapper {
@@ -278,7 +273,6 @@
         color: var(--accent-color);
     }
 
-/* Màn hình loading */
 .chapter-loading-screen {
     padding: 40px;
     text-align: center;
@@ -288,7 +282,6 @@
 
 /* === Responsive cho Mobile === */
 @media (max-width: 992px) {
-    /* Trên mobile, cột toolbar phải dính ở dưới đáy */
     .chapter-toolbar-right {
         flex-direction: row;
         justify-content: space-around;
@@ -298,7 +291,7 @@
         right: 0;
         top: auto;
         width: 100%;
-        height: 50px; /* Chiều cao cố định */
+        height: 50px; 
         padding: 0;
         border-top: 1px solid var(--border-color);
         border-left: none;
@@ -309,7 +302,6 @@
         flex: 1; /* Các nút chia đều không gian */
     }
 
-    /* Nội dung chapter phải có padding-bottom để không bị che */
     .chapter-content-main {
         padding: 10px 10px 70px 10px; /* 70px = 50px toolbar + 20px lề */
     }
@@ -321,12 +313,10 @@
         border-radius: 0;
     }
 
-    /* Trên mobile, sidebar trái sẽ hiện đè lên, thay vì đẩy nội dung */
     .chapter-page-layout.sidebar-visible .chapter-content-main {
-        margin-left: 0; /* Không đẩy nội dung */
+        margin-left: 0; 
     }
 
-    /* Hiển thị lớp phủ mờ trên mobile khi sidebar mở */
     .chapter-page-layout.sidebar-visible .sidebar-overlay {
         display: block;
     }
@@ -337,18 +327,138 @@
 }
 
 @media (min-width: 993px) {
-    /* Ẩn nút đóng sidebar trên desktop */
     .sidebar-close-button {
         display: none;
     }
 
-    /* Ẩn lớp phủ mờ trên desktop */
     .sidebar-overlay {
         display: none;
     }
 
-    /* Đẩy nội dung sang phải khi sidebar mở trên desktop */
     .chapter-page-layout.sidebar-visible .chapter-content-main {
         margin-left: 280px;
     }
 }
+
+
+.toolbar-button.active {
+    color: var(--accent-color); 
+}
+
+/* Container cho mỗi đoạn văn và icon */
+.paragraph-container {
+    position: relative;
+    padding-right: 25px;
+}
+
+.chapter-body p.chapter-paragraph {
+    cursor: pointer;
+    margin: 0 0 1.5em 0; 
+}
+
+/* Icon bookmark nằm bên lề */
+.line-bookmark-icon {
+    position: absolute;
+    top: 5px; 
+    right: 0; 
+    font-size: 1.1rem;
+    color: var(--accent-color);
+    opacity: 0.7;
+    cursor: pointer;
+}
+
+/* --- CSS CHO SIDEBAR TABS  --- */
+.chapter-sidebar-left {
+    padding: 0;
+}
+
+.sidebar-left-header {
+    padding: 15px;
+    box-sizing: border-box;
+}
+
+.sidebar-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.sidebar-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 10px;
+}
+
+.sidebar-tab-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 12px 5px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+}
+
+    .sidebar-tab-btn.active {
+        color: var(--accent-color);
+        border-bottom-color: var(--accent-color);
+    }
+
+.sidebar-list-container {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.sidebar-volume-list {
+    padding: 0 10px 20px 10px;
+}
+
+.sidebar-list-empty {
+    padding: 20px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    text-align: center;
+    font-style: italic;
+}
+
+.sidebar-list.bookmark-list .bookmark-item-link {
+    display: block;
+    padding: 10px;
+    border-bottom: 1px dashed var(--border-color);
+    text-decoration: none;
+}
+
+.sidebar-list.bookmark-list li:last-child .bookmark-item-link {
+    border-bottom: none;
+}
+
+.sidebar-list.bookmark-list li.active a {
+    background-color: var(--bg-main);
+    border-left: 3px solid var(--accent-color);
+    padding-left: 7px;
+}
+
+.sidebar-list.bookmark-list .bookmark-item-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-list.bookmark-list .bookmark-item-context {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 4px;
+}
+

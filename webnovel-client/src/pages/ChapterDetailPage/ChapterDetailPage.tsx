@@ -1,9 +1,11 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'; // Đã thêm useCallback và useRef
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import apiClient from '../../api/apiClient';
 import { API_ROUTES } from '../../api/apiRoutes';
 import type { NovelSeriesDetailDto, FullChapterDto, NovelDetailDto, ChapterDetailDto } from '../../types/series';
 import ChapterCommentSection from '../../components/common/comments/ChapterCommentSection.tsx';
+import type { BookmarkDto, ToggleBookmarkDto, BookmarkToggleResultDto } from '../../types/bookmarks';
+import { useAuth } from '../../hooks/useAuth';
 
 import {
     FaHome, FaArrowLeft, FaArrowRight, FaCog, FaBookmark, FaListUl, FaArrowCircleLeft
@@ -40,12 +42,24 @@ const ChapterDetailPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const { user } = useAuth(); 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     const { settings, isLoading: isSettingsLoading } = useReaderSettings();
     const numChapterId = chapterId ? parseInt(chapterId, 10) : 0;
 
+    const numSeriesId = seriesId ? parseInt(seriesId, 10) : 0; 
+
+    // State cho bookmark 
+    const [bookmarkedLocation, setBookmarkedLocation] = useState<string | null>(null);
+    const [isLoadingBookmark, setIsLoadingBookmark] = useState(true);
+    const [seriesBookmarks, setSeriesBookmarks] = useState<BookmarkDto[]>([]);
+    const [sidebarMode, setSidebarMode] = useState<'chapters' | 'bookmarks'>('chapters');
+
+    const chapterBodyRef = useRef<HTMLDivElement>(null); 
+
+    // useEffect fetchChapterData 
     useEffect(() => {
         const fetchChapterData = async () => {
             if (!seriesId || !chapterId) return;
@@ -65,10 +79,8 @@ const ChapterDetailPage: React.FC = () => {
                     contentApiUrl = API_ROUTES.SERIES.CHAPTER_FOR_SERIES(seriesId, chapterId);
                     foundChapterMeta = seriesData.chapters?.find(c => c.chapter_id === numChapterId);
                 } else {
-                    // Sắp xếp novel trước khi tìm
                     const sortedNovels = seriesData.novels.sort((a, b) => a.novel_number - b.novel_number);
                     for (const novel of sortedNovels) {
-                        // Sắp xếp chapter trong novel
                         const sortedChapters = novel.chapters.sort((a, b) => a.chapter_number - b.chapter_number);
                         foundChapterMeta = sortedChapters.find(c => c.chapter_id === numChapterId);
                         if (foundChapterMeta) {
@@ -93,41 +105,80 @@ const ChapterDetailPage: React.FC = () => {
         fetchChapterData();
     }, [seriesId, chapterId, numChapterId]);
 
+    // useEffect fetchBookmarkStatus 
+    useEffect(() => {
+        const fetchBookmarkStatus = async () => {
+            if (user && numChapterId > 0) {
+                setIsLoadingBookmark(true);
+                try {
+                    const response = await apiClient.get<BookmarkDto>(
+                        API_ROUTES.USER.GET_BOOKMARK_FOR_CHAPTER(numChapterId)
+                    );
+                    if (response.data) {
+                        setBookmarkedLocation(response.data.locationIdentifier); 
+                    } else {
+                        setBookmarkedLocation(null); 
+                    }
+                } catch (err: any) {
+                    if (err.response && err.response.status === 404) {
+                        setBookmarkedLocation(null); // 404 nghĩa là chưa bookmark
+                    } else {
+                        console.error("Failed to fetch bookmark status:", err);
+                    }
+                } finally {
+                    setIsLoadingBookmark(false);
+                }
+            } else {
+                setBookmarkedLocation(null); 
+                setIsLoadingBookmark(false);
+            }
+        };
+
+        fetchBookmarkStatus();
+    }, [user, numChapterId]);
+
+    // Thêm useEffect để tải danh sách bookmark cho sidebar
+    const fetchSeriesBookmarks = useCallback(async () => {
+        if (user && numSeriesId > 0) {
+            try {
+                const response = await apiClient.get<BookmarkDto[]>(
+                    API_ROUTES.USER.GET_BOOKMARKS_FOR_SERIES(numSeriesId)
+                );
+                setSeriesBookmarks(response.data);
+            } catch (err) {
+                console.error("Failed to fetch series bookmarks:", err);
+            }
+        }
+    }, [user, numSeriesId]);
+
+    useEffect(() => {
+        fetchSeriesBookmarks();
+    }, [fetchSeriesBookmarks]);
 
 
-    // --- LOGIC CHUYỂN CHƯƠNG ---
-
-    // 1. Tạo danh sách chương "phẳng" (đã được sắp xếp)
+    // --- LOGIC CHUYỂN CHƯƠNG --- 
     const flatChapterList: ChapterDetailDto[] = useMemo(() => {
         if (!series) return [];
         if (series.type === 'TRADITIONAL') {
-            // Đảm bảo đã sắp xếp
             return series.chapters?.sort((a, b) => a.chapter_number - b.chapter_number) || [];
         }
-        // Gộp chương từ tất cả các volume (đã được sắp xếp)
         return series.novels
             .sort((a, b) => a.novel_number - b.novel_number)
             .flatMap(novel => novel.chapters?.sort((a, b) => a.chapter_number - b.chapter_number) || []);
     }, [series]);
 
-    // 2. Tìm chương trước/sau
     const navigationLinks = useMemo(() => {
         if (!flatChapterList.length || !numChapterId || !seriesId) {
             return { prev: null, next: null, isFirst: true, isLast: true };
         }
-
         const currentIndex = flatChapterList.findIndex(c => c.chapter_id === numChapterId);
-
         if (currentIndex === -1) {
             return { prev: null, next: null, isFirst: true, isLast: true };
         }
-
         const isFirst = currentIndex === 0;
         const isLast = currentIndex === flatChapterList.length - 1;
-
         const prevChapter = !isFirst ? flatChapterList[currentIndex - 1] : null;
         const nextChapter = !isLast ? flatChapterList[currentIndex + 1] : null;
-
         return {
             prev: prevChapter ? `/series/${seriesId}/chapter/${prevChapter.chapter_id}` : null,
             next: nextChapter ? `/series/${seriesId}/chapter/${nextChapter.chapter_id}` : null,
@@ -136,30 +187,25 @@ const ChapterDetailPage: React.FC = () => {
         };
     }, [flatChapterList, numChapterId, seriesId]);
 
-    // 3. Hàm xử lý sự kiện click nút
     const handleNavigate = (direction: 'prev' | 'next') => {
         if (direction === 'prev') {
             if (navigationLinks.prev) {
                 navigate(navigationLinks.prev);
             } else if (navigationLinks.isFirst) {
-                // Nếu là chương đầu, quay về trang series
                 navigate(`/series/${seriesId}`);
             }
         } else if (direction === 'next') {
             if (navigationLinks.next) {
                 navigate(navigationLinks.next);
             } else if (navigationLinks.isLast) {
-                // Nếu là chương cuối, quay về trang series
                 navigate(`/series/${seriesId}`);
             }
         }
     };
 
-    // 4. Lắng nghe sự kiện bàn phím
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             const activeElement = document.activeElement;
-
             if (activeElement && activeElement instanceof HTMLElement) {
                 if (activeElement.tagName === 'INPUT' ||
                     activeElement.tagName === 'TEXTAREA' ||
@@ -167,28 +213,92 @@ const ChapterDetailPage: React.FC = () => {
                     return;
                 }
             }
-
             if (event.key === 'ArrowLeft') {
                 event.preventDefault();
-                // Gọi hàm handleNavigate thay vì kiểm tra link
                 handleNavigate('prev');
             } else if (event.key === 'ArrowRight') {
                 event.preventDefault();
-                // Gọi hàm handleNavigate thay vì kiểm tra link
                 handleNavigate('next');
             }
         };
-
         window.addEventListener('keydown', handleKeyDown);
-
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [navigationLinks, navigate, seriesId]); // Thêm seriesId vào dependency
+    }, [navigationLinks, navigate, seriesId]);
 
-    // --- KẾT THÚC LOGIC CHUYỂN CHƯƠNG ---
+    const saveBookmark = async (locationIdentifier: string, contextSnippet: string) => {
+        if (!user || !series || !chapter || isLoadingBookmark) return;
 
+        setIsLoadingBookmark(true);
 
+        const payload: ToggleBookmarkDto = {
+            seriesId: series.series_Id,
+            chapterId: chapter.chapter_id,
+            locationIdentifier: locationIdentifier,
+            contextSnippet: contextSnippet
+        };
+
+        try {
+            const response = await apiClient.post<BookmarkToggleResultDto>(
+                API_ROUTES.USER.TOGGLE_BOOKMARK,
+                payload
+            );
+            if (response.data.isBookmarked && response.data.data) {
+                setBookmarkedLocation(response.data.data.locationIdentifier);
+            }
+            fetchSeriesBookmarks(); 
+        } catch (err: any) {
+            console.error("Failed to save bookmark:", err);
+        } finally {
+            setIsLoadingBookmark(false);
+        }
+    };
+
+    const removeBookmark = async () => {
+        if (!user || !numChapterId || isLoadingBookmark) return;
+
+        setIsLoadingBookmark(true);
+        try {
+            await apiClient.delete(
+                API_ROUTES.USER.DELETE_BOOKMARK_FOR_CHAPTER(numChapterId)
+            );
+            setBookmarkedLocation(null); 
+            fetchSeriesBookmarks(); 
+        } catch (err: any) {
+            console.error("Failed to remove bookmark:", err);
+        } finally {
+            setIsLoadingBookmark(false);
+        }
+    };
+
+    const handleParagraphDoubleClick = (e: React.MouseEvent<HTMLParagraphElement>) => {
+        if (!user) {
+            return;
+        }
+
+        const paragraph = e.currentTarget;
+        const newLocation = paragraph.id; 
+        const snippet = paragraph.textContent?.slice(0, 100) + '...'; 
+
+        if (bookmarkedLocation === newLocation) {
+            removeBookmark();
+        } else {
+            saveBookmark(newLocation, snippet || '');
+        }
+    };
+
+    const handleNavigateToBookmark = () => {
+        if (bookmarkedLocation) {
+            const element = document.getElementById(bookmarkedLocation);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        } else {
+            setSidebarMode('bookmarks');
+            setIsSidebarOpen(true);
+        }
+    };
 
 
     const formatTimeAgo = (dateString: string) => {
@@ -196,43 +306,96 @@ const ChapterDetailPage: React.FC = () => {
         return formatDistanceToNow(date, { addSuffix: true, locale: vi });
     };
 
-    const renderChapterList = () => {
+    const renderSidebarContent = () => {
         if (!series) return null;
-        if (series.type === 'TRADITIONAL') {
-            return (
-                <ul className="sidebar-list">
-                    {series.chapters?.map(ch => (
-                        <li key={ch.chapter_id} className={ch.chapter_id === numChapterId ? 'active' : ''}>
-                            <Link
-                                to={`/series/${series.series_Id}/chapter/${ch.chapter_id}`}
-                                onClick={() => setIsSidebarOpen(false)}
-                            >
-                                {ch.title}
-                            </Link>
-                        </li>
-                    ))}
-                </ul>
-            );
-        }
+
         return (
-            <div className="sidebar-volume-list">
-                {series.novels.map(novel => (
-                    <div key={novel.novel_Id} className="sidebar-volume-group">
-                        <h4 className="sidebar-volume-title">{novel.title}</h4>
-                        <ul className="sidebar-list">
-                            {novel.chapters.map(ch => (
-                                <li key={ch.chapter_id} className={ch.chapter_id === numChapterId ? 'active' : ''}>
-                                    <Link
-                                        to={`/series/${series.series_Id}/chapter/${ch.chapter_id}`}
-                                        onClick={() => setIsSidebarOpen(false)}
-                                    >
-                                        {ch.title}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                ))}
+            <div className="sidebar-content-wrapper">
+                {/* === THANH TABS === */}
+                <div className="sidebar-tabs">
+                    <button
+                        className={`sidebar-tab-btn ${sidebarMode === 'chapters' ? 'active' : ''}`}
+                        onClick={() => setSidebarMode('chapters')}
+                    >
+                        Chapters
+                    </button>
+                    <button
+                        className={`sidebar-tab-btn ${sidebarMode === 'bookmarks' ? 'active' : ''}`}
+                        onClick={() => setSidebarMode('bookmarks')}
+                    >
+                        Bookmarks
+                    </button>
+                </div>
+
+                {/* === NỘI DUNG TAB === */}
+                <div className="sidebar-list-container">
+                    {/* --- TAB CHAPTERS --- */}
+                    {sidebarMode === 'chapters' && (
+                        series.type === 'TRADITIONAL' ? (
+                            <ul className="sidebar-list">
+                                {series.chapters?.map(ch => (
+                                    <li key={ch.chapter_id} className={ch.chapter_id === numChapterId ? 'active' : ''}>
+                                        <Link
+                                            to={`/series/${series.series_Id}/chapter/${ch.chapter_id}`}
+                                            onClick={() => setIsSidebarOpen(false)}
+                                        >
+                                            {ch.title}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <div className="sidebar-volume-list">
+                                {series.novels.map(novel => (
+                                    <div key={novel.novel_Id} className="sidebar-volume-group">
+                                        <h4 className="sidebar-volume-title">{novel.title}</h4>
+                                        <ul className="sidebar-list">
+                                            {novel.chapters.map(ch => (
+                                                <li key={ch.chapter_id} className={ch.chapter_id === numChapterId ? 'active' : ''}>
+                                                    <Link
+                                                        to={`/series/${series.series_Id}/chapter/${ch.chapter_id}`}
+                                                        onClick={() => setIsSidebarOpen(false)}
+                                                    >
+                                                        {ch.title}
+                                                    </Link>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ))}
+                            </div>
+                        )
+                    )}
+
+                    {/* --- TAB BOOKMARKS --- */}
+                    {sidebarMode === 'bookmarks' && (
+                        !user ? (
+                            <div className="sidebar-list-empty">Login to see bookmarks.</div>
+                        ) : seriesBookmarks.length === 0 ? (
+                            <div className="sidebar-list-empty">You have no bookmarks for this series.</div>
+                        ) : (
+                            <ul className="sidebar-list bookmark-list">
+                                {seriesBookmarks.map(bookmark => (
+                                    <li key={bookmark.bookmarkId} className={bookmark.chapterId === numChapterId ? 'active' : ''}>
+                                        <Link                                         
+                                            to={`/series/${bookmark.seriesId}/chapter/${bookmark.chapterId}`}
+                                            onClick={() => {
+                                                setIsSidebarOpen(false);
+                                                if (bookmark.chapterId === numChapterId) {
+                                                    document.getElementById(bookmark.locationIdentifier)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                }
+                                            }}
+                                            className="bookmark-item-link"
+                                        >
+                                            <span className="bookmark-item-title">{bookmark.chapterTitle || 'Chapter'}</span>
+                                            <span className="bookmark-item-context">{bookmark.contextSnippet || '...'}</span>
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        )
+                    )}
+                </div>
             </div>
         );
     };
@@ -322,10 +485,10 @@ const ChapterDetailPage: React.FC = () => {
                             <FaArrowCircleLeft />
                         </button>
                     </div>
-                    {renderChapterList()}
+                    {renderSidebarContent()}
                 </aside>
 
-                {/* Áp dụng style đã tách */}
+                
                 <main
                     className="chapter-content-main"
                     style={mainContentStyles}
@@ -360,9 +523,26 @@ const ChapterDetailPage: React.FC = () => {
                         </header>
 
 
-                        <div className="chapter-body">
+                        
+                        <div className="chapter-body" ref={chapterBodyRef}>
                             {paragraphs.map((para, index) => (
-                                <p key={index} style={bodyTextStyles}>{para}</p>
+                                <div key={index} className="paragraph-container">
+                                    <p
+                                        id={`p-index-${index}`} 
+                                        className="chapter-paragraph"
+                                        style={bodyTextStyles}
+                                        onDoubleClick={handleParagraphDoubleClick} 
+                                    >
+                                        {para}
+                                    </p>
+                                    {bookmarkedLocation === `p-index-${index}` && (
+                                        <FaBookmark
+                                            className="line-bookmark-icon"
+                                            title="Bookmark location"
+                                            style={headerTextStyles} 
+                                        />
+                                    )}
+                                </div>
                             ))}
                         </div>
                     </div>
@@ -384,10 +564,15 @@ const ChapterDetailPage: React.FC = () => {
                     <button className="toolbar-button" title="Series Page" onClick={() => navigate(`/series/${seriesId}`)}>
                         <FaHome />
                     </button>
+
+
                     <button
                         className="toolbar-button"
                         title="Chapter List"
-                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                        onClick={() => {
+                            setSidebarMode('chapters'); 
+                            setIsSidebarOpen(true); 
+                        }}
                     >
                         <FaListUl />
                     </button>
@@ -399,9 +584,18 @@ const ChapterDetailPage: React.FC = () => {
                     >
                         <FaCog />
                     </button>
-                    <button className="toolbar-button" title="BookMark" onClick={() => alert('Đánh dấu chương')}>
+
+
+                    <button
+                        className={`toolbar-button ${bookmarkedLocation ? 'active' : ''}`}
+                        title={bookmarkedLocation ? "Go to bookmark" : "View bookmarks"}
+                        onClick={handleNavigateToBookmark}
+                        disabled={isLoadingBookmark}
+                    >
                         <FaBookmark />
                     </button>
+
+
                     <button
                         className="toolbar-button"
                         title={navigationLinks.isLast ? "Back to Series" : "Next Chapter"}

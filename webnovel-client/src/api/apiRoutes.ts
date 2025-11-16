@@ -50,6 +50,20 @@ export const API_ROUTES = {
         SETTINGS: '/api/user/settings',
         GET_FAVORITES: '/user/favorites',
         TOGGLE_FAVORITE: '/user/favorites/toggle',
+
+        GET_BOOKMARKS: '/user/bookmarks',
+        GET_BOOKMARK_FOR_CHAPTER: (chapterId: number | string) => `/user/bookmarks/chapter/${chapterId}`,
+        TOGGLE_BOOKMARK: '/user/bookmarks/toggle',
+        DELETE_BOOKMARK_FOR_CHAPTER: (chapterId: number | string) => `/user/bookmarks/chapter/${chapterId}`,
+        DELETE_BOOKMARK: (bookmarkId: string) => `/user/bookmarks/${bookmarkId}`,
+        GET_BOOKMARKS_FOR_SERIES: (seriesId: number | string) => `/user/bookmarks/series/${seriesId}`,
+
+
+        GET_NOTIFICATIONS: '/user/notifications',
+        GET_UNREAD_COUNT: '/user/notifications/unread-count',
+        MARK_ALL_AS_READ: '/user/notifications/mark-all-read',
+        MARK_AS_READ: (id: string) => `/user/notifications/${id}/mark-as-read`,
+        DELETE_NOTIFICATIONS: '/user/notifications/batch-delete',
     },
 
     COMMENTS: {
