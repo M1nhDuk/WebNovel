@@ -1,20 +1,20 @@
 ﻿import React, { useState, useEffect, useCallback, Fragment } from 'react';
 import apiClient from '../../../api/apiClient';
-import type { CommentDto, CommentSectionProps } from '../../../types/comments';
+import type { CommentDto, CommentSectionProps, UpdateCommentDto } from '../../../types/comments';
 import type { PagedResult } from '../../../types/series';
 import { useAuth } from '../../../hooks/useAuth';
 import Pagination from '../../common/Pagination';
 import '../CSS/CommentSection.css';
 import { Link } from 'react-router-dom';
 import CommentReplyInput from './CommentReplyInput';
+import { API_ROUTES } from '../../../api/apiRoutes';
 
 const PAGE_SIZE = 8;
 const GATEWAY_URL = 'https://localhost:8000';
 
 const GeneralCommentSection: React.FC<CommentSectionProps> = ({
     seriesId,
-    chapterId,
-    totalCommentCount
+    chapterId
 }) => {
     const { user } = useAuth();
     const [comments, setComments] = useState<CommentDto[]>([]);
@@ -25,11 +25,16 @@ const GeneralCommentSection: React.FC<CommentSectionProps> = ({
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
 
+    const [internalTotalCount, setInternalTotalCount] = useState(0);
+
     const isSeriesComment = !!seriesId;
     const targetId = isSeriesComment ? seriesId : chapterId;
     const targetType = isSeriesComment ? 'series' : 'chapters';
 
     const [replyingToId, setReplyingToId] = useState<string | null>(null);
+    const [editingComment, setEditingComment] = useState<{ id: string, content: string } | null>(null);
+
+    const isAdmin = user && user.role === 'Admin';
 
     if (!targetId) {
         return <div className="comment-section">Error: Missing Series ID or Chapter ID.</div>;
@@ -48,6 +53,7 @@ const GeneralCommentSection: React.FC<CommentSectionProps> = ({
             setComments(response.data.items);
             setCurrentPage(response.data.pageNumber);
             setTotalPages(Math.ceil(response.data.totalRecords / PAGE_SIZE));
+            setInternalTotalCount(response.data.totalRecords);
         } catch (err: any) {
             setError(err.response?.data?.message || `Failed to load comments for ${targetType}.`);
         } finally {
@@ -59,7 +65,7 @@ const GeneralCommentSection: React.FC<CommentSectionProps> = ({
         fetchComments(currentPage);
     }, [fetchComments, currentPage]);
 
-   
+
     const handleSubmitComment = async () => {
         if (!user || newComment.trim() === '') return;
         try {
@@ -75,8 +81,54 @@ const GeneralCommentSection: React.FC<CommentSectionProps> = ({
         }
     };
 
+
+    const handleDeleteComment = async (commentId: string) => {
+        if (!window.confirm("Are you sure you want to delete this comment?")) return;
+
+        setError(null);
+        try {
+            await apiClient.delete(API_ROUTES.COMMENTS.DELETE(commentId));
+            fetchComments(currentPage);
+        } catch (err: any) {
+            setError(err.response?.data?.message || "Failed to delete comment.");
+        }
+    };
+
+    const handleStartEdit = (comment: CommentDto) => {
+        setEditingComment({ id: comment.commentId, content: comment.content });
+        setReplyingToId(null); 
+    };
+
+    const handleCancelEdit = () => {
+        setEditingComment(null);
+    };
+
+    const handleSaveEdit = async () => {
+        if (!editingComment) return;
+
+        setError(null);
+        setIsLoading(true); 
+
+        const payload: UpdateCommentDto = {
+            content: editingComment.content
+        };
+
+        try {
+            await apiClient.put(API_ROUTES.COMMENTS.UPDATE(editingComment.id), payload);
+            setEditingComment(null);
+            fetchComments(currentPage); 
+        } catch (err: any) {
+            setError(err.response?.data?.message || "Failed to save comment.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+
+
     // Hàm bật/tắt box reply
     const handleToggleReply = (commentId: string) => {
+        setEditingComment(null); 
         if (replyingToId === commentId) {
             setReplyingToId(null);
         } else {
@@ -143,7 +195,7 @@ const GeneralCommentSection: React.FC<CommentSectionProps> = ({
 
     return (
         <section className="comment-section">
-            <h3>Comments ({totalCommentCount})</h3>
+            <h3>Comments ({internalTotalCount})</h3>
 
             <div className="comment-input-area">
                 {user ? (
@@ -170,8 +222,9 @@ const GeneralCommentSection: React.FC<CommentSectionProps> = ({
                 )}
             </div>
 
+
             <div className="comment-list-header">
-                {isLoading ? 'Loading...' : `${totalCommentCount} ${totalCommentCount === 1 ? 'Comment' : 'Comments'}`}
+                {isLoading ? 'Loading...' : `${internalTotalCount} ${internalTotalCount === 1 ? 'Comment' : 'Comments'}`}
             </div>
 
             {error && <div className="comment-error">{error}</div>}
@@ -180,14 +233,18 @@ const GeneralCommentSection: React.FC<CommentSectionProps> = ({
                 {comments.length === 0 && !isLoading ? (
                     <p className="no-comments">There are no comments for this section yet.</p>
                 ) : (
-                
+
                     comments.map(comment => {
                         const allReplies = flattenReplies(comment.replies);
                         const isReplyingToRoot = replyingToId === comment.commentId;
 
+                        //Logic check quyền và trạng thái edit
+                        const isEditing = editingComment?.id === comment.commentId;
+                        const isAuthor = user && user.userId === comment.userId;
+
                         return (
                             <Fragment key={comment.commentId}>
-                            
+
                                 <div className="comment-item">
                                     <img
                                         src={getAvatarUrl(comment.userAvatarThumbnail)}
@@ -196,22 +253,62 @@ const GeneralCommentSection: React.FC<CommentSectionProps> = ({
                                     />
                                     <div className="comment-content-wrapper">
                                         <div className="comment-author">{comment.userName || 'Deleted User'}</div>
-                                        {/* Dùng renderCommentContent */}
-                                        <p className="comment-text">{renderCommentContent(comment.content)}</p>
-                                        <div className="comment-meta">
-                                            <span>{formatTimeAgo(comment.createdAt)}</span>
-                                            <span className="comment-action-link">Like</span>
-                                            <span
-                                                className="comment-action-link"
-                                                onClick={() => handleToggleReply(comment.commentId)}
-                                            >
-                                                {isReplyingToRoot ? 'Cancel' : 'Reply'}
-                                            </span>
-                                        </div>
+
+                                        {isEditing ? (
+                                            <div className="comment-editor" style={{ marginTop: '5px' }}>
+                                                <textarea
+                                                    value={editingComment.content}
+                                                    onChange={(e) => setEditingComment({ ...editingComment, content: e.target.value })}
+                                                    rows={4}
+                                                    autoFocus
+                                                    disabled={isLoading}
+                                                />
+                                                <div className="comment-actions" style={{ justifyContent: 'flex-start', gap: '10px' }}>
+                                                    <button onClick={handleSaveEdit} disabled={isLoading}>Save</button>
+                                                    <button onClick={handleCancelEdit} className="comment-cancel-btn" disabled={isLoading}>Cancel</button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <p className="comment-text">{renderCommentContent(comment.content)}</p>
+                                        )}
+
+                                        {!isEditing && (
+                                            <div className="comment-meta">
+                                                <span>{formatTimeAgo(comment.createdAt)}</span>
+
+                                                {!isAuthor && (
+                                                    <span
+                                                        className="comment-action-link"
+                                                        onClick={() => handleToggleReply(comment.commentId)}
+                                                    >
+                                                        {isReplyingToRoot ? 'Cancel' : 'Reply'}
+                                                    </span>
+                                                )}
+
+                                                {/* NÚT EDIT/DELETE  */}
+                                                {isAuthor && (
+                                                    <span
+                                                        className="comment-action-link"
+                                                        onClick={() => handleStartEdit(comment)}
+                                                    >
+                                                        Edit
+                                                    </span>
+                                                )}
+                                                {(isAuthor || isAdmin) && ( 
+                                                    <span
+                                                        className="comment-action-link"
+                                                        style={{ color: '#e74c3c' }} 
+                                                        onClick={() => handleDeleteComment(comment.commentId)}
+                                                    >
+                                                        Delete
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
-                                
+
                                 {isReplyingToRoot && (
                                     <div className="comment-replies-container">
                                         <CommentReplyInput
@@ -228,11 +325,16 @@ const GeneralCommentSection: React.FC<CommentSectionProps> = ({
                                     </div>
                                 )}
 
-                            
+
                                 {allReplies.length > 0 && (
                                     <div className="comment-replies-container">
                                         {allReplies.map(reply => {
                                             const isReplyingThisReply = replyingToId === reply.commentId;
+
+                                            //Logic check quyền và trạng thái edit
+                                            const isEditingReply = editingComment?.id === reply.commentId;
+                                            const isReplyAuthor = user && user.userId === reply.userId;
+
                                             return (
                                                 <Fragment key={reply.commentId}>
                                                     <div className="comment-item is-reply">
@@ -243,27 +345,68 @@ const GeneralCommentSection: React.FC<CommentSectionProps> = ({
                                                         />
                                                         <div className="comment-content-wrapper">
                                                             <div className="comment-author">{reply.userName || 'Deleted User'}</div>
-                                                            {/* Dùng renderCommentContent */}
-                                                            <p className="comment-text">{renderCommentContent(reply.content)}</p>
-                                                            <div className="comment-meta">
-                                                                <span>{formatTimeAgo(reply.createdAt)}</span>
-                                                                <span className="comment-action-link">Like</span>
-                                                                <span
-                                                                    className="comment-action-link"
-                                                                    onClick={() => handleToggleReply(reply.commentId)}
-                                                                >
-                                                                    {isReplyingThisReply ? 'Cancel' : 'Reply'}
-                                                                </span>
-                                                            </div>
+
+
+                                                            {isEditingReply ? (
+                                                                <div className="comment-editor" style={{ marginTop: '5px' }}>
+                                                                    <textarea
+                                                                        value={editingComment.content}
+                                                                        onChange={(e) => setEditingComment({ ...editingComment, content: e.target.value })}
+                                                                        rows={4}
+                                                                        autoFocus
+                                                                        disabled={isLoading}
+                                                                    />
+                                                                    <div className="comment-actions" style={{ justifyContent: 'flex-start', gap: '10px' }}>
+                                                                        <button onClick={handleSaveEdit} disabled={isLoading}>Save</button>
+                                                                        <button onClick={handleCancelEdit} className="comment-cancel-btn" disabled={isLoading}>Cancel</button>
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                <p className="comment-text">{renderCommentContent(reply.content)}</p>
+                                                            )}
+
+                                                            {!isEditingReply && (
+                                                                <div className="comment-meta">
+                                                                    <span>{formatTimeAgo(reply.createdAt)}</span>
+
+                                                                    {!isReplyAuthor && (
+                                                                        <span
+                                                                            className="comment-action-link"
+                                                                            onClick={() => handleToggleReply(reply.commentId)}
+                                                                        >
+                                                                            {isReplyingThisReply ? 'Cancel' : 'Reply'}
+                                                                        </span>
+                                                                    )}
+
+                                                                    {/* --- NÚT EDIT/DELETE --- */}
+                                                                    {isReplyAuthor && (
+                                                                        <span
+                                                                            className="comment-action-link"
+                                                                            onClick={() => handleStartEdit(reply)}
+                                                                        >
+                                                                            Edit
+                                                                        </span>
+                                                                    )}
+                                                                    {(isReplyAuthor || isAdmin) && (
+                                                                        <span
+                                                                            className="comment-action-link"
+                                                                            style={{ color: '#e74c3c' }}
+                                                                            onClick={() => handleDeleteComment(reply.commentId)}
+                                                                        >
+                                                                            Delete
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
 
-                                
+
                                                     {isReplyingThisReply && (
                                                         <CommentReplyInput
                                                             targetId={targetId}
                                                             targetType={targetType}
-                                                            parentCommentId={reply.commentId}
+                                                            parentCommentId={reply.commentId} 
                                                             authorUsername={reply.userName || 'User'}
                                                             onCancel={() => handleToggleReply(reply.commentId)}
                                                             onReplySuccess={() => {

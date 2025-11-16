@@ -49,6 +49,11 @@ export const API_ROUTES = {
         READING_HISTORY: '/user/reading-history',
     },
 
+    COMMENTS: {
+        UPDATE: (commentId: string) => `/comments/${commentId}`,
+        DELETE: (commentId: string) => `/comments/${commentId}`,
+    },
+
     ADMIN: {
         // Publication Metadata
         GET_CATEGORIES: '/api/admin/publication/categories',

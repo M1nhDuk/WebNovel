@@ -12,10 +12,10 @@ import {
     FaCog,
     FaInfoCircle,
     FaBookmark,
-    FaListUl, 
+    FaListUl,
     FaArrowCircleLeft
 } from 'react-icons/fa';
-import './ChapterDetailPage.css'; 
+import './ChapterDetailPage.css';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
@@ -40,10 +40,8 @@ const ChapterDetailPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // State quản lý việc ẩn/hiện sidebar trái
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    // Biến chapterId thành số để so sánh
     const numChapterId = chapterId ? parseInt(chapterId, 10) : 0;
 
     useEffect(() => {
@@ -54,7 +52,7 @@ const ChapterDetailPage: React.FC = () => {
             setError(null);
 
             try {
-                // 1. Lấy thông tin Series (để biết tên, loại, và cấu trúc)
+                
                 const seriesResponse = await apiClient.get<NovelSeriesDetailDto>(
                     API_ROUTES.SERIES.GET_BY_ID(seriesId)
                 );
@@ -64,7 +62,6 @@ const ChapterDetailPage: React.FC = () => {
                 let contentApiUrl: string | null = null;
                 let foundChapterMeta: ChapterDetailDto | undefined;
 
-                // 2. Quyết định API nào để gọi dựa trên loại Series
                 if (seriesData.type === 'TRADITIONAL') {
                     contentApiUrl = API_ROUTES.SERIES.CHAPTER_FOR_SERIES(seriesId, chapterId);
                     foundChapterMeta = seriesData.chapters?.find(c => c.chapter_id === numChapterId);
@@ -80,7 +77,7 @@ const ChapterDetailPage: React.FC = () => {
                 }
 
                 if (!contentApiUrl || !foundChapterMeta) {
-                    throw new Error("Không tìm thấy chương này trong series.");
+                    throw new Error("Chapter not found within series.");
                 }
 
                 // 3. Lấy nội dung chi tiết của chương
@@ -89,7 +86,7 @@ const ChapterDetailPage: React.FC = () => {
 
             } catch (err: any) {
                 console.error("Failed to fetch chapter:", err);
-                setError(err.response?.data?.message || "Không thể tải dữ liệu chương.");
+                setError(err.response?.data?.message || "Cannot load chapter.");
             } finally {
                 setLoading(false);
             }
@@ -104,7 +101,7 @@ const ChapterDetailPage: React.FC = () => {
     };
 
     if (loading) {
-        return <div className="chapter-loading-screen">Đang tải...</div>;
+        return <div className="chapter-loading-screen">Loading...</div>;
     }
 
     if (error) {
@@ -112,14 +109,14 @@ const ChapterDetailPage: React.FC = () => {
     }
 
     if (!chapter || !series) {
-        return <div className="chapter-loading-screen">Không tìm thấy chương.</div>;
+        return <div className="chapter-loading-screen">Chapter not found.</div>;
     }
 
-    // Tách nội dung thành các đoạn văn (split bằng dấu xuống dòng)
     const paragraphs = chapter.content.split('\n').filter(p => p.trim() !== '');
 
     // Hàm render danh sách chương cho cột trái
     const renderChapterList = () => {
+
         // Flow 2: TRADITIONAL (Series -> Chapter)
         if (series.type === 'TRADITIONAL') {
             return (
@@ -128,7 +125,6 @@ const ChapterDetailPage: React.FC = () => {
                         <li key={ch.chapter_id} className={ch.chapter_id === numChapterId ? 'active' : ''}>
                             <Link
                                 to={`/series/${series.series_Id}/chapter/${ch.chapter_id}`}
-                                // Thêm onClick để tự đóng sidebar khi chọn chương (trên mobile)
                                 onClick={() => setIsSidebarOpen(false)}
                             >
                                 {ch.title}
@@ -144,7 +140,8 @@ const ChapterDetailPage: React.FC = () => {
             <div className="sidebar-volume-list">
                 {series.novels.map(novel => (
                     <div key={novel.novel_Id} className="sidebar-volume-group">
-                        {/* Đây là tên Volume (ví dụ: Tập 01 Đại Khởi) */}
+
+                        {/* Volume Title */}
                         <h4 className="sidebar-volume-title">{novel.title}</h4>
                         <ul className="sidebar-list">
                             {novel.chapters.map(ch => (
@@ -166,28 +163,29 @@ const ChapterDetailPage: React.FC = () => {
 
     return (
         <>
-            {/* Class 'sidebar-visible' sẽ được thêm/bớt bởi React */}
             <div className={`chapter-page-layout ${isSidebarOpen ? 'sidebar-visible' : ''}`}>
 
                 {/* === CỘT TRÁI: DANH SÁCH CHƯƠNG === */}
+
                 <aside className="chapter-sidebar-left">
                     <div className="sidebar-left-header">
                         <Link to={`/series/${series.series_Id}`} className="sidebar-series-link">
                             <img
-                                // Lấy ảnh bìa của series
+    
                                 src={getImageUrl(series.cover_images)}
                                 alt={series.series_title}
                                 className="sidebar-series-cover"
                             />
                             <div className="sidebar-series-info">
                                 <h4>{series.series_title}</h4>
-                                <span>{series.author || 'Đang cập nhật'}</span>
+                                <span>{series.author || 'Updating'}</span>
                             </div>
                         </Link>
+
                         {/* Nút này sẽ đóng sidebar trên mobile */}
                         <button
                             className="sidebar-close-button"
-                            title="Đóng"
+                            title="Close"
                             onClick={() => setIsSidebarOpen(false)}
                         >
                             <FaArrowCircleLeft />
@@ -197,6 +195,7 @@ const ChapterDetailPage: React.FC = () => {
                 </aside>
 
                 {/* === CỘT GIỮA: NỘI DUNG CHÍNH === */}
+
                 <main className="chapter-content-main">
                     <div className="chapter-content-wrapper">
                         <header className="chapter-header">
@@ -204,6 +203,7 @@ const ChapterDetailPage: React.FC = () => {
                                 <Link to={`/series/${series.series_Id}`}>
                                     {series.series_title}
                                 </Link>
+
                                 {/* Hiển thị tên Volume (nếu có) */}
                                 {parentNovel && (
                                     <>
@@ -216,9 +216,9 @@ const ChapterDetailPage: React.FC = () => {
                             </div>
                             <h1 className="chapter-main-title">{chapter.title}</h1>
                             <div className="chapter-metadata">
-                                <span>Độ dài: {chapter.word_count.toLocaleString('vi-VN')} từ</span>
+                                <span>Length: {chapter.word_count.toLocaleString('vi-VN')} từ</span>
                                 <span> • </span>
-                                <span>Cập nhật: {formatTimeAgo(chapter.created_at)}</span>
+                                <span>Updated at: {formatTimeAgo(chapter.created_at)}</span>
                             </div>
                         </header>
 
@@ -231,20 +231,20 @@ const ChapterDetailPage: React.FC = () => {
 
                     <ChapterCommentSection
                         chapterId={Number(chapterId)}
-                        totalCommentCount={0}
                     />
 
-                </main>           
+                </main>
 
                 {/* === CỘT PHẢI: THANH CÔNG CỤ === */}
                 <aside className="chapter-toolbar-right">
-                    <button className="toolbar-button" title="Chương trước" onClick={() => alert('Chuyển chương trước')}>
+                    <button className="toolbar-button" title="Previous Chapter" onClick={() => alert('Chuyển chương trước')}>
                         <FaArrowLeft />
                     </button>
-                    <button className="toolbar-button" title="Trang chủ Series" onClick={() => navigate(`/series/${seriesId}`)}>
+                    <button className="toolbar-button" title="Series Page" onClick={() => navigate(`/series/${seriesId}`)}>
                         <FaHome />
                     </button>
-                    {/* Nút này sẽ toggle sidebar trái */}
+
+
                     <button
                         className="toolbar-button"
                         title="Danh sách chương"
@@ -252,16 +252,16 @@ const ChapterDetailPage: React.FC = () => {
                     >
                         <FaListUl />
                     </button>
-                    <button className="toolbar-button" title="Cài đặt" onClick={() => alert('Mở cài đặt')}>
+                    <button className="toolbar-button" title="Setting" onClick={() => alert('Mở cài đặt')}>
                         <FaCog />
                     </button>
-                    <button className="toolbar-button" title="Thông tin" onClick={() => alert('Hiển thị thông tin')}>
+                    <button className="toolbar-button" title="Information" onClick={() => alert('Hiển thị thông tin')}>
                         <FaInfoCircle />
                     </button>
-                    <button className="toolbar-button" title="Đánh dấu" onClick={() => alert('Đánh dấu chương')}>
+                    <button className="toolbar-button" title="BookMark" onClick={() => alert('Đánh dấu chương')}>
                         <FaBookmark />
                     </button>
-                    <button className="toolbar-button" title="Chương sau" onClick={() => alert('Chuyển chương sau')}>
+                    <button className="toolbar-button" title="Next Chapter" onClick={() => alert('Chuyển chương sau')}>
                         <FaArrowRight />
                     </button>
                 </aside>

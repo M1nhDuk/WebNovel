@@ -12,7 +12,6 @@ export interface CommentDto {
 export interface CommentSectionProps {
     seriesId?: number;
     chapterId?: number;
-    totalCommentCount: number;
 }
 
 export interface CommentItemProps {
@@ -35,4 +34,8 @@ export interface CommentReplyInputProps {
     authorUsername: string; 
     onReplySuccess: () => void; 
     onCancel: () => void;
+}
+
+export interface UpdateCommentDto {
+    content: string;
 }

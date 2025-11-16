@@ -211,188 +211,11 @@
       }
     },
 
-    // -----------------------------------------------------------------
-    // --- Interaction Service (ĐƯỢC DI CHUYỂN LÊN TRÊN) ---
-    // -----------------------------------------------------------------
-
-    // 10.1 Xem comment của series
-    {
-      "UpstreamPathTemplate": "/series/{seriesId}/comments",
-      "UpstreamHttpMethod": [ "GET" ],
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7003
-        }
-      ],
-      "DownstreamPathTemplate": "/Comments/series/{seriesId}/comments",
-      "DangerousAcceptAnyServerCertificateValidator": true
-    },
-
-    // 10.2 Tạo comment
-    {
-      "UpstreamPathTemplate": "/series/{seriesId}/comments",
-      "UpstreamHttpMethod": [ "POST" ],
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7003
-        }
-      ],
-      "DownstreamPathTemplate": "/Comments/series/{seriesId}/comments",
-      "DangerousAcceptAnyServerCertificateValidator": true,
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer",
-        "AllowedScopes": []
-      }
-    },
-
-    // 10.3 Xem comment của chapter
-    {
-      "UpstreamPathTemplate": "/chapters/{chapterId}/comments",
-      "UpstreamHttpMethod": [ "GET" ],
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7003
-        }
-      ],
-      "DownstreamPathTemplate": "/Comments/chapters/{chapterId}/comments",
-      "DangerousAcceptAnyServerCertificateValidator": true
-    },
-
-    // 10.4 Tạo comment cho chapter
-    {
-      "UpstreamPathTemplate": "/chapters/{chapterId}/comments",
-      "UpstreamHttpMethod": [ "POST" ],
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7003
-        }
-      ],
-      "DownstreamPathTemplate": "/Comments/chapters/{chapterId}/comments",
-      "DangerousAcceptAnyServerCertificateValidator": true,
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer",
-        "AllowedScopes": []
-      }
-    },
-
-    // 10.5 Xem replies
-    {
-      "UpstreamPathTemplate": "/comments/{parentCommentId}/replies",
-      "UpstreamHttpMethod": [ "GET" ],
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7003
-        }
-      ],
-      "DownstreamPathTemplate": "/Comments/comments/{parentCommentId}/replies",
-      "DangerousAcceptAnyServerCertificateValidator": true
-    },
-
-    // 10.6 Sửa/Xóa comment
-    {
-      "UpstreamPathTemplate": "/comments/{commentId}",
-      "UpstreamHttpMethod": [ "PUT", "DELETE" ],
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7003
-        }
-      ],
-      "DownstreamPathTemplate": "/Comments/comments/{commentId}",
-      "DangerousAcceptAnyServerCertificateValidator": true,
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer",
-        "AllowedScopes": []
-      }
-    },
 
 
     //2. Novel Service
 
-    // ---- SERIES (CÁC ROUTE CỤ THỂ ĐƯỢC ĐƯA LÊN TRƯỚC) ----
-
-    //2.3 Search
-    {
-      "UpstreamPathTemplate": "/series/search",
-      "UpstreamHttpMethod": [ "GET" ],
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7263
-        }
-      ],
-      "DownstreamPathTemplate": "/api/series/search",
-      "DangerousAcceptAnyServerCertificateValidator": true
-    },
-
-    //2.8 Tạo classic series
-    {
-      "UpstreamPathTemplate": "/series/classic",
-      "UpstreamHttpMethod": [ "POST" ],
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7263
-        }
-      ],
-      "DownstreamPathTemplate": "/api/series/classic",
-      "DangerousAcceptAnyServerCertificateValidator": true,
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer",
-        "AllowedScopes": []
-      }
-    },
-
-    //2.6 Upload ảnh bìa
-    {
-      "UpstreamPathTemplate": "/series/{id}/cover",
-      "UpstreamHttpMethod": [ "POST" ],
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7263
-        }
-      ],
-      "DownstreamPathTemplate": "/api/series/{id}/cover",
-      "DangerousAcceptAnyServerCertificateValidator": true,
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer",
-        "AllowedScopes": []
-      }
-    },
-
-    //2.9 Cập nhật classic series
-    {
-      "UpstreamPathTemplate": "/series/{id}/classic",
-      "UpstreamHttpMethod": [ "PUT" ],
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7263
-        }
-      ],
-      "DownstreamPathTemplate": "/api/series/{id}/classic",
-      "DangerousAcceptAnyServerCertificateValidator": true,
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer",
-        "AllowedScopes": []
-      }
-    },
+    // ---- SERIES ----
 
     // 2.1,  view all series
     {
@@ -409,7 +232,7 @@
       "DangerousAcceptAnyServerCertificateValidator": true
     },
 
-    //2.2, view by id (ĐÃ NẰM SAU CÁC ROUTE CỤ THỂ HƠN)
+    //2.2, view by id
     {
       "UpstreamPathTemplate": "/series/{id}",
       "UpstreamHttpMethod": [ "GET" ],
@@ -421,6 +244,21 @@
         }
       ],
       "DownstreamPathTemplate": "/api/series/{id}",
+      "DangerousAcceptAnyServerCertificateValidator": true
+    },
+
+    //2.3 Search
+    {
+      "UpstreamPathTemplate": "/series/search",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7263
+        }
+      ],
+      "DownstreamPathTemplate": "/api/series/search",
       "DangerousAcceptAnyServerCertificateValidator": true
     },
 
@@ -462,6 +300,25 @@
       }
     },
 
+    //2.6 Upload ảnh bìa
+    {
+      "UpstreamPathTemplate": "/series/{id}/cover",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7263
+        }
+      ],
+      "DownstreamPathTemplate": "/api/series/{id}/cover",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
     //2.7 xem series của tôi
     {
       "UpstreamPathTemplate": "/user/series",
@@ -474,6 +331,44 @@
         }
       ],
       "DownstreamPathTemplate": "/api/user/series",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
+    //2.8 Tạo classic series
+    {
+      "UpstreamPathTemplate": "/series/classic",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7263
+        }
+      ],
+      "DownstreamPathTemplate": "/api/series/classic",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
+    //2.9 Cập nhật classic series
+    {
+      "UpstreamPathTemplate": "/series/{id}/classic",
+      "UpstreamHttpMethod": [ "PUT" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7263
+        }
+      ],
+      "DownstreamPathTemplate": "/api/series/{id}/classic",
       "DangerousAcceptAnyServerCertificateValidator": true,
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
@@ -495,44 +390,6 @@
         }
       ],
       "DownstreamPathTemplate": "/api/series/{series_Id}/novels",
-      "DangerousAcceptAnyServerCertificateValidator": true,
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer",
-        "AllowedScopes": []
-      }
-    },
-
-    // 2.13 Sắp xếp Novels
-    {
-      "UpstreamPathTemplate": "/series/{series_Id}/novels/reorder",
-      "UpstreamHttpMethod": [ "POST" ],
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7263
-        }
-      ],
-      "DownstreamPathTemplate": "/api/series/{series_Id}/novels/reorder",
-      "DangerousAcceptAnyServerCertificateValidator": true,
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer",
-        "AllowedScopes": []
-      }
-    },
-
-    // 2.14 Upload ảnh bìa Novel
-    {
-      "UpstreamPathTemplate": "/series/{series_Id}/novels/{id}/cover",
-      "UpstreamHttpMethod": [ "POST" ],
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7263
-        }
-      ],
-      "DownstreamPathTemplate": "/api/series/{series_Id}/novels/{id}/cover",
       "DangerousAcceptAnyServerCertificateValidator": true,
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
@@ -574,6 +431,46 @@
       }
     },
 
+
+    // 2.13 Sắp xếp Novels
+    {
+      "UpstreamPathTemplate": "/series/{series_Id}/novels/reorder",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7263
+        }
+      ],
+      "DownstreamPathTemplate": "/api/series/{series_Id}/novels/reorder",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
+    // 2.14 Upload ảnh bìa Novel
+    {
+      "UpstreamPathTemplate": "/series/{series_Id}/novels/{id}/cover",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7263
+        }
+      ],
+      "DownstreamPathTemplate": "/api/series/{series_Id}/novels/{id}/cover",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
+
     // ---CHAPTER---
 
     // 2.15 Tạo Chapter cho Novel
@@ -588,25 +485,6 @@
         }
       ],
       "DownstreamPathTemplate": "/api/novels/{novelId}/chapters",
-      "DangerousAcceptAnyServerCertificateValidator": true,
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer",
-        "AllowedScopes": []
-      }
-    },
-
-    // 2.18 Sắp xếp Chapter
-    {
-      "UpstreamPathTemplate": "/novels/{novelId}/chapters/reorder",
-      "UpstreamHttpMethod": [ "POST" ],
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7263
-        }
-      ],
-      "DownstreamPathTemplate": "/api/novels/{novelId}/chapters/reorder",
       "DangerousAcceptAnyServerCertificateValidator": true,
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
@@ -649,6 +527,25 @@
       }
     },
 
+    // 2.18 Sắp xếp Chapter
+    {
+      "UpstreamPathTemplate": "/novels/{novelId}/chapters/reorder",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7263
+        }
+      ],
+      "DownstreamPathTemplate": "/api/novels/{novelId}/chapters/reorder",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
     //FLOW 2 Series --> Chapter
 
     // 2.19 Tạo Chapter cho ClassicSeries
@@ -663,25 +560,6 @@
         }
       ],
       "DownstreamPathTemplate": "/api/series/{seriesId}/chapters",
-      "DangerousAcceptAnyServerCertificateValidator": true,
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer",
-        "AllowedScopes": []
-      }
-    },
-
-    // 2.22 Sắp xếp Chapter
-    {
-      "UpstreamPathTemplate": "/series/{seriesId}/chapters/reorder",
-      "UpstreamHttpMethod": [ "POST" ],
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7263
-        }
-      ],
-      "DownstreamPathTemplate": "/api/series/{seriesId}/chapters/reorder",
       "DangerousAcceptAnyServerCertificateValidator": true,
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
@@ -723,6 +601,26 @@
         "AllowedScopes": []
       }
     },
+
+    // 2.22 Sắp xếp Chapter
+    {
+      "UpstreamPathTemplate": "/series/{seriesId}/chapters/reorder",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7263
+        }
+      ],
+      "DownstreamPathTemplate": "/api/series/{seriesId}/chapters/reorder",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
 
     // --- CATEGORY ---
 
@@ -1281,6 +1179,112 @@
 
 
 
+    // Interaction Service
+
+    // --- Comment ---
+
+    // 10.1 Xem comment của series
+    {
+      "UpstreamPathTemplate": "/series/{seriesId}/comments",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7003
+        }
+      ],
+      "DownstreamPathTemplate": "/Comments/series/{seriesId}/comments",
+      "DangerousAcceptAnyServerCertificateValidator": true
+    },
+
+    // 10.2 Tạo comment
+    {
+      "UpstreamPathTemplate": "/series/{seriesId}/comments",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7003
+        }
+      ],
+      "DownstreamPathTemplate": "/Comments/series/{seriesId}/comments",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
+    // 10.3 Xem comment của chapter
+    {
+      "UpstreamPathTemplate": "/chapters/{chapterId}/comments",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7003
+        }
+      ],
+      "DownstreamPathTemplate": "/Comments/chapters/{chapterId}/comments",
+      "DangerousAcceptAnyServerCertificateValidator": true
+    },
+
+    // 10.4 Tạo comment cho chapter
+    {
+      "UpstreamPathTemplate": "/chapters/{chapterId}/comments",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7003
+        }
+      ],
+      "DownstreamPathTemplate": "/Comments/chapters/{chapterId}/comments",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
+    // 10.5 Xem replies
+    {
+      "UpstreamPathTemplate": "/comments/{parentCommentId}/replies",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7003
+        }
+      ],
+      "DownstreamPathTemplate": "/Comments/comments/{parentCommentId}/replies",
+      "DangerousAcceptAnyServerCertificateValidator": true
+    },
+
+    // 10.6 Sửa/Xóa comment
+    {
+      "UpstreamPathTemplate": "/comments/{commentId}",
+      "UpstreamHttpMethod": [ "PUT", "DELETE" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7003
+        }
+      ],
+      "DownstreamPathTemplate": "/Comments/comments/{commentId}",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
     //ADMIN SERIVE /7189
 
     // --- ADMIN USER MANAGEMENT  ---
@@ -1616,3 +1620,9 @@
     "BaseUrl": "https://localhost:8000"
   }
 }
+
+
+
+
+
+
