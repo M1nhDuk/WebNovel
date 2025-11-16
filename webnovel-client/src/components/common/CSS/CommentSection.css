@@ -137,3 +137,47 @@
     .comment-action-link:hover {
         text-decoration: underline;
     }
+
+.comment-actions button.comment-cancel-btn {
+    background-color: var(--bg-surface);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+    .comment-actions button.comment-cancel-btn:hover:not(:disabled) {
+        background-color: var(--bg-main);
+    }
+
+.comment-replies-container {
+    margin-left: 40px;
+    border-left: 2px solid var(--border-color);
+    padding-left: 15px;
+    margin-top: 10px;
+}
+
+.comment-item.is-reply {
+    border-bottom: none; 
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.comment-text .comment-mention {
+    font-weight: 700;
+    color: #0d6efd; 
+    margin-right: 4px;
+    cursor: pointer;
+}
+
+    .comment-text .comment-mention:hover {
+        text-decoration: underline;
+    }
+
+.comment-actions button.comment-cancel-btn {
+    background-color: var(--bg-surface);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+    .comment-actions button.comment-cancel-btn:hover:not(:disabled) {
+        background-color: var(--bg-main);
+    }

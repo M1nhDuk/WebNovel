@@ -225,11 +225,29 @@ namespace InteractionService.Service
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .Include(c => c.Replies)
-                .ToListAsync();
+                    .ThenInclude(r => r.Replies)
+                .ToListAsync(); ;
 
-            var commentDtos = comments.Select(c => MapToDto(c, c.Replies.Count)).ToList();
+            var commentDtos = comments.Select(c => MapToDto(c)).ToList();
 
-            await EnrichCommentsWithUserInfo(commentDtos);
+
+            var allCommentsToEnrich = new List<CommentDto>();
+
+            void FlattenReplies(List<CommentDto> list)
+            {
+                foreach (var c in list)
+                {
+                    allCommentsToEnrich.Add(c);
+                    if (c.Replies.Any())
+                    {
+                        FlattenReplies(c.Replies);
+                    }
+                }
+            }
+            FlattenReplies(commentDtos);
+
+
+            await EnrichCommentsWithUserInfo(allCommentsToEnrich);
 
             return new PagedResult<CommentDto>
             {
@@ -483,7 +501,7 @@ namespace InteractionService.Service
         }
 
 
-
+        
 
         private CommentDto MapToDto(Comment c, int replyCount = 0)
         {
@@ -498,6 +516,8 @@ namespace InteractionService.Service
                 ChapterId = c.ChapterId,
                 ParentCommentId = c.ParentCommentId,
                 ReplyCount = replyCount,
+                Replies = c.Replies?.Select(MapToDto).OrderBy(r => r.CreatedAt).ToList() ?? new List<CommentDto>(),
+
                 UserName = c.UserName,
                 UserAvatarThumbnail = c.UserAvatarThumbnail
             };
