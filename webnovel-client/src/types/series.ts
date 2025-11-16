@@ -211,6 +211,17 @@ export interface SeriesHierarchyProps {
     onDeleteChapter: (chapterId: number, parentId: number) => void;
 }
 
+export interface UserSettingDto {
+    fontFamily: string;
+    fontSize: number;
+    backgroundColor: string;
+    fontColor: string;
+    aligment: string; 
+    paddingPx: number;
+}
+
+export type UpdateUserSettingDto = Partial<UserSettingDto>;
+
 export interface AdminUserDto {
     userId: string;
     username: string | null;

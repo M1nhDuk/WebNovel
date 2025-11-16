@@ -15,6 +15,7 @@ import ReadingHistoryPage from './pages/ReadingHistoryPage/ReadingHistoryPage'
 import TagsPage from './pages/TagsPage/TagsPage'
 import AdminDashboardPage from './pages/AdminPage/AdminDashboardPage'
 import ChapterDetailPage from './pages/ChapterDetailPage/ChapterDetailPage'
+import { ReaderSettingsProvider } from './context/ReaderSettingsContext'
 
 import ManageSeriesPage from './pages/ManageSeriesPage/ManageSeriesPage'
 
@@ -24,43 +25,45 @@ import MainLayout from './components/layout/MainLayout'
 
 function App() {
     return (
-        <Routes>
+        <ReaderSettingsProvider>
+            <Routes>
 
-            <Route path="/login" element={<LoginPage />} />
+                <Route path="/login" element={<LoginPage />} />
 
-            <Route path="/register" element={<RegisterPage />} />
+                <Route path="/register" element={<RegisterPage />} />
 
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-            <Route path="/" element={<MainLayout />}>
+                <Route path="/" element={<MainLayout />}>
 
-                <Route index element={<HomePage />} />
+                    <Route index element={<HomePage />} />
 
-                <Route path="browse" element={<BrowsePage />} />
+                    <Route path="browse" element={<BrowsePage />} />
 
-                <Route path="tags" element={<TagsPage />} />
+                    <Route path="tags" element={<TagsPage />} />
 
-                <Route path="series/:id" element={<SeriesDetailPage />} />
+                    <Route path="series/:id" element={<SeriesDetailPage />} />
 
-                <Route path="create-series" element={<CreateSeriesPage />} />
+                    <Route path="create-series" element={<CreateSeriesPage />} />
 
-                <Route path="/manage/series/:id" element={<ManageSeriesPage />} />
+                    <Route path="/manage/series/:id" element={<ManageSeriesPage />} />
 
-                <Route path="series/:seriesId/novel/:novelId" element={<NovelDetailPage />} />
+                    <Route path="series/:seriesId/novel/:novelId" element={<NovelDetailPage />} />
 
-                <Route path="series/:seriesId/chapter/:chapterId" element={<ChapterDetailPage />} />
+                    <Route path="series/:seriesId/chapter/:chapterId" element={<ChapterDetailPage />} />
 
-                <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
 
-                <Route path="/account-settings" element={<AccountSettingsPage />} />
+                    <Route path="/account-settings" element={<AccountSettingsPage />} />
 
-                <Route path="history" element={<ReadingHistoryPage />} />
+                    <Route path="history" element={<ReadingHistoryPage />} />
 
-                <Route path="/admin" element={<AdminDashboardPage />} />
+                    <Route path="/admin" element={<AdminDashboardPage />} />
 
-            </Route>
+                </Route>
 
-        </Routes>
+            </Routes>
+        </ReaderSettingsProvider>
     )
 }
 
