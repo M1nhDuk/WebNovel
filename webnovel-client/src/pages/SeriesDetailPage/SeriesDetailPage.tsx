@@ -13,6 +13,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import './SeriesDetailPage.css';
+import SeriesCommentSection from '../../components/common/comments/SeriesCommentSection'; 
 
 
 const GATEWAY_URL = 'https://localhost:8000';
@@ -51,7 +52,7 @@ const SeriesDetailPage: React.FC = () => {
         if (!user || !seriesId) return;
 
         try {
-            // Gọi POST API tới /api/user/reading-history/{seriesId}
+
             await apiClient.post(
                 `${API_ROUTES.USER.READING_HISTORY}/${seriesId}`
             );
@@ -107,9 +108,9 @@ const SeriesDetailPage: React.FC = () => {
         const newFavoriteState = !isFavorited;
         setIsFavorited(newFavoriteState);
         if (newFavoriteState) {
-            setNotification("Bạn đã theo dõi truyện.");
+            setNotification("You have favorite series.");
         } else {
-            setNotification("Bạn đã ngừng theo dõi truyện.");
+            setNotification("You have stopped following the story.");
         }
     };
 
@@ -146,7 +147,7 @@ const SeriesDetailPage: React.FC = () => {
 
     //Check quyền
     const isUploader = user && series.uploader_id === user.userId;
-    const isAdmin = user && user.role === 'Admin'; 
+    const isAdmin = user && user.role === 'Admin';
     const canEdit = isUploader || isAdmin;
 
 
@@ -168,13 +169,13 @@ const SeriesDetailPage: React.FC = () => {
                         onClick={handleFavoriteClick}
                     >
                         <FaHeart style={{ marginRight: '8px' }} />
-                        {isFavorited ? 'Đã theo dõi' : 'Theo dõi'}
+                        {isFavorited ? 'Follow' : 'Unfollow'}
                     </button>
 
                     {canEdit && (
                         <Link to={`/manage/series/${series.series_Id}`} style={{ display: 'block', textDecoration: 'none', marginTop: '10px' }}>
                             <button
-                                className="series-action-btn" 
+                                className="series-action-btn"
                                 style={{
                                     backgroundColor: 'var(--accent-color)',
                                     color: '#fff',
@@ -217,10 +218,10 @@ const SeriesDetailPage: React.FC = () => {
                                     {areTagsLong && (
                                         <div className="tags-toggle-footer">
                                             <button
-                                                className="toggle-description-btn" 
+                                                className="toggle-description-btn"
                                                 onClick={() => setIsTagsExpanded(prev => !prev)}
                                             >
-                                                {isTagsExpanded ? 'Thu gọn' : '.............'}
+                                                {isTagsExpanded ? 'Collapse' : '.............'}
                                             </button>
                                         </div>
                                     )}
@@ -281,7 +282,7 @@ const SeriesDetailPage: React.FC = () => {
                                         </div>
                                     )}
                                 </>
-                            )}        
+                            )}
                         </div>
 
                         <div className="series-stats-bar">
@@ -322,7 +323,7 @@ const SeriesDetailPage: React.FC = () => {
                                                 className="description-overlay-toggle"
                                                 onClick={() => setIsDescriptionExpanded(true)}
                                             >
-                                                <span>Xem thêm</span>
+                                                <span>More</span>
                                             </div>
                                         )}
                                     </div>
@@ -332,7 +333,7 @@ const SeriesDetailPage: React.FC = () => {
                                                 className="toggle-description-btn"
                                                 onClick={() => setIsDescriptionExpanded(false)}
                                             >
-                                                Thu gọn
+                                                Collapse
                                             </button>
                                         </div>
                                     )}
@@ -427,7 +428,7 @@ const SeriesDetailPage: React.FC = () => {
                             </div>
                         )}
 
-                        {/* === HIỂN THỊ NẾU KHÔNG CÓ GÌ === */}
+
                         {series.type === 'Series' && series.novels.length === 0 && (
                             <p>No volumes or chapters have been added yet.</p>
                         )}
@@ -437,20 +438,10 @@ const SeriesDetailPage: React.FC = () => {
                     </div>
 
 
-                    {/* (Khối Comment) */}
-                    <section className="comment-section">
-                        <h3>Comments (n)</h3>
-                        <div className="comment-login-prompt">
-                            You need  {' '}
-                            <Link to="/login">Login</Link>
-                            {' '} hoặc {' '}
-                            <Link to="/register">Register</Link>
-                            {' '} to comment.
-                        </div>
-                        <h4 className="comment-list-header">Comment</h4>
-                        <div className="comment-list">
-                        </div>
-                    </section>
+                    {/* ---COMMENT  --- */}
+                    <SeriesCommentSection
+                        seriesId={Number(id)}
+                    />
                 </section>
 
                 {/* === CỘT BÊN PHẢI (SIDEBAR) === */}

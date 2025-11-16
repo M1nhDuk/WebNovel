@@ -3,7 +3,6 @@ import GeneralCommentSection from './GeneralCommentSection';
 
 interface SeriesCommentSectionProps {
     seriesId: number;
-    totalCommentCount: number;
 }
 
 // Dùng cho Series Page
@@ -11,7 +10,6 @@ const SeriesCommentSection: React.FC<SeriesCommentSectionProps> = ({ seriesId, t
     return (
         <GeneralCommentSection
             seriesId={seriesId}
-            totalCommentCount={totalCommentCount}
         />
     );
 };

@@ -32,23 +32,23 @@ namespace InteractionService.Service
                 return;
             }
 
-            // 1. Lấy danh sách UserId không trùng lặp
+            //Lấy danh sách UserId không trùng lặp
             var userIds = comments.Select(c => c.UserId).Distinct().ToList();
             if (!userIds.Any())
             {
                 return;
             }
 
-            // 2. Tạo HttpClient
+            //Tạo HttpClient
             // Sử dụng named client đã cấu hình
             var httpClient = _httpClientFactory.CreateClient("AuthServiceClient");
 
 
-            // 3. Build URL request
+            //Build URL request
             var idsQueryParam = string.Join(",", userIds);
             var requestUrl = $"api/internal/users/batch?ids={idsQueryParam}"; // Path tương đối nếu dùng BaseAddress
 
-            // 4. Gọi API nội bộ
+            //Gọi API nội bộ
             List<UserInfoDto>? usersInfo = null;
             try
             {
@@ -57,7 +57,7 @@ namespace InteractionService.Service
             catch (HttpRequestException ex)
             {
                 _logger.LogError(ex, "HTTP request failed when calling AuthService batch endpoint. URL: {Url}", httpClient.BaseAddress + requestUrl);
-          
+
                 return;
             }
             catch (Exception ex)
@@ -67,7 +67,7 @@ namespace InteractionService.Service
             }
 
 
-            // 5. Map thông tin User vào CommentDto
+            //Map thông tin User vào CommentDto
             if (usersInfo != null && usersInfo.Any())
             {
                 var userInfoDict = usersInfo.ToDictionary(u => u.UserId);
@@ -80,9 +80,9 @@ namespace InteractionService.Service
                     }
                     else
                     {
-                 
-                        comment.UserName = "[Deleted User]"; 
-                        comment.UserAvatarThumbnail = null; 
+
+                        comment.UserName = "[Deleted User]";
+                        comment.UserAvatarThumbnail = null;
                         _logger.LogWarning("User info not found for UserId {UserId} during comment enrichment", comment.UserId);
                     }
                 }
@@ -111,7 +111,7 @@ namespace InteractionService.Service
                 throw new ArgumentException("Comment content cannot be empty.");
             }
 
-            Guid? parentCommentUserId = null; // ID của người bị reply
+            Guid? parentCommentUserId = null; // ID của người được reply
             Guid? contentAuthorId = null;
 
             if (dto.ParentCommentId.HasValue) //Reply
@@ -136,7 +136,7 @@ namespace InteractionService.Service
                 if (!contentAuthorId.HasValue)
                 {
                     _logger.LogWarning("Could not find author for SeriesId={SeriesId} or ChapterId={ChapterId}. Cannot send notification.", seriesId, chapterId);
-                    throw new InvalidOperationException("Could not determine content author."); 
+                    throw new InvalidOperationException("Could not determine content author.");
                 }
             }
 
@@ -158,7 +158,7 @@ namespace InteractionService.Service
 
             string? linkUrl = seriesId.HasValue ? $"/series/{seriesId}" : $"/chapters/{chapterId}";
 
-            if (parentCommentUserId.HasValue && parentCommentUserId.Value != userId) 
+            if (parentCommentUserId.HasValue && parentCommentUserId.Value != userId)
             {
                 // lấy UserName của người vừa reply bằng userId để đưa vào message
                 var commenterInfo = await GetUserInfo(userId); // Lấy thông tin người comment 
@@ -180,16 +180,16 @@ namespace InteractionService.Service
             {
 
                 // Cần lấy UserName của người vừa comment 
-                var commenterInfo = await GetUserInfo(userId); // Lấy thông tin người comment
+                var commenterInfo = await GetUserInfo(userId); 
                 var commenterName = commenterInfo?.UserName ?? "Someone";
                 var targetName = seriesId.HasValue ? "your series" : "your chapter";
 
                 var notificationDto = new CreateNotificationDto
                 {
-                    UserId = contentAuthorId.Value, // Người nhận là User A (tác giả)
+                    UserId = contentAuthorId.Value, 
                     Type = "NewComment",
                     Message = $"{commenterName} commented on {targetName}.",
-                    LinkUrl = linkUrl + $"#comment-{newComment.CommentId}" // Link tới comment mới
+                    LinkUrl = linkUrl + $"#comment-{newComment.CommentId}" 
                 };
                 await SendNotificationAsync(notificationDto);
             }
@@ -207,7 +207,8 @@ namespace InteractionService.Service
                 throw new ArgumentException("Must specify either SeriesId OR ChapterId.");
             }
 
-            var query = _context.Comments.Where(c => c.ParentComment == null);
+            
+            var query = _context.Comments.AsQueryable();
 
             if (seriesId.HasValue)
             {
@@ -218,40 +219,55 @@ namespace InteractionService.Service
                 query = query.Where(c => c.ChapterId == chapterId.Value);
             }
 
-            var totalCount = await query.CountAsync();
+            
+            var allComments = await query.ToListAsync();
 
-            var comments = await query
+            
+            var allCommentDtos = allComments.Select(c => MapToDto(c)).ToList();
+
+            
+            await EnrichCommentsWithUserInfo(allCommentDtos);
+
+          
+            var commentDict = allCommentDtos.ToDictionary(c => c.CommentId);
+            var rootComments = new List<CommentDto>();
+
+            foreach (var comment in allCommentDtos)
+            {
+                if (comment.ParentCommentId.HasValue && commentDict.TryGetValue(comment.ParentCommentId.Value, out var parent))
+                {
+                    
+                    parent.Replies.Add(comment);
+                }
+                else
+                {
+                    
+                    rootComments.Add(comment);
+                }
+            }
+
+           
+            foreach (var comment in allCommentDtos)
+            {
+                if (comment.Replies.Any())
+                {
+                    comment.Replies = comment.Replies.OrderBy(r => r.CreatedAt).ToList();
+                }
+            }
+
+            
+            var totalCount = rootComments.Count;
+
+            var paginatedRootComments = rootComments
                 .OrderByDescending(c => c.CreatedAt)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
-                .Include(c => c.Replies)
-                    .ThenInclude(r => r.Replies)
-                .ToListAsync(); ;
+                .ToList();
 
-            var commentDtos = comments.Select(c => MapToDto(c)).ToList();
-
-
-            var allCommentsToEnrich = new List<CommentDto>();
-
-            void FlattenReplies(List<CommentDto> list)
-            {
-                foreach (var c in list)
-                {
-                    allCommentsToEnrich.Add(c);
-                    if (c.Replies.Any())
-                    {
-                        FlattenReplies(c.Replies);
-                    }
-                }
-            }
-            FlattenReplies(commentDtos);
-
-
-            await EnrichCommentsWithUserInfo(allCommentsToEnrich);
-
+            
             return new PagedResult<CommentDto>
             {
-                Items = commentDtos,
+                Items = paginatedRootComments,
                 TotalRecords = totalCount,
                 PageNumber = pageNumber,
                 PageSize = pageSize
@@ -266,10 +282,10 @@ namespace InteractionService.Service
             var totalCount = await query.CountAsync();
 
             var replies = await query
-                .OrderBy(c => c.CreatedAt) 
+                .OrderBy(c => c.CreatedAt)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
-                .Include(c => c.Replies) 
+                .Include(c => c.Replies)
                 .ToListAsync();
 
 
@@ -293,7 +309,7 @@ namespace InteractionService.Service
 
             if (comment == null)
             {
-                return null; 
+                return null;
             }
 
             if (comment.UserId != userId)
@@ -319,7 +335,7 @@ namespace InteractionService.Service
 
             _logger.LogInformation("User {UserId} updated comment {CommentId}", userId, commentId);
 
-      
+
             return MapToDto(comment);
         }
 
@@ -337,7 +353,7 @@ namespace InteractionService.Service
                 throw new UnauthorizedAccessException("You are not allowed to delete this comment.");
             }
 
-  
+
             _context.Comments.Remove(comment);
             var result = await _context.SaveChangesAsync();
 
@@ -353,7 +369,7 @@ namespace InteractionService.Service
         {
             var commentsToDelete = await _context.Comments.Where(c => c.SeriesId == seriesId).ToListAsync();
 
-            if(!commentsToDelete.Any())
+            if (!commentsToDelete.Any())
             {
                 return true;
             }
@@ -392,7 +408,7 @@ namespace InteractionService.Service
             var comment = await _context.Comments.FindAsync(commentId);
             if (comment == null)
             {
-                return false; 
+                return false;
             }
 
             _context.Comments.Remove(comment);
@@ -501,7 +517,7 @@ namespace InteractionService.Service
         }
 
 
-        
+
 
         private CommentDto MapToDto(Comment c, int replyCount = 0)
         {
@@ -515,8 +531,8 @@ namespace InteractionService.Service
                 SeriesId = c.SeriesId,
                 ChapterId = c.ChapterId,
                 ParentCommentId = c.ParentCommentId,
-                ReplyCount = replyCount,
-                Replies = c.Replies?.Select(MapToDto).OrderBy(r => r.CreatedAt).ToList() ?? new List<CommentDto>(),
+                ReplyCount = replyCount,         
+                Replies = new List<CommentDto>(), 
 
                 UserName = c.UserName,
                 UserAvatarThumbnail = c.UserAvatarThumbnail
