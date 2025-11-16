@@ -3,7 +3,7 @@ using Shareds.DTOs.UserService;
 using UserService.Data;
 using UserService.Models;
 using UserService.Services.Interfaces;
-
+using Shareds.DTOs.NovelSeries;
 namespace UserService.UserSettingService
 {
     public class NotificationService : INotificationService
@@ -43,13 +43,18 @@ namespace UserService.UserSettingService
         }
 
         //get all
-        public async Task<List<NotificationDto>> GetNotificationsAsync(Guid userId, int page = 1, int pageSize = 20)
+        public async Task<PagedResult<NotificationDto>> GetNotificationsAsync(Guid userId, int page = 1, int pageSize = 20)
         {
-            var notification = await _context.Notification.Where(n => n.UserId == userId)
-                .OrderByDescending(n => n.CreatedDate)
+            var query = _context.Notification
+                .Where(n => n.UserId == userId)
+                .OrderByDescending(n => n.CreatedDate);
+
+            var totalCount = await query.CountAsync();
+
+            var notifications = await query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .Select(n =>  new NotificationDto
+                .Select(n => new NotificationDto
                 {
                     NotificationId = n.NotificationsId,
                     Type = n.Type.ToString(),
@@ -60,7 +65,13 @@ namespace UserService.UserSettingService
                 })
                 .ToListAsync();
 
-            return notification;
+            return new PagedResult<NotificationDto>
+            {
+                Items = notifications,
+                TotalRecords = totalCount,
+                PageNumber = page,
+                PageSize = pageSize
+            };
         }
 
         public async Task<int> GetUnreadCountAsync(Guid userId)

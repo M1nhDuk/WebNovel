@@ -17,6 +17,8 @@ import AdminDashboardPage from './pages/AdminPage/AdminDashboardPage'
 import ChapterDetailPage from './pages/ChapterDetailPage/ChapterDetailPage'
 import { ReaderSettingsProvider } from './context/ReaderSettingsContext'
 import FavoritesPage from './pages/FavoritesPage/FavoritesPage'
+import BookmarksPage from './pages/BookmarksPage/BookmarksPage';
+import NotificationsPage from './pages/NotificationsPage/NotificationsPage';
 
 import ManageSeriesPage from './pages/ManageSeriesPage/ManageSeriesPage'
 
@@ -62,6 +64,10 @@ function App() {
                     <Route path="/admin" element={<AdminDashboardPage />} />
 
                     <Route path="favorites" element={<FavoritesPage />} />
+
+                    <Route path="notifications" element={<NotificationsPage />} />
+
+                    <Route path="bookmarks" element={<BookmarksPage />} />
 
                 </Route>
 

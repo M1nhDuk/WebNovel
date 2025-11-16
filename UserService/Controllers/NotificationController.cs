@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Shareds.DTOs.NovelSeries;
 using Shareds.DTOs.UserService;
 using System.Security.Claims;
 using UserService.Services.Interfaces;
@@ -31,7 +32,7 @@ namespace UserService.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<NotificationDto>>> GetNotifications([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        public async Task<ActionResult<PagedResult<NotificationDto>>> GetNotifications([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             try
             {
@@ -44,7 +45,6 @@ namespace UserService.Controllers
                 return Unauthorized(new { message = ex.Message });
             }
         }
-
         [HttpGet("unread-count")]
         public async Task<ActionResult<int>> GetUnreadCount()
         {
