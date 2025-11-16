@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Shareds.DTOs.NovelSeries;
 using Shareds.DTOs.UserService;
 using System.Security.Claims;
 using UserService.UserSettingService.Interface;
@@ -43,7 +44,7 @@ namespace UserService.Controllers
                     return Ok(new
                     {
                         message = "Đã yêu thích series này.",
-                        isFavorited = result.IsFavorited, //true
+                        isFavorited = result.IsFavorited, 
                         data = result.Data
                     });
                 }
@@ -53,7 +54,7 @@ namespace UserService.Controllers
                     return Ok(new
                     {
                         message = "Đã bỏ yêu thích series này.",
-                        isFavorited = result.IsFavorited //  false
+                        isFavorited = result.IsFavorited 
                     });
                 }
             }
@@ -81,18 +82,25 @@ namespace UserService.Controllers
 
 
         [HttpGet]
-        public async Task<ActionResult<List<UserFavoriteDto>>> GetUserFavorites()
+        public async Task<ActionResult<PagedResult<UserFavoriteDto>>> GetUserFavorites(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
         {
             try
             {
                 var userId = GetUserIdFromToken();
-                var favorites = await _favoriteService.GetAllFavoriteAsync(userId);
+                var favorites = await _favoriteService.GetAllFavoriteAsync(userId, page, pageSize);
 
                 return Ok(favorites);
             }
             catch (UnauthorizedAccessException ex)
             {
                 return Unauthorized(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting paged favorites for User {UserId}", GetUserIdFromToken());
+                return StatusCode(500, "Internal server error");
             }
         }
 

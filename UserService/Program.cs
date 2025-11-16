@@ -15,6 +15,15 @@ var connectionString = builder.Configuration.GetConnectionString("MySqlConnectio
 builder.Services.AddDbContext<UserDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
+
+var novelServiceUrl = builder.Configuration["ServiceUrls:NovelService"] ??
+                    throw new InvalidOperationException("ServiceUrls:NovelService is not configured.");
+
+builder.Services.AddHttpClient("NovelServiceClient", client =>
+{
+    client.BaseAddress = new Uri(novelServiceUrl);
+});
+
 builder.Services.AddScoped<IUserFavoriteService, UserFavoriteService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IBookmarkService, BookmarkService>();

@@ -12,9 +12,8 @@ namespace Shareds.DTOs.UserService
         public DateTime AddedAt { get; set; }
         public int LastKnowChapter {  get; set; }
 
-  
-        // Frontend sẽ dùng SeriesId để gọi NovekService
-        // và lấy về Title, CoverImage, TotalChapters
-   
+        public string? SeriesTitle { get; set; }
+        public string? SeriesCoverImage { get; set; }
+
     }
 }

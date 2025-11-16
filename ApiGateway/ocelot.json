@@ -1277,7 +1277,23 @@
 
 
     // -- User Setting ---
-
+    {
+      "UpstreamPathTemplate": "/api/user/settings",
+      "UpstreamHttpMethod": [ "GET", "PUT" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7048
+        }
+      ],
+      "DownstreamPathTemplate": "/api/user/settings",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
 
 
 

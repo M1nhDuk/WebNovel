@@ -1,4 +1,5 @@
 ﻿using Shareds.DTOs.UserService;
+using Shareds.DTOs.NovelSeries;
 
 namespace UserService.UserSettingService.Interface
 {
@@ -12,7 +13,7 @@ namespace UserService.UserSettingService.Interface
     {
         Task<FavoriteToggleResult> ToggleFavoriteAsync(Guid userId, AddFavoriteDto dto);
         Task<int> RemoveFavoriteAsync(Guid UserId, List<int> seriesIds);
-        Task<List<UserFavoriteDto>> GetAllFavoriteAsync(Guid UserId);
+        Task<PagedResult<UserFavoriteDto>> GetAllFavoriteAsync(Guid UserId, int pageNumber, int pageSize);
         Task<bool> SyncFavoriteCountsAsync(Guid UserId, List<FavoriteReadUpdateDto> updates);
     }
 }

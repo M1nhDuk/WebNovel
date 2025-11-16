@@ -7,7 +7,6 @@ import { API_ROUTES } from '../../api/apiRoutes';
 import type {
     NovelSeriesDetailDto,
     ChapterDetailDto,
-    NovelDetailDto,
     EditingItem,
     SeriesContextMenuProps,
     NovelContextMenuProps,

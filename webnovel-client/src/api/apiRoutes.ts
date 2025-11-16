@@ -47,6 +47,9 @@ export const API_ROUTES = {
 
     USER: { 
         READING_HISTORY: '/user/reading-history',
+        SETTINGS: '/api/user/settings',
+        GET_FAVORITES: '/user/favorites',
+        TOGGLE_FAVORITE: '/user/favorites/toggle',
     },
 
     COMMENTS: {

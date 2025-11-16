@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import apiClient from '../../api/apiClient';
 import { API_ROUTES } from '../../api/apiRoutes';
@@ -6,7 +6,7 @@ import type { NovelSeriesDetailDto, FullChapterDto, NovelDetailDto, ChapterDetai
 import ChapterCommentSection from '../../components/common/comments/ChapterCommentSection.tsx';
 
 import {
-    FaHome, FaArrowLeft, FaArrowRight, FaCog, FaInfoCircle, FaBookmark, FaListUl, FaArrowCircleLeft
+    FaHome, FaArrowLeft, FaArrowRight, FaCog, FaBookmark, FaListUl, FaArrowCircleLeft
 } from 'react-icons/fa';
 import './ChapterDetailPage.css';
 import { formatDistanceToNow } from 'date-fns';
@@ -65,8 +65,12 @@ const ChapterDetailPage: React.FC = () => {
                     contentApiUrl = API_ROUTES.SERIES.CHAPTER_FOR_SERIES(seriesId, chapterId);
                     foundChapterMeta = seriesData.chapters?.find(c => c.chapter_id === numChapterId);
                 } else {
-                    for (const novel of seriesData.novels) {
-                        foundChapterMeta = novel.chapters.find(c => c.chapter_id === numChapterId);
+                    // Sắp xếp novel trước khi tìm
+                    const sortedNovels = seriesData.novels.sort((a, b) => a.novel_number - b.novel_number);
+                    for (const novel of sortedNovels) {
+                        // Sắp xếp chapter trong novel
+                        const sortedChapters = novel.chapters.sort((a, b) => a.chapter_number - b.chapter_number);
+                        foundChapterMeta = sortedChapters.find(c => c.chapter_id === numChapterId);
                         if (foundChapterMeta) {
                             setParentNovel(novel);
                             contentApiUrl = API_ROUTES.SERIES.CHAPTER_FOR_NOVEL(novel.novel_Id, chapterId);
@@ -88,6 +92,104 @@ const ChapterDetailPage: React.FC = () => {
         };
         fetchChapterData();
     }, [seriesId, chapterId, numChapterId]);
+
+
+
+    // --- LOGIC CHUYỂN CHƯƠNG ---
+
+    // 1. Tạo danh sách chương "phẳng" (đã được sắp xếp)
+    const flatChapterList: ChapterDetailDto[] = useMemo(() => {
+        if (!series) return [];
+        if (series.type === 'TRADITIONAL') {
+            // Đảm bảo đã sắp xếp
+            return series.chapters?.sort((a, b) => a.chapter_number - b.chapter_number) || [];
+        }
+        // Gộp chương từ tất cả các volume (đã được sắp xếp)
+        return series.novels
+            .sort((a, b) => a.novel_number - b.novel_number)
+            .flatMap(novel => novel.chapters?.sort((a, b) => a.chapter_number - b.chapter_number) || []);
+    }, [series]);
+
+    // 2. Tìm chương trước/sau
+    const navigationLinks = useMemo(() => {
+        if (!flatChapterList.length || !numChapterId || !seriesId) {
+            return { prev: null, next: null, isFirst: true, isLast: true };
+        }
+
+        const currentIndex = flatChapterList.findIndex(c => c.chapter_id === numChapterId);
+
+        if (currentIndex === -1) {
+            return { prev: null, next: null, isFirst: true, isLast: true };
+        }
+
+        const isFirst = currentIndex === 0;
+        const isLast = currentIndex === flatChapterList.length - 1;
+
+        const prevChapter = !isFirst ? flatChapterList[currentIndex - 1] : null;
+        const nextChapter = !isLast ? flatChapterList[currentIndex + 1] : null;
+
+        return {
+            prev: prevChapter ? `/series/${seriesId}/chapter/${prevChapter.chapter_id}` : null,
+            next: nextChapter ? `/series/${seriesId}/chapter/${nextChapter.chapter_id}` : null,
+            isFirst: isFirst,
+            isLast: isLast
+        };
+    }, [flatChapterList, numChapterId, seriesId]);
+
+    // 3. Hàm xử lý sự kiện click nút
+    const handleNavigate = (direction: 'prev' | 'next') => {
+        if (direction === 'prev') {
+            if (navigationLinks.prev) {
+                navigate(navigationLinks.prev);
+            } else if (navigationLinks.isFirst) {
+                // Nếu là chương đầu, quay về trang series
+                navigate(`/series/${seriesId}`);
+            }
+        } else if (direction === 'next') {
+            if (navigationLinks.next) {
+                navigate(navigationLinks.next);
+            } else if (navigationLinks.isLast) {
+                // Nếu là chương cuối, quay về trang series
+                navigate(`/series/${seriesId}`);
+            }
+        }
+    };
+
+    // 4. Lắng nghe sự kiện bàn phím
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            const activeElement = document.activeElement;
+
+            if (activeElement && activeElement instanceof HTMLElement) {
+                if (activeElement.tagName === 'INPUT' ||
+                    activeElement.tagName === 'TEXTAREA' ||
+                    activeElement.isContentEditable) {
+                    return;
+                }
+            }
+
+            if (event.key === 'ArrowLeft') {
+                event.preventDefault();
+                // Gọi hàm handleNavigate thay vì kiểm tra link
+                handleNavigate('prev');
+            } else if (event.key === 'ArrowRight') {
+                event.preventDefault();
+                // Gọi hàm handleNavigate thay vì kiểm tra link
+                handleNavigate('next');
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [navigationLinks, navigate, seriesId]); // Thêm seriesId vào dependency
+
+    // --- KẾT THÚC LOGIC CHUYỂN CHƯƠNG ---
+
+
+
 
     const formatTimeAgo = (dateString: string) => {
         const date = new Date(dateString);
@@ -146,14 +248,35 @@ const ChapterDetailPage: React.FC = () => {
         paddingRight: `${settings.paddingPx}px`,
     };
 
-    // Style chỉ áp dụng cho VĂN BẢN NỘI DUNG
-    const bodyTextStyles: React.CSSProperties = {
-        fontFamily: settings.fontFamily,
-        color: settings.fontColor,
-        fontSize: `${settings.fontSize}px`,
-        textAlign: settings.aligment as any,
+    const getFontFamilyStack = (fontName: string) => {
+        switch (fontName) {
+            case "Noto Sans":
+                return "'Noto Sans', sans-serif";
+            case "Times New Roman":
+                return "'Times New Roman', Times, serif";
+            case "Merriweather":
+                return "'Merriweather', serif";
+            case "Lora":
+                return "'Lora', serif";
+            case "Roboto":
+                return "'Roboto', sans-serif";
+            default:
+                return "'Times New Roman', Times, serif";
+        }
     };
 
+    // Style chỉ áp dụng cho VĂN BẢN NỘI DUNG
+    const bodyTextStyles: React.CSSProperties = {
+        fontFamily: getFontFamilyStack(settings.fontFamily),
+        color: settings.fontColor,
+        fontSize: `${settings.fontSize}px`,
+        textAlign: settings.alignment as any,
+    };
+
+    // Style cho phần text của header (Title và Metadata)
+    const headerTextStyles: React.CSSProperties = {
+        color: settings.fontColor,
+    };
 
 
     if (loading || isSettingsLoading) {
@@ -176,6 +299,7 @@ const ChapterDetailPage: React.FC = () => {
             />
 
             <div className={`chapter-page-layout ${isSidebarOpen ? 'sidebar-visible' : ''}`}>
+
                 {/* Cột trái (Sidebar) */}
                 <aside className="chapter-sidebar-left">
                     <div className="sidebar-left-header">
@@ -204,13 +328,13 @@ const ChapterDetailPage: React.FC = () => {
                 {/* Áp dụng style đã tách */}
                 <main
                     className="chapter-content-main"
-                    style={mainContentStyles} 
+                    style={mainContentStyles}
                 >
                     <div
                         className="chapter-content-wrapper"
-                        style={wrapperStyles} 
+                        style={wrapperStyles}
                     >
-                        
+
                         <header className="chapter-header">
                             <div className="chapter-series-title">
                                 <Link to={`/series/${series.series_Id}`}>
@@ -225,17 +349,17 @@ const ChapterDetailPage: React.FC = () => {
                                     </>
                                 )}
                             </div>
-                            <h1 className="chapter-main-title">
+                            <h1 className="chapter-main-title" style={headerTextStyles}>
                                 {chapter.title}
                             </h1>
-                            <div className="chapter-metadata">
+                            <div className="chapter-metadata" style={headerTextStyles}>
                                 <span>Length: {chapter.word_count.toLocaleString('vi-VN')} từ</span>
                                 <span> • </span>
                                 <span>Updated at: {formatTimeAgo(chapter.created_at)}</span>
                             </div>
                         </header>
 
-                       
+
                         <div className="chapter-body">
                             {paragraphs.map((para, index) => (
                                 <p key={index} style={bodyTextStyles}>{para}</p>
@@ -250,7 +374,11 @@ const ChapterDetailPage: React.FC = () => {
 
                 {/* Cột phải (Toolbar) */}
                 <aside className="chapter-toolbar-right">
-                    <button className="toolbar-button" title="Previous Chapter" onClick={() => alert('Chuyển chương trước')}>
+                    <button
+                        className="toolbar-button"
+                        title={navigationLinks.isFirst ? "Back to Series" : "Previous Chapter"}
+                        onClick={() => handleNavigate('prev')}
+                    >
                         <FaArrowLeft />
                     </button>
                     <button className="toolbar-button" title="Series Page" onClick={() => navigate(`/series/${seriesId}`)}>
@@ -258,7 +386,7 @@ const ChapterDetailPage: React.FC = () => {
                     </button>
                     <button
                         className="toolbar-button"
-                        title="Danh sách chương"
+                        title="Chapter List"
                         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                     >
                         <FaListUl />
@@ -271,14 +399,14 @@ const ChapterDetailPage: React.FC = () => {
                     >
                         <FaCog />
                     </button>
-
-                    <button className="toolbar-button" title="Information" onClick={() => alert('Hiển thị thông tin')}>
-                        <FaInfoCircle />
-                    </button>
                     <button className="toolbar-button" title="BookMark" onClick={() => alert('Đánh dấu chương')}>
                         <FaBookmark />
                     </button>
-                    <button className="toolbar-button" title="Next Chapter" onClick={() => alert('Chuyển chương sau')}>
+                    <button
+                        className="toolbar-button"
+                        title={navigationLinks.isLast ? "Back to Series" : "Next Chapter"}
+                        onClick={() => handleNavigate('next')}
+                    >
                         <FaArrowRight />
                     </button>
                 </aside>

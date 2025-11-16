@@ -19,8 +19,9 @@ namespace UserService.Controllers
         private readonly UserDbContext _context;
         private readonly ILogger<UserController> _logger;
 
-        private static readonly List<string> ValidFonts = new List<string> { "Times New Roman", "Lora", "Roboto", "NotoSans", "Nunito" };
-        private static readonly List<string> ValidAlignments = new List<string> { "left", "center", "right" };
+        private static readonly List<string> ValidFonts = new List<string> { "Noto Sans", "Times New Roman", "Merriweather", "Lora", "Roboto" };
+
+        private static readonly List<string> ValidAlignments = new List<string> { "left", "center", "right", "justify" };
 
         public UserController(UserDbContext context, ILogger<UserController> logger)
         {
