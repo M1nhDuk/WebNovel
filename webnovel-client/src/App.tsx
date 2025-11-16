@@ -16,6 +16,7 @@ import TagsPage from './pages/TagsPage/TagsPage'
 import AdminDashboardPage from './pages/AdminPage/AdminDashboardPage'
 import ChapterDetailPage from './pages/ChapterDetailPage/ChapterDetailPage'
 import { ReaderSettingsProvider } from './context/ReaderSettingsContext'
+import FavoritesPage from './pages/FavoritesPage/FavoritesPage'
 
 import ManageSeriesPage from './pages/ManageSeriesPage/ManageSeriesPage'
 
@@ -59,6 +60,8 @@ function App() {
                     <Route path="history" element={<ReadingHistoryPage />} />
 
                     <Route path="/admin" element={<AdminDashboardPage />} />
+
+                    <Route path="favorites" element={<FavoritesPage />} />
 
                 </Route>
 

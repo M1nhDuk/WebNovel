@@ -3,13 +3,14 @@ import apiClient from '../api/apiClient';
 import { useAuth } from '../hooks/useAuth';
 import { useDebounce } from '../hooks/useDebounce';
 import type { UserSettingDto, UpdateUserSettingDto } from '../types/series';
+import { API_ROUTES } from '../api/apiRoutes';
 
 const defaultSettings: UserSettingDto = {
     fontFamily: "Times New Roman",
-    fontSize: 18,
+    fontSize: 20,
     backgroundColor: "#FFFFFF",
     fontColor: "#000000",
-    aligment: "left",
+    alignment: "left",
     paddingPx: 0
 };
 
@@ -75,7 +76,7 @@ export const ReaderSettingsProvider: React.FC<{ children: React.ReactNode }> = (
             const updateRemoteSettings = async () => {
                 const payload: UpdateUserSettingDto = { ...debouncedSettings };
                 try {
-                    await apiClient.put('/api/user/settings', payload);
+                    await apiClient.put(API_ROUTES.USER.SETTINGS, payload);
                 } catch (err) {
                     console.error("Failed to save user settings:", err);
                 }

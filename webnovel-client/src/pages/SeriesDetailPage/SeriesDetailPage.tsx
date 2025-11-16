@@ -1,19 +1,23 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link} from 'react-router-dom';
 import apiClient from '../../api/apiClient';
 import { API_ROUTES } from '../../api/apiRoutes';
 import type { NovelSeriesDetailDto } from '../../types/series';
 import {
     FaHeart,
     FaInfoCircle,
-    FaPencilAlt
+    FaPencilAlt,
+    FaSpinner
 } from 'react-icons/fa';
 
+import type { PagedResult } from '../../types/series';
 import { useAuth } from '../../hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import './SeriesDetailPage.css';
 import SeriesCommentSection from '../../components/common/comments/SeriesCommentSection'; 
+import type { UserFavoriteDto, AddFavoriteDto, FavoriteToggleResult } from '../../types/userActions';
+
 
 
 const GATEWAY_URL = 'https://localhost:8000';
@@ -30,6 +34,9 @@ const SeriesDetailPage: React.FC = () => {
 
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
     const DESCRIPTION_THRESHOLD = 50;
+
+    const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
+    const [isLoadingInitialFavorite, setIsLoadingInitialFavorite] = useState(true);
 
     const { user } = useAuth();
 
@@ -93,6 +100,39 @@ const SeriesDetailPage: React.FC = () => {
     }, [id, user]);
 
 
+    //Fav
+    useEffect(() => {
+        const checkFavoriteStatus = async () => {
+            if (user && id) {
+                setIsLoadingInitialFavorite(true);
+                try {
+                    const response = await apiClient.get<PagedResult<UserFavoriteDto>>(
+                        API_ROUTES.USER.GET_FAVORITES,
+                        {
+                            params: {
+                                page: 1,
+                                pageSize: 100 
+                            }
+                        }
+                    );
+                    const isFav = response.data.items.some(fav => fav.seriesId === Number(id));
+
+                    setIsFavorited(isFav); 
+                } catch (err) {
+                    console.error("Failed to check favorite status:", err);
+                } finally {
+                    setIsLoadingInitialFavorite(false);
+                }
+            } else {
+                setIsLoadingInitialFavorite(false);
+            }
+        };
+
+        checkFavoriteStatus();
+    }, [id, user]); 
+
+
+
     useEffect(() => {
         if (notification) {
             const timer = setTimeout(() => {
@@ -104,18 +144,48 @@ const SeriesDetailPage: React.FC = () => {
     }, [notification]);
 
 
-    const handleFavoriteClick = () => {
-        const newFavoriteState = !isFavorited;
-        setIsFavorited(newFavoriteState);
-        if (newFavoriteState) {
-            setNotification("You have favorite series.");
-        } else {
-            setNotification("You have stopped following the story.");
+    const handleFavoriteClick = async () => {
+        if (!user) {
+            return;
+        }
+
+        if (!id || isTogglingFavorite) return; 
+
+        setIsTogglingFavorite(true);
+        setNotification(null);
+        setError(null);
+
+        // DTO mà backend yêu cầu
+        const dto: AddFavoriteDto = {
+            seriesId: Number(id),
+            currentChapterCount: 0
+        };
+
+        try {
+           
+            const response = await apiClient.post<FavoriteToggleResult>(
+                API_ROUTES.USER.TOGGLE_FAVORITE,
+                dto
+            );
+
+            const { isFavorited: newStatus, message } = response.data;
+
+            
+            setIsFavorited(newStatus);
+            setNotification(message); 
+
+        } catch (err: any) {
+            console.error("Failed to toggle favorite:", err);
+            setError(err.response?.data?.message || "An error occurred.");
+        } finally {
+            setIsTogglingFavorite(false); 
         }
     };
 
+    if (loading || isLoadingInitialFavorite) {
+        return <div className="detail-page-container">Loading...</div>;
+    }
 
-    if (loading) { return <div className="detail-page-container">Loading...</div>; }
     if (error) { return <div className="detail-page-container" style={{ color: 'red' }}>{error}</div>; }
     if (!series) { return <div className="detail-page-container">Series not found.</div>; }
 
@@ -167,9 +237,14 @@ const SeriesDetailPage: React.FC = () => {
                     <button
                         className={`series-action-btn ${isFavorited ? 'favorited' : ''}`}
                         onClick={handleFavoriteClick}
+                        disabled={isTogglingFavorite} // Vô hiệu hóa khi đang gọi API
                     >
-                        <FaHeart style={{ marginRight: '8px' }} />
-                        {isFavorited ? 'Follow' : 'Unfollow'}
+                        {isTogglingFavorite ? (
+                            <FaSpinner /> 
+                        ) : (
+                            <FaHeart style={{ marginRight: '8px' }} />
+                        )}
+                        {isFavorited ? 'Following' : 'Follow'}
                     </button>
 
                     {canEdit && (

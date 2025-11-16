@@ -1,34 +1,43 @@
 ﻿import React from 'react';
 import { useReaderSettings } from '../../hooks/useReaderSettings';
 import './ReaderSettingsPanel.css';
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes, FaAlignLeft, FaAlignCenter, FaAlignRight, FaAlignJustify } from 'react-icons/fa';
 
 interface ReaderSettingsPanelProps {
     isOpen: boolean;
     onClose: () => void;
 }
 
-
-const FONT_FAMILIES = ["Times New Roman", "Lora", "Roboto", "NotoSans", "Nunito"];
-const ALIGNMENTS = ["left", "center", "right"];
+// Cập nhật danh sách font chữ và màu nền 
+const FONT_FAMILIES = ["Noto Sans", "Times New Roman", "Merriweather", "Lora", "Roboto"];
+const ALIGNMENTS = [
+    { name: 'left', icon: <FaAlignLeft /> },
+    { name: 'center', icon: <FaAlignCenter /> },
+    { name: 'right', icon: <FaAlignRight /> },
+    { name: 'justify', icon: <FaAlignJustify /> }
+];
 const COLORS = [
     { name: 'White', bg: '#FFFFFF', text: '#000000' },
-    { name: 'Beige', bg: '#F5F2EC', text: '#333333' },
-    { name: 'Grey', bg: '#AAAAAA', text: '#000000' },
+    { name: 'LightGreen', bg: '#EFF3ED', text: '#000000' },
+    { name: 'LightBlue', bg: '#E6F0F2', text: '#000000' },
+    { name: 'LightYellow', bg: '#F8F4E6', text: '#000000' },
+    { name: 'MintGreen', bg: '#D8E8E3', text: '#000000' }, // Màu được chọn trong ảnh
+    { name: 'LightPink', bg: '#F4EBEF', text: '#000000' },
+    { name: 'DarkGray', bg: '#333333', text: '#E0E0E0' },
     { name: 'Black', bg: '#000000', text: '#FFFFFF' },
 ];
 
-
+//hằng số điều khiển
 const FONT_STEP = 2;
 const FONT_MIN = 12;
 const FONT_MAX = 36;
 
 const PADDING_STEP = 20;
 const PADDING_MIN = 0;
-const PADDING_MAX = 200; // Giống validation backend
+const PADDING_MAX = 200;
 
 const ReaderSettingsPanel: React.FC<ReaderSettingsPanelProps> = ({ isOpen, onClose }) => {
-    const { settings, updateSetting, isLoading } = useReaderSettings();
+    const { settings, updateSetting } = useReaderSettings();
 
     if (!isOpen) return null;
 
@@ -42,7 +51,7 @@ const ReaderSettingsPanel: React.FC<ReaderSettingsPanelProps> = ({ isOpen, onClo
         }
     };
 
-    // Hàm xử lý cho nút bấm Lề trang
+    // Hàm xử lý cho nút bấm Lề trang 
     const handlePaddingChange = (direction: 'increase' | 'decrease') => {
         const currentPadding = settings.paddingPx;
         const newPadding = direction === 'increase' ? currentPadding + PADDING_STEP : currentPadding - PADDING_STEP;
@@ -61,6 +70,7 @@ const ReaderSettingsPanel: React.FC<ReaderSettingsPanelProps> = ({ isOpen, onClo
                 </div>
 
                 <div className="settings-modal-body">
+
                     {/* Color Scheme */}
                     <div className="setting-group">
                         <label>Color Scheme</label>
@@ -68,8 +78,8 @@ const ReaderSettingsPanel: React.FC<ReaderSettingsPanelProps> = ({ isOpen, onClo
                             {COLORS.map(color => (
                                 <button
                                     key={color.name}
-                                    className={`color-dot ${settings.backgroundColor === color.bg ? 'active' : ''}`}
-                                    style={{ backgroundColor: color.bg, borderColor: color.text }}
+                                    className={`color-swatch ${settings.backgroundColor === color.bg ? 'active' : ''}`}
+                                    style={{ backgroundColor: color.bg, borderColor: color.text === '#000000' ? '#e0e0e0' : color.text }}
                                     onClick={() => {
                                         updateSetting('backgroundColor', color.bg);
                                         updateSetting('fontColor', color.text);
@@ -79,9 +89,9 @@ const ReaderSettingsPanel: React.FC<ReaderSettingsPanelProps> = ({ isOpen, onClo
                         </div>
                     </div>
 
-                    {/* Font Family */}
+                    {/* Font family */}
                     <div className="setting-group">
-                        <label htmlFor="fontFamily">Font chữ</label>
+                        <label htmlFor="fontFamily">Font family</label>
                         <select
                             id="fontFamily"
                             value={settings.fontFamily}
@@ -91,9 +101,9 @@ const ReaderSettingsPanel: React.FC<ReaderSettingsPanelProps> = ({ isOpen, onClo
                         </select>
                     </div>
 
-                    {/* Font Size (Stepper) */}
+                    {/*  Font Size */}
                     <div className="setting-group">
-                        <label htmlFor="fontSize">Font Size</label>
+                        <label htmlFor="fontSize"> Font Size</label>
                         <div className="numeric-stepper">
                             <button
                                 type="button"
@@ -102,7 +112,12 @@ const ReaderSettingsPanel: React.FC<ReaderSettingsPanelProps> = ({ isOpen, onClo
                             >
                                 &lt;
                             </button>
-                            <span className="value-display">{settings.fontSize}px</span>
+                            <input
+                                type="text"
+                                className="value-display"
+                                value={`${settings.fontSize}px`}
+                                readOnly
+                            />
                             <button
                                 type="button"
                                 onClick={() => handleFontSizeChange('increase')}
@@ -113,7 +128,7 @@ const ReaderSettingsPanel: React.FC<ReaderSettingsPanelProps> = ({ isOpen, onClo
                         </div>
                     </div>
 
-                    {/* Page Margin (Stepper) */}
+                    {/* Page Margin */}
                     <div className="setting-group">
                         <label htmlFor="paddingPx">Page Margin</label>
                         <div className="numeric-stepper">
@@ -124,7 +139,13 @@ const ReaderSettingsPanel: React.FC<ReaderSettingsPanelProps> = ({ isOpen, onClo
                             >
                                 &lt;
                             </button>
-                            <span className="value-display">{settings.paddingPx}px</span>
+
+                            <input
+                                type="text"
+                                className="value-display"
+                                value={`${settings.paddingPx}px`}
+                                readOnly
+                            />
                             <button
                                 type="button"
                                 onClick={() => handlePaddingChange('increase')}
@@ -137,14 +158,19 @@ const ReaderSettingsPanel: React.FC<ReaderSettingsPanelProps> = ({ isOpen, onClo
 
                     {/* Text Alignment */}
                     <div className="setting-group">
-                        <label>Text Align</label>
-                        <select
-                            id="alignment"
-                            value={settings.aligment}
-                            onChange={e => updateSetting('aligment', e.target.value)}
-                        >
-                            {ALIGNMENTS.map(align => <option key={align} value={align}>{align.charAt(0).toUpperCase() + align.slice(1)}</option>)}
-                        </select>
+                        <label>Kiểu căn chinh</label>
+                        <div className="alignment-options">
+                            {ALIGNMENTS.map(align => (
+                                <button
+                                    key={align.name}
+                                    className={`align-btn ${settings.alignment === align.name ? 'active' : ''}`}
+                                    onClick={() => updateSetting('alignment', align.name)}
+                                    title={align.name.charAt(0).toUpperCase() + align.name.slice(1)}
+                                >
+                                    {align.icon}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>

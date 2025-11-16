@@ -216,7 +216,7 @@ export interface UserSettingDto {
     fontSize: number;
     backgroundColor: string;
     fontColor: string;
-    aligment: string; 
+    alignment: string; 
     paddingPx: number;
 }
 

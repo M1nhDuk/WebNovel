@@ -4,15 +4,27 @@ using System.Security.Claims;
 using UserService.Data;
 using UserService.Models;
 using UserService.UserSettingService.Interface;
+using Shareds.DTOs.NovelSeries;
+
 
 namespace UserService.UserSettingService
 {
     public class UserFavoriteService: IUserFavoriteService
     {
+
+        internal class SeriesSummaryDto
+        {
+            public int SeriesId { get; set; }
+            public string? Title { get; set; }
+            public string? CoverImage { get; set; }
+        }
+
+
         private readonly UserDbContext _context;
         private readonly ILogger<UserFavoriteService> _logger;
         private readonly IHttpClientFactory _httpClientFactory; 
         private readonly IConfiguration _configuration;
+        private readonly string _publicationServiceUrl;
 
         public UserFavoriteService(UserDbContext context, ILogger<UserFavoriteService> logger, IHttpClientFactory httpClientFactory, 
             IConfiguration configuration)
@@ -21,6 +33,9 @@ namespace UserService.UserSettingService
             _logger = logger;
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
+
+            _publicationServiceUrl = configuration["ServiceUrls:NovelService"] ??
+                                     throw new InvalidOperationException("ServiceUrls:NovelService is not configured.");
         }
 
 
@@ -132,12 +147,21 @@ namespace UserService.UserSettingService
         }
 
 
-        //Phân trang, FE gọi series Id để lấy dữ liệu hiển thị
-        public async Task<List<UserFavoriteDto>> GetAllFavoriteAsync(Guid UserId)
+        public async Task<PagedResult<UserFavoriteDto>> GetAllFavoriteAsync(Guid UserId, int pageNumber, int pageSize)
         {
-            var favorites = await _context.UserFavorite
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 20) pageSize = 20; 
+
+            var query = _context.UserFavorite
                 .Where(f => f.UserId == UserId)
-                .OrderByDescending(f => f.TimeAdded)
+                .OrderByDescending(f => f.TimeAdded);
+
+            var totalCount = await query.CountAsync();
+
+            var favorites = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .Select(f => new UserFavoriteDto
                 {
                     SeriesId = f.seriesId,
@@ -146,9 +170,17 @@ namespace UserService.UserSettingService
                 })
                 .ToListAsync();
 
-            return favorites;
+            await EnrichFavoriteItemsAsync(favorites);
+
+            return new PagedResult<UserFavoriteDto>
+            {
+                Items = favorites,
+                TotalRecords = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
         }
-        
+
 
 
         //Reset
@@ -176,5 +208,59 @@ namespace UserService.UserSettingService
             _logger.LogInformation("User {UserId} synced chapter counts for {Count} favorites", UserId, userFavorite.Count);
             return true;
         }
+
+
+        private async Task EnrichFavoriteItemsAsync(List<UserFavoriteDto> favoriteItems)
+        {
+            if (!favoriteItems.Any()) return;
+
+            var seriesIds = favoriteItems.Select(h => h.SeriesId).Distinct().ToList();
+            if (!seriesIds.Any()) return;
+
+            var httpClient = _httpClientFactory.CreateClient();
+            var enrichmentUrl = $"{_publicationServiceUrl}/api/internal/publication/batch-series-summary";
+
+            try
+            {
+                var response = await httpClient.PostAsJsonAsync(enrichmentUrl, seriesIds);
+                response.EnsureSuccessStatusCode();
+
+                var seriesSummaries = await response.Content.ReadFromJsonAsync<List<SeriesSummaryDto>>();
+
+                if (seriesSummaries != null && seriesSummaries.Any())
+                {
+                    var summaryLookup = seriesSummaries.ToDictionary(s => s.SeriesId);
+                    foreach (var item in favoriteItems)
+                    {
+                        if (summaryLookup.TryGetValue(item.SeriesId, out var summary))
+                        {
+                            item.SeriesTitle = summary.Title;
+                            item.SeriesCoverImage = summary.CoverImage;
+                        }
+                        else
+                        {
+                            item.SeriesTitle = "[Series Not Found]";
+                            _logger.LogWarning("Could not find summary details for Series {SeriesId}", item.SeriesId);
+                        }
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("Received no summary details from PublicationService for {Count} series IDs.", seriesIds.Count);
+                    foreach (var item in favoriteItems) item.SeriesTitle = "[Details Unavailable]";
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error enriching reading history from PublicationService. URL: {Url}", enrichmentUrl);
+                foreach (var item in favoriteItems)
+                {
+                    item.SeriesTitle = "[Error Fetching Details]";
+                }
+            }
+        }
+
+
+
     }
 }

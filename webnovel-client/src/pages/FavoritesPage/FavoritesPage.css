@@ -1,0 +1,123 @@
+﻿.favorites-page-container {
+    max-width: 1000px;
+    margin: 20px auto;
+    padding: 20px;
+    text-align: left;
+}
+
+    .favorites-page-container h1 {
+        font-size: 2rem;
+        color: var(--text-primary);
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 10px;
+        margin-bottom: 30px;
+    }
+
+.favorites-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.favorite-item {
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: box-shadow 0.2s;
+}
+
+    .favorite-item:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+.favorite-cover-wrapper {
+    width: 60px;
+    height: 90px;
+    flex-shrink: 0;
+    margin-right: 15px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.favorite-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.favorite-details {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.favorite-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    margin-bottom: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-decoration: none;
+}
+
+    .favorite-title:hover {
+        text-decoration: underline;
+    }
+
+.favorite-date { /* Chúng ta sẽ dùng class này để hiển thị "Last read" */
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: block;
+}
+
+.favorite-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+    margin-left: 20px;
+}
+
+.favorite-delete-btn {
+    background-color: transparent;
+    color: #e74c3c;
+    border: none;
+    padding: 5px 10px;
+    font-size: 1rem;
+    transition: color 0.2s;
+}
+
+    .favorite-delete-btn:hover {
+        color: #c0392b;
+        background-color: transparent;
+    }
+
+    .favorite-delete-btn:disabled {
+        opacity: 0.5;
+    }
+
+.favorites-empty {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.favorites-error {
+    color: #e74c3c;
+    text-align: center;
+    padding: 20px;
+    border: 1px solid #f4c7c3;
+    background-color: #fce8e6;
+    border-radius: 4px;
+    margin-top: 20px;
+}
+
+.pagination-container {
+    margin-top: 30px;
+}

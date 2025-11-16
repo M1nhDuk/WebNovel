@@ -15,7 +15,7 @@
     background: var(--bg-surface);
     border-radius: 8px;
     width: 90%;
-    max-width: 400px;
+    max-width: 360px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
@@ -30,6 +30,7 @@
     .settings-modal-header h4 {
         margin: 0;
         font-size: 1.2rem;
+        font-weight: 700;
         color: var(--text-primary);
     }
 
@@ -46,64 +47,69 @@
     padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 20px; 
 }
 
 .setting-group {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
     text-align: left;
 }
 
     .setting-group label {
-        font-size: 0.9rem;
+        font-size: 1rem; 
         font-weight: 600;
-        color: var(--text-secondary);
+        color: var(--text-primary); 
     }
 
     .setting-group select {
         width: 100%;
-        padding: 8px;
+        padding: 10px 12px; 
         border-radius: 4px;
         border: 1px solid var(--border-color);
+        background-color: var(--bg-main); 
+        font-size: 1rem;
     }
 
+/* --- CSS CHO MÀU NỀN --- */
 .color-options {
-    display: flex;
-    gap: 15px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
 }
 
-.color-dot {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
+.color-swatch {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 4px; 
     cursor: pointer;
     border: 2px solid var(--border-color);
+    transition: border-color 0.2s;
 }
 
-    .color-dot.active {
-        box-shadow: 0 0 0 3px var(--accent-color);
+    .color-swatch.active {
+        /* Dùng border xanh lá cây như trong ảnh */
+        border-color: #A4C8B8;
+        box-shadow: 0 0 0 2px #A4C8B8; 
     }
 
-/* --- CSS CHO NÚT BẤM TĂNG/GIẢM --- */
-
+/* --- CSS CHO STEPPER (Cỡ chữ, Bản lề) --- */
 .numeric-stepper {
     display: flex;
     align-items: center;
     width: 100%;
-    justify-content: space-between;
 }
 
     .numeric-stepper button {
         background: none;
-        border: none;
-        font-size: 1.8rem;
+        border: 1px solid var(--border-color);
+        font-size: 1.5rem; 
         color: var(--text-secondary);
         cursor: pointer;
         padding: 5px 15px;
-        font-weight: 300;
         line-height: 1;
+        height: 42px;
     }
 
         .numeric-stepper button:hover:not(:disabled) {
@@ -114,17 +120,67 @@
         .numeric-stepper button:disabled {
             color: #ccc;
             cursor: not-allowed;
+            background-color: transparent;
         }
 
+        /* Nút bên trái */
+        .numeric-stepper button:first-of-type {
+            border-top-left-radius: 4px;
+            border-bottom-left-radius: 4px;
+            border-right: none;
+        }
+
+        /* Nút bên phải */
+        .numeric-stepper button:last-of-type {
+            border-top-right-radius: 4px;
+            border-bottom-right-radius: 4px;
+            border-left: none;
+        }
+
+    /* Input hiển thị giá trị ở giữa */
     .numeric-stepper .value-display {
-        width: 100px;
+        width: 100%;
         text-align: center;
         padding: 8px;
         border: 1px solid var(--border-color);
-        border-radius: 4px;
         background-color: var(--bg-main);
         color: var(--text-primary);
         font-weight: 600;
-        margin: 0 10px;
-        flex-grow: 1;
+        font-size: 1rem;
+        height: 42px; 
+        box-sizing: border-box; 
+    }
+
+/* --- CSS  CHO CĂN CHỈNH --- */
+.alignment-options {
+    display: flex;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    overflow: hidden; 
+}
+
+.align-btn {
+    background: transparent;
+    border: none;
+    border-right: 1px solid var(--border-color);
+    padding: 10px 12px;
+    flex: 1; /* Chia đều 4 nút */
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .align-btn:last-child {
+        border-right: none;
+    }
+
+    .align-btn:hover {
+        background-color: var(--bg-main);
+    }
+
+    .align-btn.active {
+        background-color: var(--accent-color);
+        color: #FFFFFF;
     }
