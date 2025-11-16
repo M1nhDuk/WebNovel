@@ -1582,9 +1582,6 @@
 
 
 
-
-
-
     //Images publication base
     {
       "UpstreamPathTemplate": "/images/{everything}",

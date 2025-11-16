@@ -22,6 +22,6 @@ namespace Shareds.DTOs.Comment
         public string? UserAvatarThumbnail { get; set; }
 
         public int ReplyCount { get; set; } = 0;
-
+        public List<CommentDto> Replies { get; set; } = new List<CommentDto>();
     }
 }

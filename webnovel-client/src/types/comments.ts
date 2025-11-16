@@ -5,12 +5,34 @@ export interface CommentDto {
     createdAt: string; 
     userName?: string;
     userAvatarThumbnail?: string | null; 
-
     replyCount: number;
+    replies: CommentDto[];
 }
 
 export interface CommentSectionProps {
     seriesId?: number;
     chapterId?: number;
     totalCommentCount: number;
+}
+
+export interface CommentItemProps {
+    comment: CommentDto;
+    onToggleReply: (commentId: string) => void;
+    replyingToId: string | null;
+    targetId: number;
+    targetType: 'series' | 'chapters';
+    onReplySuccess: () => void;
+    getAvatarUrl: (path: string | null | undefined) => string;
+    formatTimeAgo: (dateString: string) => string;
+    isReply: boolean;
+}
+
+
+export interface CommentReplyInputProps {
+    targetId: number; 
+    targetType: 'series' | 'chapters';
+    parentCommentId: string; 
+    authorUsername: string; 
+    onReplySuccess: () => void; 
+    onCancel: () => void;
 }
