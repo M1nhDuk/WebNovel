@@ -81,7 +81,7 @@ const ReaderSettingsPanel: React.FC<ReaderSettingsPanelProps> = ({ isOpen, onClo
 
                     {/* Font Family */}
                     <div className="setting-group">
-                        <label htmlFor="fontFamily">Font</label>
+                        <label htmlFor="fontFamily">Font chữ</label>
                         <select
                             id="fontFamily"
                             value={settings.fontFamily}
