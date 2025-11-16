@@ -6,22 +6,21 @@ import type { NovelSeriesDetailDto, FullChapterDto, NovelDetailDto, ChapterDetai
 import ChapterCommentSection from '../../components/common/comments/ChapterCommentSection.tsx';
 
 import {
-    FaHome,
-    FaArrowLeft,
-    FaArrowRight,
-    FaCog,
-    FaInfoCircle,
-    FaBookmark,
-    FaListUl,
-    FaArrowCircleLeft
+    FaHome, FaArrowLeft, FaArrowRight, FaCog, FaInfoCircle, FaBookmark, FaListUl, FaArrowCircleLeft
 } from 'react-icons/fa';
 import './ChapterDetailPage.css';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
+import { useReaderSettings } from '../../hooks/useReaderSettings';
+import ReaderSettingsPanel from '../../components/reader/ReaderSettingsPanel';
 
-// Helper lấy URL ảnh, đảm bảo hoạt động
+
+
 const GATEWAY_URL = 'https://localhost:8000';
+
+
+
 const getImageUrl = (coverPath: string | undefined | null) => {
     if (!coverPath) {
         return `${GATEWAY_URL}/images/covers/default_cover.jpg`;
@@ -29,6 +28,7 @@ const getImageUrl = (coverPath: string | undefined | null) => {
     const formattedPath = coverPath.startsWith('/') ? coverPath : `/${coverPath}`;
     return `${GATEWAY_URL}${formattedPath}`;
 };
+
 
 const ChapterDetailPage: React.FC = () => {
     const { seriesId, chapterId } = useParams<{ seriesId: string, chapterId: string }>();
@@ -41,18 +41,17 @@ const ChapterDetailPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
+    const { settings, isLoading: isSettingsLoading } = useReaderSettings();
     const numChapterId = chapterId ? parseInt(chapterId, 10) : 0;
 
     useEffect(() => {
         const fetchChapterData = async () => {
             if (!seriesId || !chapterId) return;
-
             setLoading(true);
             setError(null);
-
             try {
-                
                 const seriesResponse = await apiClient.get<NovelSeriesDetailDto>(
                     API_ROUTES.SERIES.GET_BY_ID(seriesId)
                 );
@@ -75,15 +74,11 @@ const ChapterDetailPage: React.FC = () => {
                         }
                     }
                 }
-
                 if (!contentApiUrl || !foundChapterMeta) {
                     throw new Error("Chapter not found within series.");
                 }
-
-                // 3. Lấy nội dung chi tiết của chương
                 const chapterResponse = await apiClient.get<FullChapterDto>(contentApiUrl);
                 setChapter(chapterResponse.data);
-
             } catch (err: any) {
                 console.error("Failed to fetch chapter:", err);
                 setError(err.response?.data?.message || "Cannot load chapter.");
@@ -91,7 +86,6 @@ const ChapterDetailPage: React.FC = () => {
                 setLoading(false);
             }
         };
-
         fetchChapterData();
     }, [seriesId, chapterId, numChapterId]);
 
@@ -100,24 +94,8 @@ const ChapterDetailPage: React.FC = () => {
         return formatDistanceToNow(date, { addSuffix: true, locale: vi });
     };
 
-    if (loading) {
-        return <div className="chapter-loading-screen">Loading...</div>;
-    }
-
-    if (error) {
-        return <div className="chapter-loading-screen">{error}</div>;
-    }
-
-    if (!chapter || !series) {
-        return <div className="chapter-loading-screen">Chapter not found.</div>;
-    }
-
-    const paragraphs = chapter.content.split('\n').filter(p => p.trim() !== '');
-
-    // Hàm render danh sách chương cho cột trái
     const renderChapterList = () => {
-
-        // Flow 2: TRADITIONAL (Series -> Chapter)
+        if (!series) return null;
         if (series.type === 'TRADITIONAL') {
             return (
                 <ul className="sidebar-list">
@@ -134,14 +112,10 @@ const ChapterDetailPage: React.FC = () => {
                 </ul>
             );
         }
-
-        // Flow 1: Series (Series -> Novel -> Chapter)
         return (
             <div className="sidebar-volume-list">
                 {series.novels.map(novel => (
                     <div key={novel.novel_Id} className="sidebar-volume-group">
-
-                        {/* Volume Title */}
                         <h4 className="sidebar-volume-title">{novel.title}</h4>
                         <ul className="sidebar-list">
                             {novel.chapters.map(ch => (
@@ -161,17 +135,52 @@ const ChapterDetailPage: React.FC = () => {
         );
     };
 
+    // Style cho toàn bộ nền của cột giữa
+    const mainContentStyles: React.CSSProperties = {
+        backgroundColor: settings.backgroundColor,
+    };
+
+    // Style cho wrapper nội dung (chỉ lề)
+    const wrapperStyles: React.CSSProperties = {
+        paddingLeft: `${settings.paddingPx}px`,
+        paddingRight: `${settings.paddingPx}px`,
+    };
+
+    // Style chỉ áp dụng cho VĂN BẢN NỘI DUNG
+    const bodyTextStyles: React.CSSProperties = {
+        fontFamily: settings.fontFamily,
+        color: settings.fontColor,
+        fontSize: `${settings.fontSize}px`,
+        textAlign: settings.aligment as any,
+    };
+
+
+
+    if (loading || isSettingsLoading) {
+        return <div className="chapter-loading-screen">Loading...</div>;
+    }
+    if (error) {
+        return <div className="chapter-loading-screen">{error}</div>;
+    }
+    if (!chapter || !series) {
+        return <div className="chapter-loading-screen">Chapter not found.</div>;
+    }
+
+    const paragraphs = chapter.content.split('\n').filter(p => p.trim() !== '');
+
     return (
         <>
+            <ReaderSettingsPanel
+                isOpen={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+            />
+
             <div className={`chapter-page-layout ${isSidebarOpen ? 'sidebar-visible' : ''}`}>
-
-                {/* === CỘT TRÁI: DANH SÁCH CHƯƠNG === */}
-
+                {/* Cột trái (Sidebar) */}
                 <aside className="chapter-sidebar-left">
                     <div className="sidebar-left-header">
                         <Link to={`/series/${series.series_Id}`} className="sidebar-series-link">
                             <img
-    
                                 src={getImageUrl(series.cover_images)}
                                 alt={series.series_title}
                                 className="sidebar-series-cover"
@@ -181,8 +190,6 @@ const ChapterDetailPage: React.FC = () => {
                                 <span>{series.author || 'Updating'}</span>
                             </div>
                         </Link>
-
-                        {/* Nút này sẽ đóng sidebar trên mobile */}
                         <button
                             className="sidebar-close-button"
                             title="Close"
@@ -194,17 +201,21 @@ const ChapterDetailPage: React.FC = () => {
                     {renderChapterList()}
                 </aside>
 
-                {/* === CỘT GIỮA: NỘI DUNG CHÍNH === */}
-
-                <main className="chapter-content-main">
-                    <div className="chapter-content-wrapper">
+                {/* Áp dụng style đã tách */}
+                <main
+                    className="chapter-content-main"
+                    style={mainContentStyles} 
+                >
+                    <div
+                        className="chapter-content-wrapper"
+                        style={wrapperStyles} 
+                    >
+                        
                         <header className="chapter-header">
                             <div className="chapter-series-title">
                                 <Link to={`/series/${series.series_Id}`}>
                                     {series.series_title}
                                 </Link>
-
-                                {/* Hiển thị tên Volume (nếu có) */}
                                 {parentNovel && (
                                     <>
                                         {' / '}
@@ -214,7 +225,9 @@ const ChapterDetailPage: React.FC = () => {
                                     </>
                                 )}
                             </div>
-                            <h1 className="chapter-main-title">{chapter.title}</h1>
+                            <h1 className="chapter-main-title">
+                                {chapter.title}
+                            </h1>
                             <div className="chapter-metadata">
                                 <span>Length: {chapter.word_count.toLocaleString('vi-VN')} từ</span>
                                 <span> • </span>
@@ -222,9 +235,10 @@ const ChapterDetailPage: React.FC = () => {
                             </div>
                         </header>
 
+                       
                         <div className="chapter-body">
                             {paragraphs.map((para, index) => (
-                                <p key={index}>{para}</p>
+                                <p key={index} style={bodyTextStyles}>{para}</p>
                             ))}
                         </div>
                     </div>
@@ -232,10 +246,9 @@ const ChapterDetailPage: React.FC = () => {
                     <ChapterCommentSection
                         chapterId={Number(chapterId)}
                     />
-
                 </main>
 
-                {/* === CỘT PHẢI: THANH CÔNG CỤ === */}
+                {/* Cột phải (Toolbar) */}
                 <aside className="chapter-toolbar-right">
                     <button className="toolbar-button" title="Previous Chapter" onClick={() => alert('Chuyển chương trước')}>
                         <FaArrowLeft />
@@ -243,8 +256,6 @@ const ChapterDetailPage: React.FC = () => {
                     <button className="toolbar-button" title="Series Page" onClick={() => navigate(`/series/${seriesId}`)}>
                         <FaHome />
                     </button>
-
-
                     <button
                         className="toolbar-button"
                         title="Danh sách chương"
@@ -252,9 +263,15 @@ const ChapterDetailPage: React.FC = () => {
                     >
                         <FaListUl />
                     </button>
-                    <button className="toolbar-button" title="Setting" onClick={() => alert('Mở cài đặt')}>
+
+                    <button
+                        className="toolbar-button"
+                        title="Setting"
+                        onClick={() => setIsSettingsOpen(true)}
+                    >
                         <FaCog />
                     </button>
+
                     <button className="toolbar-button" title="Information" onClick={() => alert('Hiển thị thông tin')}>
                         <FaInfoCircle />
                     </button>
@@ -267,7 +284,6 @@ const ChapterDetailPage: React.FC = () => {
                 </aside>
             </div>
 
-            {/* Lớp phủ màu đen, bấm vào sẽ đóng sidebar */}
             {isSidebarOpen && (
                 <div
                     className="sidebar-overlay"

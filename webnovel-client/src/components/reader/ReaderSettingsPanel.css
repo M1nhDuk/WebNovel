@@ -1,0 +1,130 @@
+﻿.settings-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-modal-content {
+    background: var(--bg-surface);
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.settings-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+    .settings-modal-header h4 {
+        margin: 0;
+        font-size: 1.2rem;
+        color: var(--text-primary);
+    }
+
+.settings-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0;
+}
+
+.settings-modal-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.setting-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: left;
+}
+
+    .setting-group label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+
+    .setting-group select {
+        width: 100%;
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+    }
+
+.color-options {
+    display: flex;
+    gap: 15px;
+}
+
+.color-dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid var(--border-color);
+}
+
+    .color-dot.active {
+        box-shadow: 0 0 0 3px var(--accent-color);
+    }
+
+/* --- CSS CHO NÚT BẤM TĂNG/GIẢM --- */
+
+.numeric-stepper {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+}
+
+    .numeric-stepper button {
+        background: none;
+        border: none;
+        font-size: 1.8rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        padding: 5px 15px;
+        font-weight: 300;
+        line-height: 1;
+    }
+
+        .numeric-stepper button:hover:not(:disabled) {
+            color: var(--accent-color);
+            background-color: var(--bg-main);
+        }
+
+        .numeric-stepper button:disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+
+    .numeric-stepper .value-display {
+        width: 100px;
+        text-align: center;
+        padding: 8px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        background-color: var(--bg-main);
+        color: var(--text-primary);
+        font-weight: 600;
+        margin: 0 10px;
+        flex-grow: 1;
+    }

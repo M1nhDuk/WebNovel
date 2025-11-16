@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="src\api\" />
+    <Folder Include="src\components\reader\" />
     <Folder Include="src\context\" />
     <Folder Include="src\hooks\" />
     <Folder Include="src\pages\ForgotPasswordPage\" />
