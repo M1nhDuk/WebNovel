@@ -46,6 +46,7 @@ const ChapterDetailPage: React.FC = () => {
     const { settings, isLoading: isSettingsLoading } = useReaderSettings();
     const numChapterId = chapterId ? parseInt(chapterId, 10) : 0;
 
+    const chapterBodyRef = useRef<HTMLDivElement>(null); // Đã có
     useEffect(() => {
         const fetchChapterData = async () => {
             if (!seriesId || !chapterId) return;
