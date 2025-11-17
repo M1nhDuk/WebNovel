@@ -7,6 +7,7 @@ using Microsoft.OpenApi.Models;
 using UserService.Services.Interfaces;
 using UserService.UserSettingService.Interface;
 using UserService.UserSettingService;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,17 @@ var novelServiceUrl = builder.Configuration["ServiceUrls:NovelService"] ??
 builder.Services.AddHttpClient("NovelServiceClient", client =>
 {
     client.BaseAddress = new Uri(novelServiceUrl);
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{
+    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+    {
+        if (builder.Environment.IsDevelopment())
+        {
+            return true; 
+        }
+        return errors == System.Net.Security.SslPolicyErrors.None;
+    }
 });
 
 builder.Services.AddScoped<IUserFavoriteService, UserFavoriteService>();
@@ -29,7 +41,6 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IBookmarkService, BookmarkService>();
 builder.Services.AddScoped<IReadingHistoryService, ReadingHistoryService>();
 
-builder.Services.AddHttpClient();
 
 // Thêm Authentication (JWT)
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -85,7 +96,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 
 
@@ -94,10 +105,10 @@ builder.Services.AddSwaggerGen(options =>
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
-        Type = SecuritySchemeType.Http, 
-        Scheme = "Bearer", 
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
         BearerFormat = "JWT",
-        In = ParameterLocation.Header, 
+        In = ParameterLocation.Header,
         Description = "Enter 'Bearer' + your token "
     });
 
@@ -128,7 +139,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication(); 
+app.UseAuthentication();
 
 app.UseAuthorization();
 

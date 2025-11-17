@@ -8,18 +8,44 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddHttpClient();
+
+builder.Services.AddHttpClient(Options.DefaultName)
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+    {
+        ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+        {
+            
+            if (builder.Environment.IsDevelopment())
+            {
+                return true;
+            }
+            return errors == System.Net.Security.SslPolicyErrors.None;
+        }
+    });
+
 
 var interactionServiceUrl = builder.Configuration["ServiceUrls:InteractionService"] ??
                               throw new InvalidOperationException("ServiceUrls:InteractionService is not configured.");
 
+
 builder.Services.AddHttpClient("InteractionServiceClient", client =>
 {
     client.BaseAddress = new Uri(interactionServiceUrl);
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{
+    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+    {
+        if (builder.Environment.IsDevelopment())
+        {
+            return true;
+        }
+        return errors == System.Net.Security.SslPolicyErrors.None;
+    }
 });
 
 
@@ -56,9 +82,8 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 
-builder.Services.AddHttpClient();
 
-// L?y connection string t? appsettings.json
+// Lấy connection string từ appsettings.json
 var connectionString = builder.Configuration.GetConnectionString("MySqlConnection");
 
 
@@ -82,9 +107,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnAuthenticationFailed = context =>
             {
-                // Ghi log l?i chi ti?t vào Console khi xác th?c th?t b?i
+                // Ghi log lỗi chi tiết vào Console khi xác thực thất bại
                 Console.WriteLine("----- JWT Authentication Failed -----");
-                Console.WriteLine("Exception: " + context.Exception.ToString()); // In toàn b? exception
+                Console.WriteLine("Exception: " + context.Exception.ToString()); // In toàn bộ exception
                 Console.WriteLine("-------------------------------------");
                 return Task.CompletedTask;
             },
@@ -115,11 +140,11 @@ builder.Services.AddAuthorization();
 
 
 
-// ??ng ký DbContext v?i MySQL
+// Đăng ký DbContext với MySQL
 builder.Services.AddDbContext<NovelDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
-//??ng kí AutoMapp
+//Đăng kí AutoMapp
 builder.Services.AddAutoMapper(typeof(Mapping));
 
 // Đăng ký service 
