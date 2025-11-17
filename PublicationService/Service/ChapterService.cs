@@ -29,7 +29,7 @@ namespace NovelService.Service
         }
 
         //TẠO CHAPTER (liên kết đến novel tồn tại) + update counts
-        public async Task<ChapterDetailDto> CreateChapterAsync(ChapterCreateDto dto)
+        public async Task<ChapterDetailDto> CreateChapterAsync(ChapterCreateDto dto, Guid uploader_id, string userRole)
         {
             if (dto == null) throw new ArgumentNullException(nameof(dto));
 
@@ -89,7 +89,16 @@ namespace NovelService.Service
                     var max = await _context.Chapters.Where(c => c.series_Id == dto.series_id.Value).MaxAsync(c => (int?)c.chapter_number) ?? 0;
                     chapterNumber = max + 1;
                 }
-         
+
+                if (parentSeries == null)
+                {
+                    throw new InvalidOperationException("Could not find parent series for authorization.");
+                }
+                if (parentSeries.uploader_id != uploader_id && userRole != "Admin")
+                {
+                    throw new UnauthorizedAccessException("You are not authorized to add chapters to this content.");
+                }
+
                 var chapter = new Chapter
                 {
                     novelID = dto.novelID,
@@ -134,10 +143,10 @@ namespace NovelService.Service
                 throw;
             }
         }
-        
+
 
         //Update
-        public async Task<ChapterDetailDto?> UpdateChapterAsync(int chapter_id, ChapterUpdateDto dto, Guid uploader_id, int? novelId = null, int? seriesId = null) // chưa check quyền quản tri (uploaderID)
+        public async Task<ChapterDetailDto?> UpdateChapterAsync(int chapter_id, ChapterUpdateDto dto, Guid uploader_id, string userRole, int? novelId = null, int? seriesId = null)
         {
             var query = _context.Chapters
                 .Include(c => c.Novel).ThenInclude(n => n.NovelSeries)
@@ -163,9 +172,14 @@ namespace NovelService.Service
             // Xác định parentSeries
             var parentSeries = chapter.Novel?.NovelSeries ?? chapter.TS;
 
-            if (parentSeries == null || parentSeries.uploader_id != uploader_id)
+            if (parentSeries == null)
             {
-                throw new UnauthorizedAccessException("You are not authorized to edit this chapter.");
+                throw new InvalidOperationException("Could not find parent series for authorization.");
+            }
+
+            if (parentSeries.uploader_id != uploader_id && userRole != "Admin")
+            {
+                throw new UnauthorizedAccessException("You are not authorized to add chapters to this content.");
             }
 
             bool contentChanged = false;
@@ -230,7 +244,7 @@ namespace NovelService.Service
         }
 
         //Delete
-        public async Task<bool> DeleteChapterById(int id, Guid uploaderId, int? novelId = null, int? seriesId = null) 
+        public async Task<bool> DeleteChapterById(int id, Guid uploaderId, string userRole, int? novelId = null, int? seriesId = null)
         {
             var query = _context.Chapters
                 .Include(c => c.Novel).ThenInclude(n => n.NovelSeries)
@@ -252,8 +266,8 @@ namespace NovelService.Service
 
             var parentSeries = chapter.Novel?.NovelSeries ?? chapter.TS;
 
-            if (parentSeries == null || parentSeries.uploader_id != uploaderId)
-            { 
+            if (parentSeries == null || (parentSeries.uploader_id != uploaderId && userRole != "Admin"))
+            {
                 throw new UnauthorizedAccessException("You are not authorized to delete this chapter.");
             }
 
@@ -301,7 +315,7 @@ namespace NovelService.Service
         }
 
         //Reorder
-        public async Task<bool> ReorderChapterAsync(ReorderChaptersRequest request)
+        public async Task<bool> ReorderChapterAsync(ReorderChaptersRequest request, Guid uploaderId, string userRole)
         {
             var hasNovelParent = request.novel_Id.HasValue;
             var hasSeriesParent = request.series_Id.HasValue;
@@ -312,13 +326,16 @@ namespace NovelService.Service
             }
 
             List<Chapter> chapters;
+            NovelSeries parentSeries = null;
 
-            if(hasNovelParent)
+            if (hasNovelParent)
             {
                 chapters = await _context.Chapters
                    .Where(c => c.novelID == request.novel_Id)
+                   .Include(c => c.Novel).ThenInclude(n => n.NovelSeries)
                    .OrderBy(c => c.chapter_number)
                    .ToListAsync();
+                parentSeries = chapters.FirstOrDefault()?.Novel?.NovelSeries;
             }
             else
             {
@@ -329,6 +346,7 @@ namespace NovelService.Service
                     return false; // Hoặc ném lỗi
                 }
 
+                parentSeries = series;
                 chapters = await _context.Chapters
                     .Where(c => c.series_Id == request.series_Id)
                     .OrderBy(c => c.chapter_number)
@@ -337,6 +355,12 @@ namespace NovelService.Service
                        
 
             if (!chapters.Any()) return false;
+
+            if (parentSeries == null) return false;
+            if (parentSeries.uploader_id != uploaderId && userRole != "Admin")
+            {
+                throw new UnauthorizedAccessException("You are not authorized to reorder these chapters.");
+            }
 
             int total = chapters.Count;
 

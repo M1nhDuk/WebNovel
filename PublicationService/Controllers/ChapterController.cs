@@ -26,6 +26,13 @@ namespace NovelService.Controllers
             _logger = logger;
         }
 
+
+        private string GetUserRoleFromToken()
+        {
+            var role = User.FindFirstValue(ClaimTypes.Role);
+            return role ?? "User";
+        }
+
         private Guid GetUserIdFromToken()
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -46,9 +53,11 @@ namespace NovelService.Controllers
         {
             try
             {
+                var uploaderId = GetUserIdFromToken(); 
+                var userRole = GetUserRoleFromToken();
                 dto.novelID = novelId;
                 dto.series_id = null;
-                var result = await _chapterService.CreateChapterAsync(dto);
+                var result = await _chapterService.CreateChapterAsync(dto, uploaderId, userRole);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -67,7 +76,8 @@ namespace NovelService.Controllers
             try
             {
                 var uploaderId = GetUserIdFromToken();
-                var result = await _chapterService.UpdateChapterAsync(chapterId, dto, uploaderId, novelId: novelId);
+                var userRole = GetUserRoleFromToken();
+                var result = await _chapterService.UpdateChapterAsync(chapterId, dto, uploaderId, userRole, novelId: novelId);
                 if (result == null) return NotFound(new { message = "Chapter not found within this novel." });
                 return Ok(result);
             }
@@ -99,7 +109,8 @@ namespace NovelService.Controllers
             try
             {
                 var uploaderId = GetUserIdFromToken();
-                var deleted = await _chapterService.DeleteChapterById(chapterId, uploaderId, novelId: novelId);
+                var userRole = GetUserRoleFromToken();
+                var deleted = await _chapterService.DeleteChapterById(chapterId, uploaderId, userRole, novelId: novelId);
                 if (!deleted) return NotFound(new { message = "Chapter not found within this novel." });
                 return NoContent();
             }
@@ -116,9 +127,11 @@ namespace NovelService.Controllers
         [Authorize]
         public async Task<IActionResult> ReorderChaptersForNovel([FromRoute] int novelId, [FromBody] ReorderChaptersRequest request)
         {
+            var uploaderId = GetUserIdFromToken(); 
+            var userRole = GetUserRoleFromToken();
             request.novel_Id = novelId;
             request.series_Id = null;
-            var result = await _chapterService.ReorderChapterAsync(request);
+            var result = await _chapterService.ReorderChapterAsync(request, uploaderId, userRole);
             if (!result) return BadRequest("Cannot reorder chapters for this novel.");
             return Ok("Chapters reordered successfully.");
         }
@@ -134,9 +147,11 @@ namespace NovelService.Controllers
             
             try
             {
+                var uploaderId = GetUserIdFromToken();
+                var userRole = GetUserRoleFromToken();
                 dto.series_id = seriesId;
                 dto.novelID = null;
-                var result = await _chapterService.CreateChapterAsync(dto);
+                var result = await _chapterService.CreateChapterAsync(dto, uploaderId, userRole);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -167,7 +182,8 @@ namespace NovelService.Controllers
             try
             {
                 var uploaderId = GetUserIdFromToken();
-                var result = await _chapterService.UpdateChapterAsync(chapterId, dto, uploaderId, seriesId: seriesId);
+                var userRole = GetUserRoleFromToken();
+                var result = await _chapterService.UpdateChapterAsync(chapterId, dto, uploaderId, userRole, seriesId: seriesId); ;
                 if (result == null) return NotFound(new { message = "Chapter not found within this series." });
                 return Ok(result);
             }
@@ -187,7 +203,8 @@ namespace NovelService.Controllers
             try
             {
                 var uploaderId = GetUserIdFromToken();
-                var deleted = await _chapterService.DeleteChapterById(chapterId, uploaderId, seriesId: seriesId);
+                var userRole = GetUserRoleFromToken();
+                var deleted = await _chapterService.DeleteChapterById(chapterId, uploaderId, userRole, seriesId: seriesId);
                 if (!deleted) return NotFound(new { message = "Chapter not found within this series." });
                 return NoContent();
             }
@@ -204,9 +221,11 @@ namespace NovelService.Controllers
         [Authorize]
         public async Task<IActionResult> ReorderChaptersForSeries([FromRoute] int seriesId, [FromBody] ReorderChaptersRequest request)
         {
+            var uploaderId = GetUserIdFromToken(); 
+            var userRole = GetUserRoleFromToken();
             request.series_Id = seriesId;
             request.novel_Id = null;
-            var result = await _chapterService.ReorderChapterAsync(request);
+            var result = await _chapterService.ReorderChapterAsync(request, uploaderId, userRole);
             if (!result) return BadRequest("Cannot reorder chapters for this series.");
             return Ok("Chapters reordered successfully.");
         }

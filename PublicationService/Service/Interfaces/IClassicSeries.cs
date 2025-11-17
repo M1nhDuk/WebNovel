@@ -8,7 +8,7 @@ namespace NovelService.Service.Interfaces
     {
         Task<ClassicSeriesDetailDto> CreateTraditionalSeriesAsync(CreateTraditionalSeriesDto dto, Guid uploaderId);
 
-        Task<ClassicSeriesDetailDto?> UpdateClassicSeriesAsync(int seriesId, UpdateClassicSeriesDto dto, Guid uploaderId);
-        
+        Task<ClassicSeriesDetailDto?> UpdateClassicSeriesAsync(int seriesId, UpdateClassicSeriesDto dto, Guid uploaderId, string userRole);
+
     }
 }

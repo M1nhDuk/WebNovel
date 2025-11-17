@@ -94,7 +94,7 @@ namespace NovelService.Service
         }
 
         //Update
-        public async Task<ClassicSeriesDetailDto?> UpdateClassicSeriesAsync(int seriesId, UpdateClassicSeriesDto dto, Guid uploaderId)
+        public async Task<ClassicSeriesDetailDto?> UpdateClassicSeriesAsync(int seriesId, UpdateClassicSeriesDto dto, Guid uploaderId, string userRole)
         {
             var series = await _context.ClassicSeries
                 .Include(s => s.NovelTags)
@@ -106,12 +106,12 @@ namespace NovelService.Service
                 return null;
             }
 
-            if (series.uploader_id != uploaderId)
+            if (series.uploader_id != uploaderId && userRole != "Admin") 
             {
                 throw new UnauthorizedAccessException("You are not authorized to update this series.");
             }
 
-            await _novelSeriesService.UpdateSeriesAsync(seriesId, dto, uploaderId);
+            await _novelSeriesService.UpdateSeriesAsync(seriesId, dto, uploaderId, userRole);
 
             //Cập nhật các thuộc tính riêng của ClassicSeries
             series.iSBN_10 = dto.iSBN_10 ?? series.iSBN_10;

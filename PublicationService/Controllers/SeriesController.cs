@@ -38,6 +38,11 @@ namespace NovelService.Controllers
                 _environment = environment; 
             }
 
+            private string GetUserRoleFromToken()
+            {
+                var role = User.FindFirstValue(ClaimTypes.Role);
+                return role ?? "User";
+            }
 
             private Guid GetUserIdFromToken()
             {
@@ -75,8 +80,9 @@ namespace NovelService.Controllers
                 try
                 {
                     var uploaderId = GetUserIdFromToken();
+                    var userRole = GetUserRoleFromToken();
 
-                    var result = await _seriesService.UpdateSeriesAsync(id, dto, uploaderId);
+                    var result = await _seriesService.UpdateSeriesAsync(id, dto, uploaderId, userRole);
                     if (result == null)
                         return NotFound(new { message = "Series not found" });
 
@@ -122,7 +128,9 @@ namespace NovelService.Controllers
                 try
                 {
                     var uploaderId = GetUserIdFromToken();
-                    var result = await _seriesService.DeleteSeriesById(id, uploaderId);
+                    var userRole = GetUserRoleFromToken();
+
+                    var result = await _seriesService.DeleteSeriesById(id, uploaderId, userRole);
                     if (!result)
                         return NotFound(new { message = "Series not found" });
 
@@ -324,7 +332,8 @@ namespace NovelService.Controllers
                 try
                 {
                     var uploaderId = GetUserIdFromToken();
-                    var result = await _classicSeries.UpdateClassicSeriesAsync(id, dto, uploaderId);
+                    var userRole = GetUserRoleFromToken();
+                    var result = await _classicSeries.UpdateClassicSeriesAsync(id, dto, uploaderId, userRole);
                     if (result == null)
                         return NotFound(new { message = "Classic Series not found or you are not authorized." });
 
