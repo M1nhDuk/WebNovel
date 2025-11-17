@@ -158,7 +158,7 @@ const ReaderSettingsPanel: React.FC<ReaderSettingsPanelProps> = ({ isOpen, onClo
 
                     {/* Text Alignment */}
                     <div className="setting-group">
-                        <label>Kiểu căn chinh</label>
+                        <label>Aligment</label>
                         <div className="alignment-options">
                             {ALIGNMENTS.map(align => (
                                 <button

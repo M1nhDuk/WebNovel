@@ -51,7 +51,7 @@
         padding: 8px 15px;
         font-size: 0.9rem;
         font-weight: 600;
-        background-color: #27ae60; /* Màu xanh lá cây tương tự nút Đăng bình luận */
+        background-color: #27ae60; 
         color: white;
         border: none;
     }
@@ -115,7 +115,7 @@
 
 .comment-text {
     margin: 0 0 5px 0;
-    color: var(--text-secondary);
+    color: #000000;
     white-space: pre-wrap;
     font-size: 0.95rem;
 }

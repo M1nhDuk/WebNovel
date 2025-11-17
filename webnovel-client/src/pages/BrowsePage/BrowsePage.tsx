@@ -78,7 +78,7 @@ const BrowsePage: React.FC = () => {
             );
 
             if (foundTag) {
-                //Set the radio filter to this ID
+                //Check radio
                 setSelectedTagId(foundTag.tagId);
 
                 // Clean up the URL parameter
@@ -295,6 +295,7 @@ const BrowsePage: React.FC = () => {
                             />
                             <label htmlFor="cat-all">All Categories</label>
                         </div>
+
                         {/* Map qua các category */}
                         {categories.map(cat => (
                             <div className="filter-item" key={cat.category_id}>

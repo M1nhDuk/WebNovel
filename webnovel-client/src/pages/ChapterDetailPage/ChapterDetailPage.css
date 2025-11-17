@@ -43,7 +43,7 @@
     transform: translateX(0);
 }
 
-/* Lớp phủ mờ (đi kèm với sidebar) */
+/* Lớp phủ mờ */
 .sidebar-overlay {
     position: fixed;
     top: 0;
@@ -55,7 +55,7 @@
     display: none; /* Ẩn trên desktop */
 }
 
-/* Header của sidebar trái (chứa ảnh/tên truyện) */
+/* Header của sidebar trái */
 .sidebar-left-header {
     padding: 15px;
     border-bottom: 1px solid var(--border-color);
@@ -77,7 +77,6 @@
 
 .sidebar-series-cover {
     width: 40px;
-    /* Sửa: height: 60px; (cho giống ảnh bìa sách) */
     height: 60px;
     border-radius: 4px;
     object-fit: cover;
@@ -161,7 +160,7 @@
     min-width: 0;
     padding: 20px 40px;
     transition: margin-left 0.3s ease;
-    margin-left: 0; /* Mặc định */
+    margin-left: 0; 
 }
 
 
@@ -299,11 +298,11 @@
 
     .toolbar-button {
         border-bottom: none;
-        flex: 1; /* Các nút chia đều không gian */
+        flex: 1; 
     }
 
     .chapter-content-main {
-        padding: 10px 10px 70px 10px; /* 70px = 50px toolbar + 20px lề */
+        padding: 10px 10px 70px 10px; 
     }
 
     .chapter-content-wrapper {

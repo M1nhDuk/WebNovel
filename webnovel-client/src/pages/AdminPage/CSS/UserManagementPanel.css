@@ -18,8 +18,8 @@
         padding: 8px 12px;
         border: 1px solid var(--border-color);
         border-radius: 4px;
-        background-color: #fff; /* Nền trắng */
-        color: #333; /* Chữ đen */
+        background-color: #fff; 
+        color: #333; 
         font-size: 0.9rem;
     }
 

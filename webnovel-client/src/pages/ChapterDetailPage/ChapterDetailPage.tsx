@@ -187,6 +187,8 @@ const ChapterDetailPage: React.FC = () => {
         };
     }, [flatChapterList, numChapterId, seriesId]);
 
+
+
     const handleNavigate = (direction: 'prev' | 'next') => {
         if (direction === 'prev') {
             if (navigationLinks.prev) {
@@ -311,6 +313,7 @@ const ChapterDetailPage: React.FC = () => {
 
         return (
             <div className="sidebar-content-wrapper">
+
                 {/* === THANH TABS === */}
                 <div className="sidebar-tabs">
                     <button
@@ -327,8 +330,10 @@ const ChapterDetailPage: React.FC = () => {
                     </button>
                 </div>
 
+
                 {/* === NỘI DUNG TAB === */}
                 <div className="sidebar-list-container">
+
                     {/* --- TAB CHAPTERS --- */}
                     {sidebarMode === 'chapters' && (
                         series.type === 'TRADITIONAL' ? (

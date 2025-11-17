@@ -65,7 +65,6 @@
         background-color: #ebf5ff; 
     }
 
-    /* Khi hover, ưu tiên màu chính */
     .tag-list-item:hover {
         background-color: #f0f0f0;
     }

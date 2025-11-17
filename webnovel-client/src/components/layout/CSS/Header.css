@@ -163,3 +163,26 @@
         border-top: 1px solid var(--border-color);
         margin: 8px 0;
     }
+
+.notification-icon-wrapper {
+    position: relative;
+    display: flex; 
+    align-items: center;
+    justify-content: center;
+}
+
+.notification-badge {
+    position: absolute;
+    top: -5px; 
+    right: -10px;
+    background-color: #e74c3c; 
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 5px;
+    border-radius: 10px; 
+    min-width: 10px; 
+    text-align: center;
+    line-height: 1;
+    border: 1px solid var(--bg-surface); 
+}

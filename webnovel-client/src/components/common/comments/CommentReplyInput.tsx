@@ -48,7 +48,7 @@ const CommentReplyInput: React.FC<CommentReplyInputProps> = ({
     if (!user) {
         return (
             <div className="comment-login-prompt" style={{ margin: '10px 0 0 55px' }}>
-                Bạn cần <Link to="/login">Đăng nhập</Link> để trả lời.
+                Bạn cần <Link to="/login">Login</Link> to reply.
             </div>
         );
     }

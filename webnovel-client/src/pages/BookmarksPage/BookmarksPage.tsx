@@ -61,7 +61,7 @@ const BookmarksPage: React.FC = () => {
 
             setBookmarkList(response.data.items);
             setCurrentPage(response.data.pageNumber);
-            // Đã xóa setTotalRecords(response.data.totalRecords);
+
         } catch (err: any) {
             console.error("Failed to fetch bookmarks list:", err);
             setError(err.response?.data?.message || "Could not load your bookmarks.");

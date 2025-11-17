@@ -14,7 +14,7 @@ import './NotificationsPage.css';
 const PAGE_SIZE = 15;
 
 const NotificationsPage: React.FC = () => {
-    const { user, isLoading: userLoading } = useAuth();
+    const { user, isLoading: userLoading, refreshUnreadCount } = useAuth();
     const navigate = useNavigate();
 
     const [notifications, setNotifications] = useState<NotificationDto[]>([]);
@@ -69,11 +69,15 @@ const NotificationsPage: React.FC = () => {
         }
     }, [user, userLoading]);
 
+
+
     useEffect(() => {
         if (user) {
             fetchNotifications(currentPage);
         }
     }, [user, fetchNotifications, currentPage]);
+
+
 
     const handlePageChange = (page: number) => {
         if (page !== currentPage) {
@@ -81,6 +85,8 @@ const NotificationsPage: React.FC = () => {
             window.scrollTo(0, 0);
         }
     };
+
+
 
     const handleSelect = (id: string) => {
         setSelectedIds(prev => {
@@ -94,14 +100,19 @@ const NotificationsPage: React.FC = () => {
         });
     };
 
+
+
     const handleMarkAllAsRead = async () => {
         try {
             await apiClient.post(API_ROUTES.USER.MARK_ALL_AS_READ);
-            fetchNotifications(currentPage); // T?i l?i
+            fetchNotifications(currentPage);      
+            refreshUnreadCount(); 
         } catch (err) {
             setError("Failed to mark all as read.");
         }
     };
+
+
 
     const handleDeleteSelected = async () => {
         if (selectedIds.size === 0) return;
@@ -117,23 +128,28 @@ const NotificationsPage: React.FC = () => {
 
            
             if (notifications.length === selectedIds.size && currentPage > 1) {
-                setCurrentPage(currentPage - 1);
+                fetchNotifications(currentPage - 1);
             } else {
                 fetchNotifications(currentPage);
             }
+            refreshUnreadCount();
 
         } catch (err: any) {
             setError(err.response?.data?.message || "Failed to delete notifications.");
         }
     };
 
+
+
     const formatTime = (dateString: string) => {
         return formatDistanceToNow(new Date(dateString), { addSuffix: true, locale: vi });
     };
 
+
     if (userLoading || (isLoading && currentPage === 1)) {
         return <div className="notifications-page-container"><h1>Notifications</h1>Loading...</div>;
     }
+
 
     if (!user) {
         return (
@@ -143,6 +159,8 @@ const NotificationsPage: React.FC = () => {
             </div>
         );
     }
+
+
 
     return (
         <div className="notifications-page-container">
