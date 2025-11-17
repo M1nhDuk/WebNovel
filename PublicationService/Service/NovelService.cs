@@ -81,7 +81,7 @@ namespace NovelService.Service
         }
 
         //Update 
-        public async Task<NovelDetailDto?> UpdateNovelAsync(int novel_Id, NovelUpdateDto dto, Guid uploader_id, int series_Id)
+        public async Task<NovelDetailDto?> UpdateNovelAsync(int novel_Id, NovelUpdateDto dto, Guid uploader_id, string userRole, int series_Id)
         {
             // kiểm tra series tồn tại
             var novel = await _context.Novels
@@ -97,7 +97,7 @@ namespace NovelService.Service
                 throw new InvalidOperationException("Cannot update novel: Parent series not found.");
             }
 
-            if (novel.NovelSeries.uploader_id != uploader_id)
+            if (novel.NovelSeries.uploader_id != uploader_id && userRole != "Admin") 
             {
                 throw new UnauthorizedAccessException("You are not authorized to update this novel.");
             }
@@ -164,7 +164,7 @@ namespace NovelService.Service
 
 
         //Delete
-        public async Task<bool> DeleteNovelAsync(int id, Guid uploader_Id, int series_Id)
+        public async Task<bool> DeleteNovelAsync(int id, Guid uploader_Id, string userRole, int series_Id)
         {
 
             var novel = await _context.Novels
@@ -181,7 +181,7 @@ namespace NovelService.Service
                 throw new InvalidOperationException("Cannot delete novel: Parent series not found.");
             }
 
-            if (novel.NovelSeries.uploader_id != uploader_Id)
+            if (novel.NovelSeries.uploader_id != uploader_Id && userRole != "Admin")
             {
                 throw new UnauthorizedAccessException("You are not authorized to delete this novel.");
             }
@@ -210,21 +210,29 @@ namespace NovelService.Service
 
 
         //Reorder
-        public async Task<bool> ReorderNovelsAsync(NovelReoderRequest request)
+        public async Task<bool> ReorderNovelsAsync(NovelReoderRequest request, Guid uploader_Id, string userRole)
         {
             // Lấy tất cả novels thuộc series
             var novels = await _context.Novels
                 .Where(n => n.series_Id == request.series_Id)
+                .Include(n => n.NovelSeries)
                 .OrderBy(n => n.novel_number)
                 .ToListAsync();
 
             if(!novels.Any()) return false;
 
+            var parentSeries = novels.FirstOrDefault()?.NovelSeries;
+            if (parentSeries == null) return false;
+            if (parentSeries.uploader_id != uploader_Id && userRole != "Admin") 
+            {
+                throw new UnauthorizedAccessException("You are not authorized to reorder these novels.");
+            }
+
             int total = novels.Count;
 
             if(request.Novels == null || request.Novels.Count == 0) return false;
 
-            //check duplicate trong novel list
+            
             if (request.Novels.Select(d => d.novel_id).Distinct().Count() != request.Novels.Count) return false;
 
             //Check chapter id có tồn tại 

@@ -19,6 +19,13 @@ namespace InteractionService.Controllers
             _commentService = commentService;
             _logger = logger;
         }
+
+        private string GetUserRoleFromToken()
+        {
+            var roleStr = User.FindFirstValue(ClaimTypes.Role);
+            return roleStr ?? "User";
+        }
+
         private Guid GetUserIdFromToken()
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -175,7 +182,8 @@ namespace InteractionService.Controllers
             try
             {
                 var userId = GetUserIdFromToken();
-                var success = await _commentService.DeleteCommentAsync(commentId, userId);
+                var userRole = GetUserRoleFromToken();
+                var success = await _commentService.DeleteCommentAsync(commentId, userId, userRole);
                 if (!success)
                 {
                     return NotFound(new { message = "Comment not found." });

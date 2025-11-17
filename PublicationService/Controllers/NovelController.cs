@@ -29,6 +29,13 @@ namespace NovelService.Controllers
             _environment = environment;
         }
 
+
+        private string GetUserRoleFromToken()
+        {
+            var role = User.FindFirstValue(ClaimTypes.Role);
+            return role ?? "User";
+        }
+
         private Guid GetUserIdFromToken()
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -74,7 +81,8 @@ namespace NovelService.Controllers
             try
             {
                 var uploaderId = GetUserIdFromToken();
-                var result = await _novelService.UpdateNovelAsync(novel_Id, dto, uploaderId, series_Id);
+                var userRole = GetUserRoleFromToken();
+                var result = await _novelService.UpdateNovelAsync(novel_Id, dto, uploaderId, userRole, series_Id);
 
                 if (result == null)
                     return NotFound(new { message = "Novel not found" });
@@ -114,7 +122,8 @@ namespace NovelService.Controllers
             try
             {
                 var uploader_Id = GetUserIdFromToken();
-                var delete = await _novelService.DeleteNovelAsync(novel_Id, uploader_Id, series_Id);
+                var userRole = GetUserRoleFromToken();
+                var delete = await _novelService.DeleteNovelAsync(novel_Id, uploader_Id, userRole, series_Id);
 
 
                 if (!delete)
@@ -135,7 +144,9 @@ namespace NovelService.Controllers
         [Authorize]
         public async Task<IActionResult> ReorderNovels([FromBody] NovelReoderRequest request)
         {
-            var result = await _novelService.ReorderNovelsAsync(request);
+            var uploaderId = GetUserIdFromToken(); 
+            var userRole = GetUserRoleFromToken();
+            var result = await _novelService.ReorderNovelsAsync(request, uploaderId, userRole);
             if (!result) return BadRequest("Cannot reorder novels.");
             return Ok("Reorder success");
         }

@@ -12,10 +12,10 @@ namespace NovelService.Service.Interfaces
         Task<NovelSeriesDetailDto> CreateSeriesAsync(CreateSeriesDto createDto, Guid uploader_id);
 
         //Update
-        Task<NovelSeriesDetailDto?> UpdateSeriesAsync(int seriesId, UpdateNovelService dto, Guid uploader_id);
-       
+        Task<NovelSeriesDetailDto?> UpdateSeriesAsync(int seriesId, UpdateNovelService dto, Guid uploader_id, string userRole);
+
         //Delete
-        Task<bool> DeleteSeriesById(int seriesId, Guid uploader_id);
+        Task<bool> DeleteSeriesById(int seriesId, Guid uploader_id, string userRole);
 
         // Read
         Task<NovelSeriesDetailDto?> GetByIdAsync(int seriesId);

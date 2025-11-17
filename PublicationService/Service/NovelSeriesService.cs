@@ -47,6 +47,8 @@ namespace NovelService.Service
         }
 
 
+        
+
         //Create
         public async Task<NovelSeriesDetailDto> CreateSeriesAsync(CreateSeriesDto dto, Guid uploaderId)
         {
@@ -107,17 +109,17 @@ namespace NovelService.Service
             }
         }
 
-        
+
 
         //Update
-        public async Task<NovelSeriesDetailDto?> UpdateSeriesAsync(int seriesId, UpdateNovelService dto, Guid uploaderId) 
+        public async Task<NovelSeriesDetailDto?> UpdateSeriesAsync(int seriesId, UpdateNovelService dto, Guid uploaderId, string userRole) 
         {
             var series = await _context.Novel_Series.FirstOrDefaultAsync(s => s.series_Id == seriesId);
 
             if (series == null)
                 throw new InvalidOperationException("Series not found");
 
-            if (series.uploader_id != uploaderId)
+            if (series.uploader_id != uploaderId && userRole != "Admin") 
                 throw new UnauthorizedAccessException("You are not allowed to update this series");
 
             var oldNote = series.note;
@@ -188,21 +190,20 @@ namespace NovelService.Service
 
             return await GetByIdAsync(series.series_Id);
         }
-        
+
 
         //Delete
-        public async Task<bool> DeleteSeriesById(int id, Guid uploader_Id) 
+        public async Task<bool> DeleteSeriesById(int id, Guid uploader_Id, string userRole)
         {
             var series = await _context.Novel_Series
                 .Include(s => s.Novel)
                     .ThenInclude(s => s.Chapters)
                 .FirstOrDefaultAsync(s => s.series_Id == id);
-        
+
             if (series == null)
                 throw new InvalidOperationException("Series not found");
-        
-            //kiểm tra quyền
-            if (series.uploader_id != uploader_Id)
+
+            if (series.uploader_id != uploader_Id && userRole != "Admin") 
                 throw new UnauthorizedAccessException("You are not allowed to delete this series");
 
             try

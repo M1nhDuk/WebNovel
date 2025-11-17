@@ -129,7 +129,7 @@ namespace InteractionService.Service
                 // Lấy UserId của người viết comment gốc để gửi thông báo
                 parentCommentUserId = parentComment.UserId;
             }
-            else //comment gốc mới
+            else 
             {
                 //lấy uploader_id từ NovelService
                 contentAuthorId = await GetContentAuthorId(seriesId, chapterId);
@@ -224,8 +224,8 @@ namespace InteractionService.Service
 
             
             var allCommentDtos = allComments.Select(c => MapToDto(c)).ToList();
-
             
+
             await EnrichCommentsWithUserInfo(allCommentDtos);
 
           
@@ -339,7 +339,7 @@ namespace InteractionService.Service
             return MapToDto(comment);
         }
 
-        public async Task<bool> DeleteCommentAsync(Guid commentId, Guid userId)
+        public async Task<bool> DeleteCommentAsync(Guid commentId, Guid userId, string userRole)
         {
             var comment = await _context.Comments.FirstOrDefaultAsync(c => c.CommentId == commentId);
 
@@ -348,11 +348,10 @@ namespace InteractionService.Service
                 return false;
             }
 
-            if (comment.UserId != userId)
+            if (comment.UserId != userId && userRole != "Admin") 
             {
                 throw new UnauthorizedAccessException("You are not allowed to delete this comment.");
             }
-
 
             _context.Comments.Remove(comment);
             var result = await _context.SaveChangesAsync();
