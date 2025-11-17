@@ -121,7 +121,7 @@
 
 /* Nút bấm ở gốc (Series) */
 .tree-item.series .tree-item-label {
-    cursor: context-menu; /* Đổi con trỏ thành chuột phải */
+    cursor: context-menu; 
 }
 
     .tree-item.series .tree-item-label strong {
@@ -132,21 +132,18 @@
     .tree-item.series .tree-item-label a {
         text-decoration: none;
         color: inherit;
-        cursor: pointer; /* Giữ con trỏ link */
+        cursor: pointer; 
     }
 
         .tree-item.series .tree-item-label a:hover strong {
             color: var(--accent-color);
         }
 
-/* XÓA BỎ .tree-item.series .tree-item-controls 
-  VÌ CHÚNG TA KHÔNG CÒN DÙNG NÚT INLINE NỮA
-*/
 
 
-/* ================================= */
-/* === CSS MỚI CHO CONTEXT MENU === */
-/* ================================= */
+
+/* === CSS CHO CONTEXT MENU === */
+
 .series-context-menu {
     position: fixed; /* Hiển thị nổi trên mọi thứ */
     z-index: 1000;
@@ -189,7 +186,7 @@
     }
 
 
-/* CSS cho Form Sửa (Dùng lại của CreateSeries) */
+/* CSS cho Form Sửa  */
 .editor-panel .create-series-form {
     max-width: 800px;
     margin: 0;
@@ -208,7 +205,7 @@
         margin-top: 0;
     }
 
-/* (Các style còn lại của form và upload ảnh giữ nguyên) */
+
 .cover-upload-wrapper {
     display: flex;
     align-items: center;
@@ -252,7 +249,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 2000; /* Phải cao hơn mọi thứ */
+    z-index: 2000; 
 }
 
 .modal-content {

@@ -19,7 +19,7 @@
     gap: 15px;
 }
 
-/* --- MỚI: Khối cho mỗi Series --- */
+/* ---  Khối cho mỗi Series --- */
 .bookmark-group-item {
     background-color: var(--bg-surface);
     border: 1px solid var(--border-color);
@@ -32,7 +32,7 @@
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
 
-/* --- MỚI: Header của Series (Cover, Title, Arrow) --- */
+/* ---  Header của Series (Cover, Title, Arrow) --- */
 .bookmark-series-header {
     display: flex;
     align-items: center;
@@ -46,12 +46,12 @@
     align-items: center;
     gap: 15px;
     flex-grow: 1;
-    min-width: 0; /* Cho phép text-overflow hoạt động */
+    min-width: 0; 
     text-decoration: none;
 }
 
 .bookmark-cover {
-    width: 50px; /* Nhỏ hơn so với favorites */
+    width: 50px;
     height: 75px;
     object-fit: cover;
     border-radius: 4px;
@@ -61,7 +61,7 @@
 .bookmark-series-title {
     font-size: 1.1rem;
     font-weight: 700;
-    color: var(--text-primary); /* Màu tiêu đề chính */
+    color: var(--text-primary); 
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -85,20 +85,20 @@
         transform: rotate(180deg);
     }
 
-/* --- MỚI: Danh sách chapter xổ xuống --- */
+
 .bookmark-chapter-list {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.3s ease-in-out;
-    background-color: var(--bg-main); /* Màu nền hơi khác để phân biệt */
+    background-color: var(--bg-main); 
     border-top: 1px solid var(--border-color);
 }
 
     .bookmark-chapter-list.open {
-        max-height: 1000px; /* Giá trị lớn để chứa nhiều chapter */
+        max-height: 1000px; 
     }
 
-/* --- MỚI: Item cho mỗi chapter/bookmark --- */
+
 .bookmark-chapter-item {
     display: flex;
     align-items: center;

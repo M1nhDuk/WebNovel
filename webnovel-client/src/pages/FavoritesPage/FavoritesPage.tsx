@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import apiClient from '../../api/apiClient';
 import { API_ROUTES } from '../../api/apiRoutes';
 import { useAuth } from '../../hooks/useAuth';
-import type { PagedResult } from '../../types/series'; // Import PagedResult
+import type { PagedResult } from '../../types/series'; 
 import type { UserFavoriteDto, AddFavoriteDto, FavoriteToggleResult } from '../../types/userActions';
-import Pagination from '../../components/common/Pagination'; // Import Pagination
+import Pagination from '../../components/common/Pagination';
 import { FaHeartBroken } from 'react-icons/fa';
-import './FavoritesPage.css'; // Import CSS
+import './FavoritesPage.css';
 
 const GATEWAY_URL = 'https://localhost:8000';
 const PAGE_SIZE = 12; 
@@ -30,7 +30,7 @@ const FavoritesPage: React.FC = () => {
         return `${GATEWAY_URL}${formattedPath}`;
     };
 
-    // Hàm fetchFavorites gi? ?ây nh?n pageToFetch
+    // Hàm fetchFavorites 
     const fetchFavorites = useCallback(async (pageToFetch: number) => {
         if (!user) {
             setIsLoading(false);
@@ -51,7 +51,7 @@ const FavoritesPage: React.FC = () => {
                 }
             );
 
-            // C?p nh?t state t? PagedResult
+            //PagedResult
             setFavoriteList(response.data.items);
             setCurrentPage(response.data.pageNumber);
             setTotalPages(Math.ceil(response.data.totalRecords / PAGE_SIZE));
@@ -79,7 +79,7 @@ const FavoritesPage: React.FC = () => {
         }
     }, [user, fetchFavorites, currentPage]);
 
-    // Hàm x? lý khi nh?n ??i trang
+  
     const handlePageChange = (page: number) => {
         if (page !== currentPage) {
             setCurrentPage(page);
@@ -106,12 +106,11 @@ const FavoritesPage: React.FC = () => {
                 API_ROUTES.USER.TOGGLE_FAVORITE,
                 dto
             );
-
-            // T?i l?i trang hi?n t?i (ho?c trang 1 n?u trang hi?n t?i b? r?ng)
+  
             if (favoriteList.length === 1 && currentPage > 1) {
-                setCurrentPage(currentPage - 1); // Lùi v? trang tr??c n?u xóa item cu?i cùng
+                setCurrentPage(currentPage - 1);
             } else {
-                fetchFavorites(currentPage); // T?i l?i trang hi?n t?i
+                fetchFavorites(currentPage); 
             }
 
         } catch (err: any) {

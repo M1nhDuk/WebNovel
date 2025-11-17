@@ -72,7 +72,7 @@ const PublicationMetaPanel: React.FC = () => {
     }, [fetchData]);
 
 
-    // useEffect để tính toán phân trang (Không đổi)
+    // useEffect để tính toán phân trang 
     useEffect(() => {
         const total = Math.ceil(allItems.length / PAGE_SIZE);
         setTotalPages(total);
@@ -164,6 +164,7 @@ const PublicationMetaPanel: React.FC = () => {
 
     return (
         <div className="meta-panel-container">
+
             {/* Thanh Nav */}
             <div className="meta-nav">
                 <button

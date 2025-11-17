@@ -58,7 +58,6 @@
         background-color: var(--accent-color);
         color: #fff;
     }
-/* =========================================== */
 
 
 .series-meta-info {
@@ -237,7 +236,7 @@
     border-bottom: 1px solid var(--border-color);
 }
 
-    /* Bỏ viền cho mục cuối cùng */
+
     .chapter-item:last-child {
         border-bottom: none;
     }
@@ -247,7 +246,6 @@
         font-weight: 500;
         color: var(--text-secondary);
         text-decoration: none;
-        /* Cắt chữ nếu quá dài */
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -257,7 +255,7 @@
             color: var(--accent-color);
         }
 
-    /* 8. Ngày đăng chương (Không đổi) */
+    /* 8. Ngày đăng chương */
     .chapter-item .chapter-date {
         font-size: 0.9rem;
         color: var(--text-secondary);
@@ -495,7 +493,7 @@
     border-bottom-right-radius: 8px;
 }
 
-/* Style cho nút "Thu gọn" (màu xanh) */
+/* Style cho nút "Thu gọn" */
 .toggle-description-btn {
     background: none;
     border: none;
@@ -528,7 +526,7 @@
         color: var(--text-primary);
         border-bottom: 1px solid var(--border-color);
         padding: 15px 20px;
-        margin-bottom: 0; /* Xóa margin-bottom mặc định */
+        margin-bottom: 0;
     }
 
 // Login

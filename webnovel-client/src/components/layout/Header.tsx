@@ -22,6 +22,7 @@ interface UserMenuProps {
     user: any;
 }
 
+
 const UserDropdownMenu: React.FC<UserMenuProps> = ({ onLogout, onClose, user }) => {
     return (
         <div className="user-dropdown-menu">
@@ -47,10 +48,13 @@ const UserDropdownMenu: React.FC<UserMenuProps> = ({ onLogout, onClose, user }) 
                         <span> Book mark</span>
                     </Link>
                 </li>
-                <Link to="/create-series" onClick={onClose}> 
-                    <FaPencilAlt />
-                    <span> Create Stories </span>
-                </Link>
+                {/* SỬA LỖI: Link phải nằm trong <li> */}
+                <li>
+                    <Link to="/create-series" onClick={onClose}>
+                        <FaPencilAlt />
+                        <span> Create Stories </span>
+                    </Link>
+                </li>
 
                 {/* --- Divider --- */}
                 <li className="menu-divider"></li>
@@ -59,7 +63,7 @@ const UserDropdownMenu: React.FC<UserMenuProps> = ({ onLogout, onClose, user }) 
                 {user && user.role === 'Admin' && (
                     <li>
                         <Link to="/admin" onClick={onClose}>
-                            <FaCog /> 
+                            <FaCog />
                             <span> Admin Dashboard </span>
                         </Link>
                     </li>
@@ -92,7 +96,8 @@ const Header: React.FC = () => {
     const menuRef = useRef<HTMLDivElement>(null);
 
     const navigate = useNavigate();
-    const { user, isLoading, logout } = useAuth();
+
+    const { user, isLoading, logout, unreadCount } = useAuth(); // Lấy unreadCount từ AuthContext
 
     const handleSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter' && searchQuery.trim() !== '') {
@@ -127,7 +132,7 @@ const Header: React.FC = () => {
         <header className="top-header">
 
             <div className="header-left">
-                <Link to="/" className="header-logo-link" title="Trang ch?">
+                <Link to="/" className="header-logo-link" title="Trang chủ">
                     <div className="header-logo">W</div>
                 </Link>
 
@@ -149,11 +154,9 @@ const Header: React.FC = () => {
                 ) : user ? (
 
                     // ĐÃ ĐĂNG NHẬP
-                    <>
-                        {/* Wrapper  Profile Link and Dropdown Menu */}
+                    <>                
                         <div
                             className="user-profile-wrapper"
-
                             onClick={handleToggleMenu}
                             ref={menuRef}
                         >
@@ -177,8 +180,13 @@ const Header: React.FC = () => {
                         <Link to="/favorites" className="header-icon-btn" title="Favorites">
                             <FaHeart />
                         </Link>
-                        <Link to="/notifications" className="header-icon-btn" title="Notifications">
+
+                        {/* CẬP NHẬT ICON THÔNG BÁO */}
+                        <Link to="/notifications" className="header-icon-btn notification-icon-wrapper" title="Notifications">
                             <FaBell />
+                            {unreadCount > 0 && (
+                                <span className="notification-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
+                            )}
                         </Link>
                     </>
                 ) : (

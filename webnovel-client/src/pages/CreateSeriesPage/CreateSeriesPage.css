@@ -1,5 +1,4 @@
-﻿/* --- CSS CHO WRAPPER NỀN TRẮNG --- */
-.create-series-page-wrapper {
+﻿.create-series-page-wrapper {
     background-color: #FFFFFF; 
     padding: 20px 40px;
     min-height: calc(100vh - 60px);
@@ -150,7 +149,7 @@
         }
 
 
-/* --- CSS CHO TAG INPUT (Giữ nguyên) --- */
+/* --- CSS CHO TAG INPUT --- */
 .tag-input-container {
     position: relative;
     width: 100%;

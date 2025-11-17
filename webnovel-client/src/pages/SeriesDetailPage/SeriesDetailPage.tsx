@@ -155,7 +155,7 @@ const SeriesDetailPage: React.FC = () => {
         setNotification(null);
         setError(null);
 
-        // DTO mà backend yêu cầu
+        
         const dto: AddFavoriteDto = {
             seriesId: Number(id),
             currentChapterCount: 0
@@ -237,7 +237,7 @@ const SeriesDetailPage: React.FC = () => {
                     <button
                         className={`series-action-btn ${isFavorited ? 'favorited' : ''}`}
                         onClick={handleFavoriteClick}
-                        disabled={isTogglingFavorite} // Vô hiệu hóa khi đang gọi API
+                        disabled={isTogglingFavorite} 
                     >
                         {isTogglingFavorite ? (
                             <FaSpinner /> 

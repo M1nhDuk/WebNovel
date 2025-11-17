@@ -10,6 +10,9 @@ interface AuthContextType {
     login: (credentials: LoginDto) => Promise<void>;
     logout: () => void;
     refreshUserProfile: () => Promise<void>;
+
+    unreadCount: number;
+    refreshUnreadCount: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,10 +31,10 @@ const getImageUrl = (imagePath: string | null | undefined, type: 'avatar' | 'bac
     if (imagePath.startsWith('http')) {
         try {
             const url = new URL(imagePath);
-            if (url.port === '7154') { 
-                return `${GATEWAY_URL}${url.pathname}`; 
+            if (url.port === '7154') {
+                return `${GATEWAY_URL}${url.pathname}`;
             }
-        } catch (e) {  }
+        } catch (e) { }
         return imagePath;
     }
 
@@ -52,30 +55,68 @@ const formatUserProfile = (user: UserProfile): UserProfile => ({
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    const refreshUnreadCount = useCallback(async () => {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            setUnreadCount(0);
+            return;
+        }
+
+        try {
+            const response = await apiClient.get<number>(API_ROUTES.USER.GET_UNREAD_COUNT);
+            setUnreadCount(response.data);
+        } catch (error) {
+            if ((error as any).response?.status !== 401) {
+                console.error("Failed to fetch unread count:", error);
+            }
+            setUnreadCount(0);
+        }
+    }, []); 
 
     const refreshUserProfile = useCallback(async () => {
         const token = localStorage.getItem('accessToken');
         if (!token) {
             setIsLoading(false);
+            setUnreadCount(0);
             return;
         }
         apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         try {
             const response = await apiClient.get<UserProfile>(API_ROUTES.AUTH.GET_MY_PROFILE);
             setUser(formatUserProfile(response.data));
+            await refreshUnreadCount();
         } catch (error) {
             console.error("Failed to fetch user:", error);
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
+            setUnreadCount(0);
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [refreshUnreadCount]);
 
 
     useEffect(() => {
         refreshUserProfile();
     }, [refreshUserProfile]);
+
+    useEffect(() => {
+        if (user) {
+            const intervalId = setInterval(() => {
+                console.log("Polling for new notifications..."); 
+                refreshUnreadCount();
+            }, 60000); 
+
+  
+            return () => {
+                clearInterval(intervalId); 
+            };
+        }
+    }, [user, refreshUnreadCount]);
+
+
 
     // Hàm Login
     const login = async (credentials: LoginDto) => {
@@ -94,10 +135,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         delete apiClient.defaults.headers.common['Authorization'];
+        setUnreadCount(0);
     };
 
     return (
-        <AuthContext.Provider value={{ user, isLoading, login, logout, refreshUserProfile }}>
+        <AuthContext.Provider value={{
+            user,
+            isLoading,
+            login,
+            logout,
+            refreshUserProfile,
+            unreadCount,
+            refreshUnreadCount
+        }}>
             {children}
         </AuthContext.Provider>
     );

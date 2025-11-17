@@ -681,11 +681,13 @@ const ManageSeriesPage: React.FC = () => {
                     onRefresh={handleRefreshData}
                     onDeleteSeries={handleDeleteSeries}
                     onReorderTrigger={handleReorderTrigger}
+
                     // Truyền các hàm cho Novel
                     onEditNovel={(novelId) => setEditingItem({ type: 'novel', id: novelId })}
                     onAddChapterToNovel={(novelId) => setEditingItem({ type: 'add-chapter', id: series.series_Id, parentId: novelId })}
                     onReorderChapters={(novelId) => setEditingItem({ type: 'reorder-chapters', id: novelId, parentId: series.series_Id })}
                     onDeleteNovel={handleDeleteNovel}
+
                     // Truyền hàm cho Chapter
                     onDeleteChapter={handleDeleteChapter}
                 />
