@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'; // Đã thêm useCallback và useRef
+﻿import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import apiClient from '../../api/apiClient';
 import { API_ROUTES } from '../../api/apiRoutes';
@@ -10,18 +10,13 @@ import { useAuth } from '../../hooks/useAuth';
 import {
     FaHome, FaArrowLeft, FaArrowRight, FaCog, FaBookmark, FaListUl, FaArrowCircleLeft
 } from 'react-icons/fa';
+
 import './ChapterDetailPage.css';
-import { formatDistanceToNow } from 'date-fns';
-import { vi } from 'date-fns/locale';
 
 import { useReaderSettings } from '../../hooks/useReaderSettings';
 import ReaderSettingsPanel from '../../components/reader/ReaderSettingsPanel';
 
-
-
 const GATEWAY_URL = 'https://localhost:8000';
-
-
 
 const getImageUrl = (coverPath: string | undefined | null) => {
     if (!coverPath) {
@@ -30,7 +25,6 @@ const getImageUrl = (coverPath: string | undefined | null) => {
     const formattedPath = coverPath.startsWith('/') ? coverPath : `/${coverPath}`;
     return `${GATEWAY_URL}${formattedPath}`;
 };
-
 
 const ChapterDetailPage: React.FC = () => {
     const { seriesId, chapterId } = useParams<{ seriesId: string, chapterId: string }>();
@@ -42,24 +36,21 @@ const ChapterDetailPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const { user } = useAuth(); 
+    const { user } = useAuth();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     const { settings, isLoading: isSettingsLoading } = useReaderSettings();
     const numChapterId = chapterId ? parseInt(chapterId, 10) : 0;
 
-    const numSeriesId = seriesId ? parseInt(seriesId, 10) : 0; 
-
-    // State cho bookmark 
+    // State cho bookmark (chỉ dùng để hiển thị icon trên dòng)
     const [bookmarkedLocation, setBookmarkedLocation] = useState<string | null>(null);
     const [isLoadingBookmark, setIsLoadingBookmark] = useState(true);
-    const [seriesBookmarks, setSeriesBookmarks] = useState<BookmarkDto[]>([]);
-    const [sidebarMode, setSidebarMode] = useState<'chapters' | 'bookmarks'>('chapters');
 
-    const chapterBodyRef = useRef<HTMLDivElement>(null); 
 
-    // useEffect fetchChapterData 
+    const chapterBodyRef = useRef<HTMLDivElement>(null);
+
+
     useEffect(() => {
         const fetchChapterData = async () => {
             if (!seriesId || !chapterId) return;
@@ -105,7 +96,7 @@ const ChapterDetailPage: React.FC = () => {
         fetchChapterData();
     }, [seriesId, chapterId, numChapterId]);
 
-    // useEffect fetchBookmarkStatus 
+
     useEffect(() => {
         const fetchBookmarkStatus = async () => {
             if (user && numChapterId > 0) {
@@ -115,13 +106,13 @@ const ChapterDetailPage: React.FC = () => {
                         API_ROUTES.USER.GET_BOOKMARK_FOR_CHAPTER(numChapterId)
                     );
                     if (response.data) {
-                        setBookmarkedLocation(response.data.locationIdentifier); 
+                        setBookmarkedLocation(response.data.locationIdentifier);
                     } else {
-                        setBookmarkedLocation(null); 
+                        setBookmarkedLocation(null);
                     }
                 } catch (err: any) {
                     if (err.response && err.response.status === 404) {
-                        setBookmarkedLocation(null); // 404 nghĩa là chưa bookmark
+                        setBookmarkedLocation(null);
                     } else {
                         console.error("Failed to fetch bookmark status:", err);
                     }
@@ -129,7 +120,7 @@ const ChapterDetailPage: React.FC = () => {
                     setIsLoadingBookmark(false);
                 }
             } else {
-                setBookmarkedLocation(null); 
+                setBookmarkedLocation(null);
                 setIsLoadingBookmark(false);
             }
         };
@@ -137,26 +128,7 @@ const ChapterDetailPage: React.FC = () => {
         fetchBookmarkStatus();
     }, [user, numChapterId]);
 
-    // Thêm useEffect để tải danh sách bookmark cho sidebar
-    const fetchSeriesBookmarks = useCallback(async () => {
-        if (user && numSeriesId > 0) {
-            try {
-                const response = await apiClient.get<BookmarkDto[]>(
-                    API_ROUTES.USER.GET_BOOKMARKS_FOR_SERIES(numSeriesId)
-                );
-                setSeriesBookmarks(response.data);
-            } catch (err) {
-                console.error("Failed to fetch series bookmarks:", err);
-            }
-        }
-    }, [user, numSeriesId]);
 
-    useEffect(() => {
-        fetchSeriesBookmarks();
-    }, [fetchSeriesBookmarks]);
-
-
-    // --- LOGIC CHUYỂN CHƯƠNG --- 
     const flatChapterList: ChapterDetailDto[] = useMemo(() => {
         if (!series) return [];
         if (series.type === 'TRADITIONAL') {
@@ -166,6 +138,7 @@ const ChapterDetailPage: React.FC = () => {
             .sort((a, b) => a.novel_number - b.novel_number)
             .flatMap(novel => novel.chapters?.sort((a, b) => a.chapter_number - b.chapter_number) || []);
     }, [series]);
+
 
     const navigationLinks = useMemo(() => {
         if (!flatChapterList.length || !numChapterId || !seriesId) {
@@ -186,7 +159,6 @@ const ChapterDetailPage: React.FC = () => {
             isLast: isLast
         };
     }, [flatChapterList, numChapterId, seriesId]);
-
 
 
     const handleNavigate = (direction: 'prev' | 'next') => {
@@ -229,18 +201,16 @@ const ChapterDetailPage: React.FC = () => {
         };
     }, [navigationLinks, navigate, seriesId]);
 
+
     const saveBookmark = async (locationIdentifier: string, contextSnippet: string) => {
         if (!user || !series || !chapter || isLoadingBookmark) return;
-
         setIsLoadingBookmark(true);
-
         const payload: ToggleBookmarkDto = {
             seriesId: series.series_Id,
             chapterId: chapter.chapter_id,
             locationIdentifier: locationIdentifier,
             contextSnippet: contextSnippet
         };
-
         try {
             const response = await apiClient.post<BookmarkToggleResultDto>(
                 API_ROUTES.USER.TOGGLE_BOOKMARK,
@@ -249,7 +219,6 @@ const ChapterDetailPage: React.FC = () => {
             if (response.data.isBookmarked && response.data.data) {
                 setBookmarkedLocation(response.data.data.locationIdentifier);
             }
-            fetchSeriesBookmarks(); 
         } catch (err: any) {
             console.error("Failed to save bookmark:", err);
         } finally {
@@ -259,14 +228,12 @@ const ChapterDetailPage: React.FC = () => {
 
     const removeBookmark = async () => {
         if (!user || !numChapterId || isLoadingBookmark) return;
-
         setIsLoadingBookmark(true);
         try {
             await apiClient.delete(
                 API_ROUTES.USER.DELETE_BOOKMARK_FOR_CHAPTER(numChapterId)
             );
-            setBookmarkedLocation(null); 
-            fetchSeriesBookmarks(); 
+            setBookmarkedLocation(null);
         } catch (err: any) {
             console.error("Failed to remove bookmark:", err);
         } finally {
@@ -275,13 +242,10 @@ const ChapterDetailPage: React.FC = () => {
     };
 
     const handleParagraphDoubleClick = (e: React.MouseEvent<HTMLParagraphElement>) => {
-        if (!user) {
-            return;
-        }
-
+        if (!user) return;
         const paragraph = e.currentTarget;
-        const newLocation = paragraph.id; 
-        const snippet = paragraph.textContent?.slice(0, 100) + '...'; 
+        const newLocation = paragraph.id;
+        const snippet = paragraph.textContent?.slice(0, 100) + '...';
 
         if (bookmarkedLocation === newLocation) {
             removeBookmark();
@@ -297,16 +261,11 @@ const ChapterDetailPage: React.FC = () => {
                 element.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         } else {
-            setSidebarMode('bookmarks');
-            setIsSidebarOpen(true);
+            alert("No bookmark in this chapter.");
         }
     };
 
 
-    const formatTimeAgo = (dateString: string) => {
-        const date = new Date(dateString);
-        return formatDistanceToNow(date, { addSuffix: true, locale: vi });
-    };
 
     const renderSidebarContent = () => {
         if (!series) return null;
@@ -314,134 +273,69 @@ const ChapterDetailPage: React.FC = () => {
         return (
             <div className="sidebar-content-wrapper">
 
-                {/* === THANH TABS === */}
-                <div className="sidebar-tabs">
-                    <button
-                        className={`sidebar-tab-btn ${sidebarMode === 'chapters' ? 'active' : ''}`}
-                        onClick={() => setSidebarMode('chapters')}
-                    >
-                        Chapters
-                    </button>
-                    <button
-                        className={`sidebar-tab-btn ${sidebarMode === 'bookmarks' ? 'active' : ''}`}
-                        onClick={() => setSidebarMode('bookmarks')}
-                    >
-                        Bookmarks
-                    </button>
-                </div>
-
-
-                {/* === NỘI DUNG TAB === */}
                 <div className="sidebar-list-container">
-
-                    {/* --- TAB CHAPTERS --- */}
-                    {sidebarMode === 'chapters' && (
-                        series.type === 'TRADITIONAL' ? (
-                            <ul className="sidebar-list">
-                                {series.chapters?.map(ch => (
-                                    <li key={ch.chapter_id} className={ch.chapter_id === numChapterId ? 'active' : ''}>
-                                        <Link
-                                            to={`/series/${series.series_Id}/chapter/${ch.chapter_id}`}
-                                            onClick={() => setIsSidebarOpen(false)}
-                                        >
-                                            {ch.title}
-                                        </Link>
-                                    </li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <div className="sidebar-volume-list">
-                                {series.novels.map(novel => (
-                                    <div key={novel.novel_Id} className="sidebar-volume-group">
-                                        <h4 className="sidebar-volume-title">{novel.title}</h4>
-                                        <ul className="sidebar-list">
-                                            {novel.chapters.map(ch => (
-                                                <li key={ch.chapter_id} className={ch.chapter_id === numChapterId ? 'active' : ''}>
-                                                    <Link
-                                                        to={`/series/${series.series_Id}/chapter/${ch.chapter_id}`}
-                                                        onClick={() => setIsSidebarOpen(false)}
-                                                    >
-                                                        {ch.title}
-                                                    </Link>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                ))}
-                            </div>
-                        )
-                    )}
-
-                    {/* --- TAB BOOKMARKS --- */}
-                    {sidebarMode === 'bookmarks' && (
-                        !user ? (
-                            <div className="sidebar-list-empty">Login to see bookmarks.</div>
-                        ) : seriesBookmarks.length === 0 ? (
-                            <div className="sidebar-list-empty">You have no bookmarks for this series.</div>
-                        ) : (
-                            <ul className="sidebar-list bookmark-list">
-                                {seriesBookmarks.map(bookmark => (
-                                    <li key={bookmark.bookmarkId} className={bookmark.chapterId === numChapterId ? 'active' : ''}>
-                                        <Link                                         
-                                            to={`/series/${bookmark.seriesId}/chapter/${bookmark.chapterId}`}
-                                            onClick={() => {
-                                                setIsSidebarOpen(false);
-                                                if (bookmark.chapterId === numChapterId) {
-                                                    document.getElementById(bookmark.locationIdentifier)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                                }
-                                            }}
-                                            className="bookmark-item-link"
-                                        >
-                                            <span className="bookmark-item-title">{bookmark.chapterTitle || 'Chapter'}</span>
-                                            <span className="bookmark-item-context">{bookmark.contextSnippet || '...'}</span>
-                                        </Link>
-                                    </li>
-                                ))}
-                            </ul>
-                        )
+                    {series.type === 'TRADITIONAL' ? (
+                        <ul className="sidebar-list">
+                            {series.chapters?.map(ch => (
+                                <li key={ch.chapter_id} className={ch.chapter_id === numChapterId ? 'active' : ''}>
+                                    <Link
+                                        to={`/series/${series.series_Id}/chapter/${ch.chapter_id}`}
+                                        onClick={() => setIsSidebarOpen(false)}
+                                    >
+                                        {ch.title}
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <div className="sidebar-volume-list">
+                            {series.novels.map(novel => (
+                                <div key={novel.novel_Id} className="sidebar-volume-group">
+                                    <h4 className="sidebar-volume-title">{novel.title}</h4>
+                                    <ul className="sidebar-list">
+                                        {novel.chapters.map(ch => (
+                                            <li key={ch.chapter_id} className={ch.chapter_id === numChapterId ? 'active' : ''}>
+                                                <Link
+                                                    to={`/series/${series.series_Id}/chapter/${ch.chapter_id}`}
+                                                    onClick={() => setIsSidebarOpen(false)}
+                                                >
+                                                    {ch.title}
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            ))}
+                        </div>
                     )}
                 </div>
             </div>
         );
     };
 
-    // Style cho toàn bộ nền của cột giữa
     const mainContentStyles: React.CSSProperties = {
         backgroundColor: settings.backgroundColor,
     };
-
-    // Style cho wrapper nội dung (chỉ lề)
     const wrapperStyles: React.CSSProperties = {
         paddingLeft: `${settings.paddingPx}px`,
         paddingRight: `${settings.paddingPx}px`,
     };
-
     const getFontFamilyStack = (fontName: string) => {
         switch (fontName) {
-            case "Noto Sans":
-                return "'Noto Sans', sans-serif";
-            case "Times New Roman":
-                return "'Times New Roman', Times, serif";
-            case "Merriweather":
-                return "'Merriweather', serif";
-            case "Lora":
-                return "'Lora', serif";
-            case "Roboto":
-                return "'Roboto', sans-serif";
-            default:
-                return "'Times New Roman', Times, serif";
+            case "Noto Sans": return "'Noto Sans', sans-serif";
+            case "Times New Roman": return "'Times New Roman', Times, serif";
+            case "Merriweather": return "'Merriweather', serif";
+            case "Lora": return "'Lora', serif";
+            case "Roboto": return "'Roboto', sans-serif";
+            default: return "'Times New Roman', Times, serif";
         }
     };
-
-    // Style chỉ áp dụng cho VĂN BẢN NỘI DUNG
     const bodyTextStyles: React.CSSProperties = {
         fontFamily: getFontFamilyStack(settings.fontFamily),
         color: settings.fontColor,
         fontSize: `${settings.fontSize}px`,
         textAlign: settings.alignment as any,
     };
-
-    // Style cho phần text của header (Title và Metadata)
     const headerTextStyles: React.CSSProperties = {
         color: settings.fontColor,
     };
@@ -493,16 +387,9 @@ const ChapterDetailPage: React.FC = () => {
                     {renderSidebarContent()}
                 </aside>
 
-                
-                <main
-                    className="chapter-content-main"
-                    style={mainContentStyles}
-                >
-                    <div
-                        className="chapter-content-wrapper"
-                        style={wrapperStyles}
-                    >
 
+                <main className="chapter-content-main" style={mainContentStyles}>
+                    <div className="chapter-content-wrapper" style={wrapperStyles}>
                         <header className="chapter-header">
                             <div className="chapter-series-title">
                                 <Link to={`/series/${series.series_Id}`}>
@@ -521,22 +408,19 @@ const ChapterDetailPage: React.FC = () => {
                                 {chapter.title}
                             </h1>
                             <div className="chapter-metadata" style={headerTextStyles}>
-                                <span>Length: {chapter.word_count.toLocaleString('vi-VN')} từ</span>
+                                <span>Length: {chapter.word_count.toLocaleString('vi-VN')} words</span>
                                 <span> • </span>
-                                <span>Updated at: {formatTimeAgo(chapter.created_at)}</span>
                             </div>
                         </header>
 
-
-                        
                         <div className="chapter-body" ref={chapterBodyRef}>
                             {paragraphs.map((para, index) => (
                                 <div key={index} className="paragraph-container">
                                     <p
-                                        id={`p-index-${index}`} 
+                                        id={`p-index-${index}`}
                                         className="chapter-paragraph"
                                         style={bodyTextStyles}
-                                        onDoubleClick={handleParagraphDoubleClick} 
+                                        onDoubleClick={handleParagraphDoubleClick}
                                     >
                                         {para}
                                     </p>
@@ -544,7 +428,7 @@ const ChapterDetailPage: React.FC = () => {
                                         <FaBookmark
                                             className="line-bookmark-icon"
                                             title="Bookmark location"
-                                            style={headerTextStyles} 
+                                            style={headerTextStyles}
                                         />
                                     )}
                                 </div>
@@ -571,13 +455,11 @@ const ChapterDetailPage: React.FC = () => {
                     </button>
 
 
+                    {/* === SỬA ĐỔI: Toggle Sidebar === */}
                     <button
-                        className="toolbar-button"
+                        className={`toolbar-button ${isSidebarOpen ? 'active' : ''}`}
                         title="Chapter List"
-                        onClick={() => {
-                            setSidebarMode('chapters'); 
-                            setIsSidebarOpen(true); 
-                        }}
+                        onClick={() => setIsSidebarOpen(!isSidebarOpen)} // Logic toggle
                     >
                         <FaListUl />
                     </button>
@@ -590,16 +472,14 @@ const ChapterDetailPage: React.FC = () => {
                         <FaCog />
                     </button>
 
-
                     <button
                         className={`toolbar-button ${bookmarkedLocation ? 'active' : ''}`}
-                        title={bookmarkedLocation ? "Go to bookmark" : "View bookmarks"}
+                        title={bookmarkedLocation ? "Go to bookmark" : "No bookmark"}
                         onClick={handleNavigateToBookmark}
                         disabled={isLoadingBookmark}
                     >
                         <FaBookmark />
                     </button>
-
 
                     <button
                         className="toolbar-button"

@@ -20,6 +20,10 @@ const SeriesSection: React.FC<SeriesSectionProps> = ({ title, subTitle, seriesLi
     const [isOverflowing, setIsOverflowing] = useState(false);
     const mainRowRef = useRef<HTMLElement>(null);
 
+    const [isDown, setIsDown] = useState(false);
+    const [startX, setStartX] = useState(0);
+    const [scrollLeft, setScrollLeft] = useState(0);
+
     useLayoutEffect(() => {
         const checkOverflow = () => {
             if (mainRowRef.current) {
@@ -40,6 +44,32 @@ const SeriesSection: React.FC<SeriesSectionProps> = ({ title, subTitle, seriesLi
         };
     }, [seriesList, isOverflowing]);
 
+    // HÀM X? LÝ MOUSE INTERACTION
+    const handleMouseDown = (e: React.MouseEvent) => {
+        if (!mainRowRef.current) return;
+        setIsDown(true);
+        // L?u v? trí b?t ??u và v? trí thanh cu?n hi?n t?i
+        setStartX(e.pageX - mainRowRef.current.offsetLeft);
+        setScrollLeft(mainRowRef.current.scrollLeft);
+    };
+
+    const handleMouseLeave = () => {
+        setIsDown(false);
+    };
+
+    const handleMouseUp = () => {
+        setIsDown(false);
+    };
+
+    const handleMouseMove = (e: React.MouseEvent) => {
+        if (!isDown || !mainRowRef.current) return;
+        e.preventDefault(); 
+        const x = e.pageX - mainRowRef.current.offsetLeft;
+        const walk = (x - startX) * 2; 
+        mainRowRef.current.scrollLeft = scrollLeft - walk;
+    };
+
+
     return (
         <section className={`index-section thumb-section-flow`}>
             <header className="section-title">
@@ -47,10 +77,18 @@ const SeriesSection: React.FC<SeriesSectionProps> = ({ title, subTitle, seriesLi
                 <span className="sts-empty">{subTitle}</span>
             </header>
 
-            <main className="row" ref={mainRowRef}>
+            <main className="row"
+                ref={mainRowRef}
+                onMouseDown={handleMouseDown}
+                onMouseLeave={handleMouseLeave}
+                onMouseUp={handleMouseUp}
+                onMouseMove={handleMouseMove}
+            >
+                
                 {seriesList.map(series => (
                     <SeriesItem key={series.series_Id} series={series} type={type} />
                 ))}
+
                 {isOverflowing && (
                     <div className="thumb-item-flow see-more">
                         <div className="thumb-wrapper">

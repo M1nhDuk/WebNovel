@@ -169,19 +169,6 @@ const NovelDetailPage: React.FC = () => {
                         </ul>
                     </div>
 
-                    <section className="comment-section">
-                        <h3>Comments (n)</h3>
-                        <div className="comment-login-prompt">
-                            You need to {' '}
-                            <Link to="/login">Login</Link>
-                            {' '} hoặc {' '}
-                            <Link to="/register">Register</Link>
-                            {' '} to comment.
-                        </div>
-                        <h4 className="comment-list-header">n Comment</h4>
-                        <div className="comment-list">
-                        </div>
-                    </section>
                 </section>
 
 

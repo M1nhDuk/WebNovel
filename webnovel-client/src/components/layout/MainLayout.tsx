@@ -1,9 +1,10 @@
-import React from 'react';
+﻿import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import LeftSidebar from './LeftSidebar';
 import Footer from './Footer';
 import './CSS/MainLayout.css'; 
+
 
 const MainLayout: React.FC = () => {
     return (

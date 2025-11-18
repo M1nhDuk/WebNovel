@@ -33,14 +33,6 @@ const SeriesItem: React.FC<SeriesItemProps> = ({ series, type }) => {
                         ></div>
                     </div>
                 </Link>
-                {type === 'grid' && (
-                    <div className="thumb-detail">
-                        <div className="thumb_attr chapter-title">
-                            <a href="#" title="Latest Chapter">Latest Chapter...</a>
-                        </div>
-                        <div className="thumb_attr volume-title">Volume 1</div>
-                    </div>
-                )}
             </div>
             <div className="series-title">
                 <Link to={`/series/${series.series_Id}`} title={series.series_title}>

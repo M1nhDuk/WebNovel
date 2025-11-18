@@ -106,7 +106,7 @@ const AddChapterForm: React.FC<AddChapterFormProps> = ({
                 <textarea
                     id="chapterContent"
                     name="content"
-                    rows={20} // Tăng số hàng cho nội dung
+                    rows={20} 
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     disabled={loading}

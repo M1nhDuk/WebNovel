@@ -323,8 +323,6 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
         <form onSubmit={handleSubmit} className="create-series-form">
             <h2>Edit Series Details</h2>
 
-            {submitError && <div className="form-message error">{submitError}</div>}
-            {submitSuccess && <div className="form-message success">{submitSuccess}</div>}
 
             <div className="form-group">
                 <label>Cover Image</label>
@@ -506,6 +504,11 @@ const EditSeriesForm: React.FC<EditSeriesFormProps> = ({ series, onSeriesUpdate 
                     {loading ? 'Saving...' : 'Save Changes'}
                 </button>
             </div>
+
+
+            {submitError && <div className="form-message error">{submitError}</div>}
+            {submitSuccess && <div className="form-message success">{submitSuccess}</div>}
+
 
         </form>
     );

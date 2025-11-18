@@ -3,7 +3,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { Navigate } from 'react-router-dom';
 import './CSS/AdminDashboardPage.css';
 import {
-    FaUsers, FaTags, FaChartLine, FaExclamationTriangle
+    FaUsers, FaTags
 } from 'react-icons/fa';
 import UserManagementPanel from './UserManagementPanel';
 import PublicationMetaPanel from './PublicationMetaPanel';
@@ -49,13 +49,7 @@ const AdminDashboardPage: React.FC = () => {
                     <li className={selectedMenu === 'publication_meta' ? 'active' : ''} onClick={() => setSelectedMenu('publication_meta')}>
                         <FaTags /> <span>Categories & Tags</span>
                     </li>
-                    <li className={selectedMenu === 'reports' ? 'active' : ''} onClick={() => setSelectedMenu('reports')}>
-                        <FaExclamationTriangle /> <span>Comment Manage</span>
-                    </li>
                     <li className="menu-divider"></li>
-                    <li className={selectedMenu === 'analytics' ? 'active' : ''} onClick={() => setSelectedMenu('analytics')}>
-                        <FaChartLine /> <span>Statistics & Analytics</span>
-                    </li>
                 </ul>
             </aside>
             <main className="admin-main-content">

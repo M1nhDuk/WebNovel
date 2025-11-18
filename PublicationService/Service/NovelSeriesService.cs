@@ -39,6 +39,7 @@ namespace NovelService.Service
             _logger = logger;
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
+
             _userServiceUrl = configuration["ServiceUrls:UserService"] ??
                               throw new InvalidOperationException("ServiceUrls:UserService không được cấu hình");
             _authServiceUrl = _configuration.GetValue<string>("ServiceUrls:AuthService") ??
@@ -196,47 +197,82 @@ namespace NovelService.Service
         public async Task<bool> DeleteSeriesById(int id, Guid uploader_Id, string userRole)
         {
             var series = await _context.Novel_Series
+                .Include(s => s.Chapters)             
                 .Include(s => s.Novel)
-                    .ThenInclude(s => s.Chapters)
+                    .ThenInclude(n => n.Chapters)     
                 .FirstOrDefaultAsync(s => s.series_Id == id);
 
             if (series == null)
                 throw new InvalidOperationException("Series not found");
 
-            if (series.uploader_id != uploader_Id && userRole != "Admin") 
+            if (series.uploader_id != uploader_Id && userRole != "Admin")
                 throw new UnauthorizedAccessException("You are not allowed to delete this series");
+
 
             try
             {
                 var httpClient = _httpClientFactory.CreateClient("InteractionServiceClient");
-                var response = await httpClient.DeleteAsync($"api/internal/comments/by-series/{id}");
 
-                if (!response.IsSuccessStatusCode)
-                {               
-                    _logger.LogError("Failed to delete comments for SeriesId {SeriesId} from InteractionService",id);    
-                }
-                else
+                //Xóa comment của chính Series
+                var responseSeries = await httpClient.DeleteAsync($"api/internal/comments/by-series/{id}");
+                if (!responseSeries.IsSuccessStatusCode)
                 {
-                    _logger.LogInformation("Successfully triggered comment deletion for SeriesId {SeriesId}", id);
+                    _logger.LogError("Failed to delete comments for SeriesId {SeriesId}", id);
                 }
-            } catch (Exception ex)
+
+                //Lấy tất cả Chapter ID con
+                var chapterIds = new List<int>();
+
+                //Traditional Series 
+                if (series.Chapters != null)
+                {
+                    chapterIds.AddRange(series.Chapters.Select(c => c.chapter_id));
+                }
+
+                //Web Novels (Series -> Novels -> Chapters)
+                if (series.Novel != null)
+                {
+                    foreach (var vol in series.Novel)
+                    {
+                        if (vol.Chapters != null)
+                        {
+                            chapterIds.AddRange(vol.Chapters.Select(c => c.chapter_id));
+                        }
+                    }
+                }
+
+                foreach (var chapId in chapterIds)
+                {
+                    var responseChap = await httpClient.DeleteAsync($"api/internal/comments/by-chapter/{chapId}");
+                    if (!responseChap.IsSuccessStatusCode)
+                    {
+                        _logger.LogWarning("Failed to delete comments for ChapterId {ChapterId}", chapId);
+                    }
+                }
+
+                _logger.LogInformation("Cleanup comments process finished for SeriesId {SeriesId}", id);
+            }
+            catch (Exception ex)
             {
-                _logger.LogError(ex, "Error calling InteractionService to delete comments for SeriesId {SeriesId}", id);
+              
+                _logger.LogError(ex, "Error calling InteractionService during cleanup for SeriesId {SeriesId}", id);
             }
 
+            //Send noti
             var notificationDto = new CreateNotificationDto
             {
                 UserId = series.uploader_id,
                 Type = "SeriesDeleted",
-                Message = $"Your series have been deleted '{series.series_title}'.",
-                LinkUrl = null 
-
+                Message = $"Your series '{series.series_title}' has been deleted.",
+                LinkUrl = null
             };
-            await SendNotificationAsync(notificationDto);
 
+            _ = SendNotificationAsync(notificationDto);
+
+           
             _context.Novel_Series.Remove(series);
-
             await _context.SaveChangesAsync();
+
             return true;
         }
 

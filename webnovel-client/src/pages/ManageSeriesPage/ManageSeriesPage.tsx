@@ -214,7 +214,7 @@ const ReorderableList: React.FC<ReorderableListProps> = ({ items, listTitle, onS
 
 // --- Component Hierarchy ---
 const SeriesHierarchy: React.FC<SeriesHierarchyProps> = ({
-    series, setEditingItem, onRefresh, onDeleteSeries, onReorderTrigger,
+    series, setEditingItem, onDeleteSeries, onReorderTrigger,
     onEditNovel, onAddChapterToNovel, onReorderChapters, onDeleteNovel,
     onDeleteChapter
 }) => {
@@ -378,7 +378,7 @@ const SeriesHierarchy: React.FC<SeriesHierarchyProps> = ({
                     <button className="tree-toggle-btn" onClick={() => setIsSeriesExpanded(p => !p)}>
                         {isSeriesExpanded ? <FaMinusSquare /> : <FaPlusSquare />}
                     </button>
-                    <Link to={`/series/${series.series_Id}`} target="_blank" title="View public page"
+                    <Link to={`/series/${series.series_Id}`} title="View public page"
                         onClick={(e) => e.stopPropagation()}
                         onContextMenu={(e) => { e.stopPropagation(); handleSeriesContextMenu(e); }}
                     >

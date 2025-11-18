@@ -246,6 +246,7 @@ namespace NovelService.Service
         //Delete
         public async Task<bool> DeleteChapterById(int id, Guid uploaderId, string userRole, int? novelId = null, int? seriesId = null)
         {
+            // 1. Truy vấn Chapter và kiểm tra quyền 
             var query = _context.Chapters
                 .Include(c => c.Novel).ThenInclude(n => n.NovelSeries)
                 .Include(c => c.TS)
@@ -271,45 +272,49 @@ namespace NovelService.Service
                 throw new UnauthorizedAccessException("You are not authorized to delete this chapter.");
             }
 
-
-            using var tx = await _context.Database.BeginTransactionAsync();
-
             try
             {
                 var httpClient = _httpClientFactory.CreateClient("InteractionServiceClient");
                 var response = await httpClient.DeleteAsync($"api/internal/comments/by-chapter/{id}");
 
-                if(!response.IsSuccessStatusCode)
+                if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
-                    _logger.LogError("Failed to delete comments for ChapterId {ChapterId} from InteractionService",id);
+                    _logger.LogError("Failed to delete comments for ChapterId {ChapterId}. Status: {Status}. Details: {Error}", id, response.StatusCode, errorContent);
 
-                    await tx.RollbackAsync();
                     throw new Exception("Failed to clear comments. Aborting chapter deletion.");
                 }
                 _logger.LogInformation("Successfully triggered comment deletion for ChapterId {ChapterId}", id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calling InteractionService during chapter deletion.");
+                throw; 
+            }
 
-                parentSeries.word_count = Math.Max(0, parentSeries.word_count - chapter.word_count);
-
-                parentSeries.updated_at = DateTime.UtcNow;
-
-                _context.Novel_Series.Update(parentSeries);
+            using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                int wordCountToRemove = chapter.word_count;
+                int seriesIdToUpdate = parentSeries.series_Id;
 
                 _context.Chapters.Remove(chapter);
-
                 await _context.SaveChangesAsync();
 
+                await _context.Novel_Series
+                    .Where(s => s.series_Id == seriesIdToUpdate)
+                    .ExecuteUpdateAsync(s => s
+                        .SetProperty(x => x.word_count, x => x.word_count - wordCountToRemove < 0 ? 0 : x.word_count - wordCountToRemove)
+                        .SetProperty(x => x.updated_at, DateTime.UtcNow)
+                    );
 
                 await tx.CommitAsync();
                 return true;
             }
             catch (Exception ex)
             {
-                if (tx.GetDbTransaction().Connection != null)
-                {
-                    await tx.RollbackAsync();
-                }
-
+                await tx.RollbackAsync();
+                _logger.LogError(ex, "Database error while deleting chapter {ChapterId}", id);
                 throw;
             }
         }

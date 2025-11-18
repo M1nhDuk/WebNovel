@@ -25,7 +25,7 @@ const ChangeUsernameForm: React.FC = () => {
             localStorage.setItem('accessToken', accessToken);
             localStorage.setItem('refreshToken', refreshToken);
 
-            setSuccess('Your new account name is: ' + newUsername);
+            setSuccess('Your new account is changed');
             setNewUsername('');
 
 
@@ -47,8 +47,12 @@ const ChangeUsernameForm: React.FC = () => {
                     onChange={(e) => setNewUsername(e.target.value)}
                     required
                     minLength={6}
+                    maxLength={30}
                 />
             </div>
+                <small style={{ color: '#666', fontSize: '0.85rem', marginTop: '5px', display: 'block' }}>
+                    * 6 - 30 characters allowed.
+                </small>
 
             <div className="form-footer">
                 {success && <div className="settings-message success">{success}</div>}

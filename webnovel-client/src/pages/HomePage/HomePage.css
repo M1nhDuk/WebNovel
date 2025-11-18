@@ -100,7 +100,13 @@
     flex-wrap: nowrap;
     overflow-x: auto;
     padding-bottom: 10px;
+    cursor: grab;
+    user-select: none;
 }
+
+    .thumb-section-flow main.row:active {
+        cursor: grabbing; 
+    }
 
 .thumb-item-flow {
     display: flex;
