@@ -84,9 +84,11 @@
 }
 
 .comment-item {
-    display: flex;
-    padding: 10px 0;
-    border-bottom: 1px dashed var(--border-color);
+    background-color: rgba(0,0,0,0.05);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #333;
 }
 
     .comment-item:last-child {
@@ -206,3 +208,9 @@
     .comment-actions button.comment-cancel-btn:hover:not(:disabled) {
         background-color: var(--bg-main);
     }
+
+.comment-reply-list {
+    margin-top: 10px;
+    border-left: 2px solid #444;
+    padding-left: 15px;
+}
