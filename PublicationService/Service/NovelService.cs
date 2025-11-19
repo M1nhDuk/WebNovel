@@ -7,6 +7,7 @@ using Shareds.DTOs.Novel;
 
 using AutoMapper;
 using Shareds.DTOs.Chapter;
+using System.Net.Http;
 
 namespace NovelService.Service
 {
@@ -15,12 +16,13 @@ namespace NovelService.Service
         private readonly NovelDbContext _context;
         private readonly IUserService _userService;
         private readonly ILogger<INovelService> _logger;
-
-        public NovelService(NovelDbContext context, ILogger<INovelService> logger)
+        private readonly IHttpClientFactory _httpClientFactory;
+        public NovelService(NovelDbContext context, ILogger<INovelService> logger, IHttpClientFactory httpClientFactory)
         {
             _context = context;
             // _userService = userService;
             _logger = logger;
+            _httpClientFactory = httpClientFactory;
         }
 
 
@@ -175,32 +177,56 @@ namespace NovelService.Service
             if (novel == null)
                 throw new InvalidOperationException("Novel not found");
 
-
             if (novel.NovelSeries == null)
-            {
                 throw new InvalidOperationException("Cannot delete novel: Parent series not found.");
-            }
 
             if (novel.NovelSeries.uploader_id != uploader_Id && userRole != "Admin")
             {
                 throw new UnauthorizedAccessException("You are not authorized to delete this novel.");
             }
 
+            //XÓA COMMENT 
+            try
+            {
+                var chapterIds = novel.Chapters.Select(c => c.chapter_id).ToList();
+
+                if (chapterIds.Any())
+                {
+                    var httpClient = _httpClientFactory.CreateClient("InteractionServiceClient");
+
+                    
+                    foreach (var chapId in chapterIds)
+                    {
+                        var response = await httpClient.DeleteAsync($"api/internal/comments/by-chapter/{chapId}");
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            _logger.LogWarning("Failed to delete comments for ChapterId {ChapterId}", chapId);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+    
+                _logger.LogError(ex, "Error calling InteractionService while deleting NovelId {NovelId}", id);
+            }
+
             int deletedWordCount = novel.Chapters?.Sum(c => c.word_count) ?? 0;
 
-            // Xóa chapters + novel
+            // Xóa Chapters
             if (novel.Chapters != null && novel.Chapters.Any())
             {
                 _context.Chapters.RemoveRange(novel.Chapters);
             }
+
+            // Xóa Novel
             _context.Novels.Remove(novel);
 
-            // Update series word_count 
+            // Cập nhật Word Count cho Series cha
             if (novel.NovelSeries != null)
             {
-                novel.NovelSeries.word_count -= deletedWordCount;
+                novel.NovelSeries.word_count = Math.Max(0, novel.NovelSeries.word_count - deletedWordCount);
                 novel.NovelSeries.updated_at = DateTime.UtcNow;
-                
                 _context.Novel_Series.Update(novel.NovelSeries);
             }
 

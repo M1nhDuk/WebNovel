@@ -10,7 +10,7 @@ namespace Shareds.DTOs
     public class UserDto
     {
         [Required(ErrorMessage = "Username  required")]
-        [MinLength(6, ErrorMessage = "Require at least 6 character")]
+        [StringLength(30, MinimumLength = 6, ErrorMessage = "Username must be between 6 and 30 characters")]
         public string UserName {  get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Password required")]

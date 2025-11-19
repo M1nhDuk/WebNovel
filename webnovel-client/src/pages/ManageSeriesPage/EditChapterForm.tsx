@@ -111,9 +111,6 @@ const EditChapterForm: React.FC<EditChapterFormProps> = ({
         <form onSubmit={handleSubmit} className="create-series-form">
             <h2>Edit Chapter</h2>
 
-            {error && <div className="form-message error">{error}</div>}
-            {success && <div className="form-message success">{success}</div>}
-
             {loading && !title && <p>Loading chapter content...</p>}
 
             {!loading && (
@@ -153,6 +150,8 @@ const EditChapterForm: React.FC<EditChapterFormProps> = ({
                     </div>
                 </>
             )}
+                {error && <div className="form-message error">{error}</div>}
+                {success && <div className="form-message success">{success}</div>}
         </form>
     );
 };

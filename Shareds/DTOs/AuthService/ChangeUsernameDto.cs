@@ -10,7 +10,7 @@ namespace Shareds.DTOs.AuthService
     public class ChangeUsernameDto
     {
         [Required(ErrorMessage = "Username is required")]
-        [MinLength(6, ErrorMessage = "New username must be at least 6 characters")]
+        [StringLength(30, MinimumLength = 6, ErrorMessage = "Username must be between 6 and 30 characters")]
         public string NewUsername { get; set; } = string.Empty;
     }
 }

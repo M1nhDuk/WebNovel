@@ -71,8 +71,15 @@ const RegisterPage: React.FC = () => {
                         id="username"
                         value={userName}
                         onChange={(e) => setUserName(e.target.value)}
+                        minLength={6}   
+                        maxLength={30}  
+                        placeholder="Enter username"
                         required
                     />
+
+                    <small className="input-helper-text" style={{ color: '#666', fontSize: '0.85rem', marginTop: '5px', display: 'block' }}>
+                        * Length must be between 6 and 30 characters.
+                    </small>
                 </div>
 
                 <div className="form-group">

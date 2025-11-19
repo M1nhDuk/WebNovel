@@ -5,7 +5,6 @@ interface SeriesCommentSectionProps {
     seriesId: number;
 }
 
-// Dùng cho Series Page
 const SeriesCommentSection: React.FC<SeriesCommentSectionProps> = ({ seriesId }) => {
     return (
         <GeneralCommentSection

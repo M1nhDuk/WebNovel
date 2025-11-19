@@ -9,6 +9,55 @@ import { Link } from 'react-router-dom';
 import CommentReplyInput from './CommentReplyInput';
 import { API_ROUTES } from '../../../api/apiRoutes';
 
+interface CommentContentProps {
+    content: string;
+}
+
+
+const CommentContent: React.FC<CommentContentProps> = ({ content }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const MAX_LENGTH = 300; 
+
+    const renderText = (text: string) => {
+        const mentionRegex = /^(@[^\s:]+:)/;
+        const match = text.match(mentionRegex);
+
+        if (match) {
+            const mention = match[0];
+            const restOfText = text.substring(mention.length);
+            return (
+                <>
+                    <span className="comment-mention">{mention}</span>
+                    {restOfText}
+                </>
+            );
+        }
+        return text;
+    };
+
+    const shouldTruncate = content.length > MAX_LENGTH;
+    const displayedContent = isExpanded ? content : content.slice(0, MAX_LENGTH);
+
+    return (
+        <div className="comment-text-container">
+            <p className="comment-text">
+                {renderText(displayedContent)}
+                {!isExpanded && shouldTruncate && '...'}
+            </p>
+
+            {shouldTruncate && (
+                <button
+                    className="comment-toggle-btn"
+                    onClick={() => setIsExpanded(!isExpanded)}
+                >
+                    {isExpanded ? "Rút gọn" : "Xem thêm"}
+                </button>
+            )}
+        </div>
+    );
+};
+
+
 const PAGE_SIZE = 8;
 const GATEWAY_URL = 'https://localhost:8000';
 
@@ -159,7 +208,7 @@ const GeneralCommentSection: React.FC<CommentSectionProps> = ({
         return "Just now";
     };
 
-
+   
     const flattenReplies = (replies: CommentDto[]): CommentDto[] => {
         const flatList: CommentDto[] = [];
         const queue: CommentDto[] = [...replies].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
@@ -176,22 +225,6 @@ const GeneralCommentSection: React.FC<CommentSectionProps> = ({
         return flatList;
     };
 
-    const renderCommentContent = (content: string) => {
-        const mentionRegex = /^(@[^\s:]+:)/;
-        const match = content.match(mentionRegex);
-
-        if (match) {
-            const mention = match[0];
-            const restOfText = content.substring(mention.length).trim();
-            return (
-                <>
-                    <span className="comment-mention">{mention}</span>
-                    {` ${restOfText}`}
-                </>
-            );
-        }
-        return content;
-    };
 
     return (
         <section className="comment-section">
@@ -269,7 +302,8 @@ const GeneralCommentSection: React.FC<CommentSectionProps> = ({
                                                 </div>
                                             </div>
                                         ) : (
-                                            <p className="comment-text">{renderCommentContent(comment.content)}</p>
+                                                <CommentContent content={comment.content} />
+
                                         )}
 
                                         {!isEditing && (
@@ -362,7 +396,7 @@ const GeneralCommentSection: React.FC<CommentSectionProps> = ({
                                                                     </div>
                                                                 </div>
                                                             ) : (
-                                                                <p className="comment-text">{renderCommentContent(reply.content)}</p>
+                                                                    <CommentContent content={reply.content} />
                                                             )}
 
                                                             {!isEditingReply && (
