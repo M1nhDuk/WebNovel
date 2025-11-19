@@ -39,11 +39,12 @@ const ProfilePage: React.FC = () => {
     //Fetch thông tin Public Profile 
     useEffect(() => {
         const fetchPublicProfile = async () => {
+
             // Nếu là own profile hoặc chưa có userId trên URL thì bỏ qua
             if (isOwnProfile || !userId) return;
 
             try {
-                const response = await apiClient.get<UserProfile>(`/api/User/${userId}/public`);
+                const response = await apiClient.get<UserProfile>(API_ROUTES.AUTH.GET_PUBLIC_PROFILE(userId as string));
                 const userData = response.data;
                 setPublicUser({
                     ...userData,
@@ -70,7 +71,7 @@ const ProfilePage: React.FC = () => {
                 // Case 1: Xem của chính mình 
                 if (!currentUser) return;
                 response = await apiClient.get<PagedResult<SeriesListDto>>(
-                    API_ROUTES.SERIES.GET_MY_SERIES,
+                    API_ROUTES.SERIES.GET_SERIES_BY_UPLOADER(userId as string),
                     { params: { pageNumber: pageToFetch, pageSize: PAGE_SIZE } }
                 );
             } else {
@@ -108,7 +109,8 @@ const ProfilePage: React.FC = () => {
         }
     }, [authLoading, userId, currentUser, fetchSeries, currentPage, navigate]);
 
-
+    
+    
     const handlePageChange = (page: number) => {
         if (page !== currentPage) {
             setCurrentPage(page);

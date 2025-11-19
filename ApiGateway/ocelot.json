@@ -741,7 +741,7 @@
 
     // 2.23 Get Series By Uploader (Xem truyện của người khác)
     {
-      "UpstreamPathTemplate": "/series/uploader/{uploaderId}",
+      "UpstreamPathTemplate": "/api/series/uploader/{uploaderId}",
       "UpstreamHttpMethod": [ "GET" ],
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
