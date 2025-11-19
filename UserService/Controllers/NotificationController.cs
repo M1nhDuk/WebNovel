@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Shareds.DTOs.NovelSeries;
 using Shareds.DTOs.UserService;
 using System.Security.Claims;
+using UserService.Models;
 using UserService.Services.Interfaces;
 
 namespace UserService.Controllers
@@ -31,6 +33,10 @@ namespace UserService.Controllers
             throw new UnauthorizedAccessException("User ID not found in token.");
         }
 
+
+        
+
+
         [HttpGet]
         public async Task<ActionResult<PagedResult<NotificationDto>>> GetNotifications([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
@@ -45,6 +51,8 @@ namespace UserService.Controllers
                 return Unauthorized(new { message = ex.Message });
             }
         }
+
+
         [HttpGet("unread-count")]
         public async Task<ActionResult<int>> GetUnreadCount()
         {
@@ -133,5 +141,34 @@ namespace UserService.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
+        [HttpGet("unread-summary")]
+        [Authorize]
+        public async Task<IActionResult> GetUnreadSummary()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return Unauthorized("User ID not found in token");
+            }
+            var userId = Guid.Parse(userIdClaim);
+
+            var result = await _notificationService.GetUnreadSummaryAsync(userId);
+
+            return Ok(result);
+        }
+
+        //Reset Favorite
+        [HttpPost("mark-all-read/type/{type}")]
+        [Authorize]
+        public async Task<IActionResult> MarkAllByTypeAsRead(NotificationType type)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim)) return Unauthorized();
+
+            await _notificationService.MarkAllByTypeAsReadAsync(Guid.Parse(userIdClaim), type);
+            return Ok();
+        }
+
     }
 }

@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { useParams, Link} from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import apiClient from '../../api/apiClient';
 import { API_ROUTES } from '../../api/apiRoutes';
 import type { NovelSeriesDetailDto } from '../../types/series';
@@ -15,10 +15,8 @@ import { useAuth } from '../../hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import './SeriesDetailPage.css';
-import SeriesCommentSection from '../../components/common/comments/SeriesCommentSection'; 
+import SeriesCommentSection from '../../components/common/comments/SeriesCommentSection';
 import type { UserFavoriteDto, AddFavoriteDto, FavoriteToggleResult } from '../../types/userActions';
-
-
 
 const GATEWAY_URL = 'https://localhost:8000';
 
@@ -40,9 +38,11 @@ const SeriesDetailPage: React.FC = () => {
 
     const { user } = useAuth();
 
+    // --- Lưu danh sách các chương đã đọc trong session này để làm mờ ---
+    const [readChapters, setReadChapters] = useState<Set<number>>(new Set());
+
     const [isTagsExpanded, setIsTagsExpanded] = useState(false);
     const TAGS_THRESHOLD = 15;
-
 
     const [expandedVolumes, setExpandedVolumes] = useState<Set<number>>(new Set());
 
@@ -54,22 +54,24 @@ const SeriesDetailPage: React.FC = () => {
         return `${GATEWAY_URL}${formattedPath}`;
     };
 
-    //Save reading history
-    const logReadingHistory = async (seriesId: string) => {
-        if (!user || !seriesId) return;
+    // --- Xử lý khi click đọc chương ---
+    const handleReadChapter = async (chapterId: number) => {
+        //Cập nhật
+        setReadChapters(prev => new Set(prev).add(chapterId));
+
+        if (!user || !id) return;
 
         try {
-
-            await apiClient.post(
-                `${API_ROUTES.USER.READING_HISTORY}/${seriesId}`
-            );
-            console.log(`Reading history updated for Series ID: ${seriesId}`);
+            //Gọi API báo Backend cập nhật lịch sử & giảm Badge
+            await apiClient.post(API_ROUTES.USER.READING_HISTORY, {
+                seriesId: Number(id),
+                chapterId: chapterId
+            });
+            console.log(`Saved history for Chapter ${chapterId}`);
         } catch (err) {
-            console.warn("Failed to log reading history:", err);
+            console.warn("Failed to save reading history:", err);
         }
     };
-
-
 
     useEffect(() => {
         if (!id) return;
@@ -93,14 +95,10 @@ const SeriesDetailPage: React.FC = () => {
 
         fetchSeriesDetail();
 
-        if (user) {
-            logReadingHistory(id);
-        }
-
-    }, [id, user]);
+    }, [id]);
 
 
-    //Fav
+    // Check Favorite Status
     useEffect(() => {
         const checkFavoriteStatus = async () => {
             if (user && id) {
@@ -111,13 +109,12 @@ const SeriesDetailPage: React.FC = () => {
                         {
                             params: {
                                 page: 1,
-                                pageSize: 100 
+                                pageSize: 100
                             }
                         }
                     );
                     const isFav = response.data.items.some(fav => fav.seriesId === Number(id));
-
-                    setIsFavorited(isFav); 
+                    setIsFavorited(isFav);
                 } catch (err) {
                     console.error("Failed to check favorite status:", err);
                 } finally {
@@ -129,8 +126,7 @@ const SeriesDetailPage: React.FC = () => {
         };
 
         checkFavoriteStatus();
-    }, [id, user]); 
-
+    }, [id, user]);
 
 
     useEffect(() => {
@@ -149,20 +145,18 @@ const SeriesDetailPage: React.FC = () => {
             return;
         }
 
-        if (!id || isTogglingFavorite) return; 
+        if (!id || isTogglingFavorite) return;
 
         setIsTogglingFavorite(true);
         setNotification(null);
         setError(null);
 
-        
         const dto: AddFavoriteDto = {
             seriesId: Number(id),
-            currentChapterCount: 0
+            currentChapterCount: 0 
         };
 
         try {
-           
             const response = await apiClient.post<FavoriteToggleResult>(
                 API_ROUTES.USER.TOGGLE_FAVORITE,
                 dto
@@ -170,15 +164,14 @@ const SeriesDetailPage: React.FC = () => {
 
             const { isFavorited: newStatus, message } = response.data;
 
-            
             setIsFavorited(newStatus);
-            setNotification(message); 
+            setNotification(message);
 
         } catch (err: any) {
             console.error("Failed to toggle favorite:", err);
             setError(err.response?.data?.message || "An error occurred.");
         } finally {
-            setIsTogglingFavorite(false); 
+            setIsTogglingFavorite(false);
         }
     };
 
@@ -215,7 +208,6 @@ const SeriesDetailPage: React.FC = () => {
         });
     };
 
-    //Check quyền
     const isUploader = user && series.uploader_id === user.userId;
     const isAdmin = user && user.role === 'Admin';
     const canEdit = isUploader || isAdmin;
@@ -237,10 +229,10 @@ const SeriesDetailPage: React.FC = () => {
                     <button
                         className={`series-action-btn ${isFavorited ? 'favorited' : ''}`}
                         onClick={handleFavoriteClick}
-                        disabled={isTogglingFavorite} 
+                        disabled={isTogglingFavorite}
                     >
                         {isTogglingFavorite ? (
-                            <FaSpinner /> 
+                            <FaSpinner className="fa-spin" />
                         ) : (
                             <FaHeart style={{ marginRight: '8px' }} />
                         )}
@@ -323,7 +315,6 @@ const SeriesDetailPage: React.FC = () => {
                                 <span>{series.categoryName || 'N/A'}</span>
                             </div>
 
-                            {/* Hiển thị thêm thông tin nếu type là TRADITIONAL */}
                             {series.type === 'TRADITIONAL' && (
                                 <>
                                     {series.iSBN_13 && (
@@ -443,18 +434,23 @@ const SeriesDetailPage: React.FC = () => {
                                     <div className="volume-list-wrapper">
                                         <h4 className="volume-title">{volume.title}</h4>
                                         <ul className="chapter-list">
+                                            {chaptersToShow.map(chapter => {
+                                                // Kiểm tra xem đã đọc chưa
+                                                const isRead = readChapters.has(chapter.chapter_id);
 
-                                            {chaptersToShow.map(chapter => (
-                                                <li key={chapter.chapter_id} className="chapter-item">
-                                                    <Link
-                                                        to={`/series/${series.series_Id}/chapter/${chapter.chapter_id}`}
-                                                        className="chapter-title"
-                                                    >
-                                                        {chapter.title}
-                                                    </Link>
-                                                    <span className="chapter-date">{formatDate(chapter.created_at)}</span>
-                                                </li>
-                                            ))}
+                                                return (
+                                                    <li key={chapter.chapter_id} className={`chapter-item ${isRead ? 'is-read' : ''}`}>
+                                                        <Link
+                                                            to={`/series/${series.series_Id}/chapter/${chapter.chapter_id}`}
+                                                            className="chapter-title"
+                                                            onClick={() => handleReadChapter(chapter.chapter_id)}
+                                                        >
+                                                            {chapter.title}
+                                                        </Link>
+                                                        <span className="chapter-date">{formatDate(chapter.created_at)}</span>
+                                                    </li>
+                                                );
+                                            })}
 
                                             {volume.chapters.length > 5 && (
                                                 <li className="chapter-item chapter-see-more">
@@ -487,17 +483,22 @@ const SeriesDetailPage: React.FC = () => {
                                 <div className="volume-list-wrapper" style={{ width: "100%" }}>
                                     <h4 className="volume-title">Chapters</h4>
                                     <ul className="chapter-list">
-                                        {series.chapters.map(chapter => (
-                                            <li key={chapter.chapter_id} className="chapter-item">
-                                                <Link
-                                                    to={`/series/${series.series_Id}/chapter/${chapter.chapter_id}`}
-                                                    className="chapter-title"
-                                                >
-                                                    {chapter.title}
-                                                </Link>
-                                                <span className="chapter-date">{formatDate(chapter.created_at)}</span>
-                                            </li>
-                                        ))}
+                                        {series.chapters.map(chapter => {
+                                            const isRead = readChapters.has(chapter.chapter_id);
+
+                                            return (
+                                                <li key={chapter.chapter_id} className={`chapter-item ${isRead ? 'is-read' : ''}`}>
+                                                    <Link
+                                                        to={`/series/${series.series_Id}/chapter/${chapter.chapter_id}`}
+                                                        className="chapter-title"
+                                                        onClick={() => handleReadChapter(chapter.chapter_id)} 
+                                                    >
+                                                        {chapter.title}
+                                                    </Link>
+                                                    <span className="chapter-date">{formatDate(chapter.created_at)}</span>
+                                                </li>
+                                            );
+                                        })}
                                     </ul>
                                 </div>
                             </div>

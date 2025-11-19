@@ -138,44 +138,34 @@ namespace NovelService.Controllers
             }
         }
 
-        //Reading History
-        [HttpPost("batch-series-summary")] 
+        //Reading History + Favorite
+        [HttpPost("batch-series-summary")]
         public async Task<ActionResult<List<SeriesSummaryDto>>> GetBatchSeriesSummaries([FromBody] List<int> seriesIds)
         {
-            if (seriesIds == null || !seriesIds.Any())
-            {
-                return Ok(new List<SeriesSummaryDto>()); 
-            }
+            if (seriesIds == null || !seriesIds.Any()) return Ok(new List<SeriesSummaryDto>());
 
             try
             {
                 var summaries = await _context.Novel_Series
+                    .AsNoTracking()
                     .Where(s => seriesIds.Contains(s.series_Id))
                     .Select(s => new SeriesSummaryDto
                     {
                         SeriesId = s.series_Id,
-                        Title = s.series_title, 
-                        CoverImage = s.cover_images 
+                        Title = s.series_title,
+                        CoverImage = s.cover_images,
+                        TotalChapterCount = s.type == Models.type.TRADITIONAL
+                            ? s.Chapters.Count()
+                            : s.Novel.SelectMany(n => n.Chapters).Count()
                     })
                     .ToListAsync();
-
-     
-                if (summaries.Count != seriesIds.Distinct().Count())
-                {
-                    var foundIds = summaries.Select(s => s.SeriesId).ToHashSet();
-
-                    var notFoundIds = seriesIds.Distinct().Where(id => !foundIds.Contains(id));
-
-                    _logger.LogWarning("Could not find series summaries for IDs: {NotFoundIds}", string.Join(", ", notFoundIds));
-                }
-
 
                 return Ok(summaries);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching batch series summaries for IDs: {SeriesIds}", string.Join(",", seriesIds));
-                return StatusCode(500, "Internal server error while fetching series summaries.");
+                _logger.LogError(ex, "Error fetching batch series summaries.");
+                return StatusCode(500, "Internal server error.");
             }
         }
 

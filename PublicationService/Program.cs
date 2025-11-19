@@ -107,9 +107,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnAuthenticationFailed = context =>
             {
-                // Ghi log lỗi chi tiết vào Console khi xác thực thất bại
                 Console.WriteLine("----- JWT Authentication Failed -----");
-                Console.WriteLine("Exception: " + context.Exception.ToString()); // In toàn bộ exception
+                Console.WriteLine("Exception: " + context.Exception.ToString()); 
                 Console.WriteLine("-------------------------------------");
                 return Task.CompletedTask;
             },

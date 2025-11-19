@@ -30,11 +30,13 @@ const FavoritesPage: React.FC = () => {
         return `${GATEWAY_URL}${formattedPath}`;
     };
 
+
+
     // Hàm fetchFavorites 
     const fetchFavorites = useCallback(async (pageToFetch: number) => {
         if (!user) {
             setIsLoading(false);
-            return;
+            return; 
         }
 
         setIsLoading(true);
@@ -121,6 +123,9 @@ const FavoritesPage: React.FC = () => {
         }
     };
 
+
+
+
     if (userLoading || (isLoading && currentPage === 1)) { 
         return <div className="favorites-page-container"><h1>My Favorites</h1>Loading...</div>;
     }
@@ -151,46 +156,76 @@ const FavoritesPage: React.FC = () => {
                         You haven't favorited any series yet.
                     </div>
                 ) : (
-                    favoriteList.map(item => (
-                        <div key={item.seriesId} className="favorite-item">
-                            <Link to={`/series/${item.seriesId}`} className="favorite-cover-wrapper">
-                                <img
-                                    src={getImageUrl(item.seriesCoverImage)}
-                                    alt={item.seriesTitle || 'Series Cover'}
-                                    className="favorite-cover"
-                                />
-                            </Link>
-                            <div className="favorite-details">
-                                <Link to={`/series/${item.seriesId}`} className="favorite-title">
-                                    {item.seriesTitle || '[Series Deleted/Not Found]'}
+                    favoriteList.map(item => {
+                        {/* --- LOGIC CHECK NEW CHAPTER --- */ }
+                        const hasNewChapter = item.currentChapterCount > item.lastKnowChapter;
+                        const newChapterCount = item.currentChapterCount - item.lastKnowChapter;
+
+                        return (
+                            <div key={item.seriesId} className="favorite-item">
+                                <Link to={`/series/${item.seriesId}`} className="favorite-cover-wrapper">
+                                    <img
+                                        src={getImageUrl(item.seriesCoverImage)}
+                                        alt={item.seriesTitle || 'Series Cover'}
+                                        className="favorite-cover"
+                                    />
                                 </Link>
-                                <span className="favorite-date">
-                                    Added: {new Date(item.addedAt).toLocaleDateString()}
-                                </span>
+                                <div className="favorite-details">
+                                    <div className="favorite-header">
+                                        <Link to={`/series/${item.seriesId}`} className="favorite-title">
+                                            {item.seriesTitle || '[Series Deleted/Not Found]'}
+                                        </Link>
+
+                                        {/* Badge báo ch??ng m?i */}
+                                        {hasNewChapter && (
+                                            <span className="new-chapter-badge" title={`${newChapterCount} new unread chapter`}>
+                                                New (+{newChapterCount}) 
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="favorite-progress-info">
+                                        {item.lastKnowChapter > 0 ? (
+                                            <span className="reading-status text-primary">
+                                                Reading: Chapter {item.lastKnowChapter}
+                                            </span>
+                                        ) : (
+                                            <span className="reading-status text-muted">
+                                                Not started
+                                            </span>
+                                        )}
+                                        <span className="total-chapter-info">
+                                            / {item.currentChapterCount} Chapters
+                                        </span>
+                                    </div>
+
+                                    <span className="favorite-date">
+                                        Added: {new Date(item.addedAt).toLocaleDateString()}
+                                    </span>
+                                </div>
+                                <div className="favorite-actions">
+                                    <button
+                                        className="favorite-delete-btn"
+                                        title="Unfollow this series"
+                                        onClick={() => handleDelete(item.seriesId)}
+                                        disabled={isDeleting}
+                                    >
+                                        <FaHeartBroken />
+                                    </button>
+                                </div>
                             </div>
-                            <div className="favorite-actions">
-                                <button
-                                    className="favorite-delete-btn"
-                                    title="Unfollow this series"
-                                    onClick={() => handleDelete(item.seriesId)}
-                                    disabled={isDeleting}
-                                >
-                                    <FaHeartBroken />
-                                </button>
-                            </div>
-                        </div>
-                    ))
+                        );
+                    })
                 )}
             </div>
 
-            {/* THÊM COMPONENT PAGINATION */}
             {!isLoading && totalPages > 1 && (
                 <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}
                     onPageChange={handlePageChange}
                 />
-            )}
+            )}          
         </div>
     );
 };

@@ -3,8 +3,10 @@ export interface UserFavoriteDto {
     addedAt: string;
     lastKnowChapter: number;
 
-    seriesTitle?: string | null;
-    seriesCoverImage?: string | null;
+    seriesTitle?: string;
+    seriesCoverImage?: string;
+
+    currentChapterCount: number;
 }
 
 export interface AddFavoriteDto {
@@ -16,4 +18,9 @@ export interface FavoriteToggleResult {
     message: string;
     isFavorited: boolean;
     data?: UserFavoriteDto;
+}
+
+export interface FavoriteReadUpdateDto {
+    seriesId: number;
+    latestChapterCount: number; 
 }

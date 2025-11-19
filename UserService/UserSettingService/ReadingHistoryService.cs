@@ -35,35 +35,60 @@ namespace UserService.UserSettingService
             }
 
 
-            public async Task AddOrUpdateHistoryAsync(Guid userId, int seriesId)
+        public async Task AddOrUpdateHistoryAsync(Guid userId, AddReadingHistoryDto dto)
+        {
+            //Kiểm tra xem user đã đọc chương này chưa
+            var existingChapterHistory = await _context.ReadingHistories
+                .FirstOrDefaultAsync(rh => rh.UserId == userId
+                                        && rh.SeriesId == dto.SeriesId
+                                        && rh.ChapterId == dto.ChapterId);
+
+            bool isNewChapter = false;
+
+            if (existingChapterHistory != null)
             {
-                var existingEntry = await _context.ReadingHistories
-                    .FirstOrDefaultAsync(rh => rh.UserId == userId && rh.SeriesId == seriesId);
-
-                if (existingEntry != null)
+                existingChapterHistory.LastAccessedAt = DateTime.UtcNow;
+                _context.ReadingHistories.Update(existingChapterHistory);
+            }
+            else
+            {
+                // Chưa đọc bao giờ -> Thêm mới
+                var newEntry = new ReadingHistory
                 {
-                    existingEntry.LastAccessedAt = DateTime.UtcNow;
-                    _context.ReadingHistories.Update(existingEntry);
-                    _logger.LogInformation("Updated reading history for User {UserId}, Series {SeriesId}", userId, seriesId);
-                }
-                else
-                {
-                    var newEntry = new ReadingHistory
-                    {
-                        UserId = userId,
-                        SeriesId = seriesId,
-                        LastAccessedAt = DateTime.UtcNow
-                    };
-                    _context.ReadingHistories.Add(newEntry);
-                    _logger.LogInformation("Added new reading history for User {UserId}, Series {SeriesId}", userId, seriesId);
-                }
+                    UserId = userId,
+                    SeriesId = dto.SeriesId,
+                    ChapterId = dto.ChapterId, // Lưu ID chương
+                    LastAccessedAt = DateTime.UtcNow
+                };
+                _context.ReadingHistories.Add(newEntry);
 
-                await _context.SaveChangesAsync();
+                isNewChapter = true; 
             }
 
+            //Nếu là chương mới -> Cập nhật UserFavorite để giảm Badge
+            if (isNewChapter)
+            {
+                var favorite = await _context.UserFavorite
+                    .FirstOrDefaultAsync(f => f.UserId == userId && f.seriesId == dto.SeriesId);
+
+                if (favorite != null)
+                {
+                    // Logic: Cộng thêm 1 vào số lượng chương đã biết
+                    // Badge = Tổng chương - LastKnown. 
+                    // LastKnown tăng 1 => Badge giảm 1.
+                    favorite.LastKnownChapterCount += 1;
+
+                    // Cập nhật thời gian tương tác
+                    favorite.TimeAdded = DateTime.UtcNow;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+        }
 
 
-            public async Task<PagedResult<ReadingHistoryDto>> GetHistoryAsync(Guid userId, int pageNumber, int pageSize)
+
+        public async Task<PagedResult<ReadingHistoryDto>> GetHistoryAsync(Guid userId, int pageNumber, int pageSize)
             {
                 if (pageNumber < 1) pageNumber = 1;
                 if (pageSize < 1) pageSize = 10;

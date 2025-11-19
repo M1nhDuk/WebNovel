@@ -3,6 +3,8 @@ import apiClient from '../api/apiClient';
 import { API_ROUTES } from '../api/apiRoutes';
 import type { UserProfile } from '../types/auth';
 import type { LoginDto } from '../types/login';
+import type { UnreadSummaryDto } from '../types/notifications';
+import { NotificationType } from '../types/notifications';
 
 interface AuthContextType {
     user: UserProfile | null;
@@ -10,15 +12,17 @@ interface AuthContextType {
     login: (credentials: LoginDto) => Promise<void>;
     logout: () => void;
     refreshUserProfile: () => Promise<void>;
-
-    unreadCount: number;
+    unreadGeneralCount: number;
+    unreadChapterCount: number;
     refreshUnreadCount: () => Promise<void>;
+
+    // Hàm mới để reset thông báo chương mới
+    clearChapterNotifications: () => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const GATEWAY_URL = 'https://localhost:8000';
-
 
 const getImageUrl = (imagePath: string | null | undefined, type: 'avatar' | 'background') => {
     if (!imagePath) {
@@ -26,7 +30,6 @@ const getImageUrl = (imagePath: string | null | undefined, type: 'avatar' | 'bac
             ? `${GATEWAY_URL}/uploads/default_avatar_thumb.png`
             : `${GATEWAY_URL}/uploads/default_background.png`;
     }
-
 
     if (imagePath.startsWith('http')) {
         try {
@@ -55,31 +58,51 @@ const formatUserProfile = (user: UserProfile): UserProfile => ({
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [unreadCount, setUnreadCount] = useState(0);
 
+    // --- KHAI BÁO STATE MỚI  ---
+    const [unreadGeneralCount, setUnreadGeneralCount] = useState(0);
+    const [unreadChapterCount, setUnreadChapterCount] = useState(0);
+
+    // Hàm lấy số lượng thông báo từ server
     const refreshUnreadCount = useCallback(async () => {
         const token = localStorage.getItem('accessToken');
         if (!token) {
-            setUnreadCount(0);
+            setUnreadGeneralCount(0);
+            setUnreadChapterCount(0);
             return;
         }
 
         try {
-            const response = await apiClient.get<number>(API_ROUTES.USER.GET_UNREAD_COUNT);
-            setUnreadCount(response.data);
+            // Gọi API
+            const response = await apiClient.get<UnreadSummaryDto>('/api/user/notifications/unread-summary');
+            setUnreadGeneralCount(response.data.generalCount);
+            setUnreadChapterCount(response.data.chapterCount);
         } catch (error) {
             if ((error as any).response?.status !== 401) {
                 console.error("Failed to fetch unread count:", error);
             }
-            setUnreadCount(0);
+            setUnreadGeneralCount(0);
+            setUnreadChapterCount(0);
         }
-    }, []); 
+    }, []);
+
+    const clearChapterNotifications = useCallback(async () => {
+        setUnreadChapterCount(0);
+
+        try {
+            await apiClient.post(
+                API_ROUTES.USER.MARK_ALL_AS_READ_BY_TYPE(NotificationType.NewChapter));
+        } catch (error) {
+            console.error("Failed to mark chapters as read", error);
+        }
+    }, []);
 
     const refreshUserProfile = useCallback(async () => {
         const token = localStorage.getItem('accessToken');
         if (!token) {
             setIsLoading(false);
-            setUnreadCount(0);
+            setUnreadGeneralCount(0);
+            setUnreadChapterCount(0);
             return;
         }
         apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -91,7 +114,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             console.error("Failed to fetch user:", error);
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
-            setUnreadCount(0);
+            setUnreadGeneralCount(0);
+            setUnreadChapterCount(0);
         } finally {
             setIsLoading(false);
         }
@@ -102,20 +126,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         refreshUserProfile();
     }, [refreshUserProfile]);
 
+
     useEffect(() => {
         if (user) {
             const intervalId = setInterval(() => {
-                console.log("Polling for new notifications..."); 
                 refreshUnreadCount();
-            }, 60000); 
+            }, 60000);
 
-  
             return () => {
-                clearInterval(intervalId); 
+                clearInterval(intervalId);
             };
         }
     }, [user, refreshUnreadCount]);
-
 
 
     // Hàm Login
@@ -135,7 +157,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         delete apiClient.defaults.headers.common['Authorization'];
-        setUnreadCount(0);
+
+        setUnreadGeneralCount(0);
+        setUnreadChapterCount(0);
     };
 
     return (
@@ -145,8 +169,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             login,
             logout,
             refreshUserProfile,
-            unreadCount,
-            refreshUnreadCount
+            unreadGeneralCount,      
+            unreadChapterCount,     
+            refreshUnreadCount,
+            clearChapterNotifications
         }}>
             {children}
         </AuthContext.Provider>

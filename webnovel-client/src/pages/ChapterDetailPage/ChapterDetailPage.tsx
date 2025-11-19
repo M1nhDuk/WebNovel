@@ -6,6 +6,7 @@ import type { NovelSeriesDetailDto, FullChapterDto, NovelDetailDto, ChapterDetai
 import ChapterCommentSection from '../../components/common/comments/ChapterCommentSection.tsx';
 import type { BookmarkDto, ToggleBookmarkDto, BookmarkToggleResultDto } from '../../types/bookmarks';
 import { useAuth } from '../../hooks/useAuth';
+import type { FavoriteReadUpdateDto } from '../../types/userActions';
 
 import {
     FaHome, FaArrowLeft, FaArrowRight, FaCog, FaBookmark, FaListUl, FaArrowCircleLeft
@@ -50,6 +51,37 @@ const ChapterDetailPage: React.FC = () => {
 
     const chapterBodyRef = useRef<HTMLDivElement>(null);
 
+    const logReadingHistory = async (seriesId: string) => {
+        if (!user || !seriesId) return;
+
+        try {
+            await apiClient.post(
+                `${API_ROUTES.USER.READING_HISTORY}/${seriesId}`
+            );
+            console.log(`Reading history updated for Series ID: ${seriesId}`);
+        } catch (err) {
+            console.warn("Failed to log reading history:", err);
+        }
+    };
+
+    const syncProgress = async (currentSeriesId: number, currentChapterNumber: number) => {
+        if (!user) return;
+
+        try {
+            const payload: FavoriteReadUpdateDto[] = [{
+                seriesId: currentSeriesId,
+                latestChapterCount: currentChapterNumber
+            }];
+
+            // Gọi API sync-counts
+            await apiClient.post(API_ROUTES.USER.SYNC_COUNTS, payload);
+            console.log(`Synced progress for Series ${currentSeriesId}: Chapter ${currentChapterNumber}`);
+        } catch (err) {
+            console.warn("Failed to sync reading progress to favorites:", err);
+        }
+    };
+
+
 
     useEffect(() => {
         const fetchChapterData = async () => {
@@ -81,11 +113,26 @@ const ChapterDetailPage: React.FC = () => {
                         }
                     }
                 }
+
                 if (!contentApiUrl || !foundChapterMeta) {
                     throw new Error("Chapter not found within series.");
                 }
+
                 const chapterResponse = await apiClient.get<FullChapterDto>(contentApiUrl);
-                setChapter(chapterResponse.data);
+                const chapterData = chapterResponse.data;
+                setChapter(chapterData);
+
+                // === [BẮT ĐẦU SỬA ĐỔI: GỌI SYNC PROGRESS] ===
+                if (user) {
+                    // 1. Lưu lịch sử đọc (như cũ)
+                    logReadingHistory(seriesId);
+
+                    // 2. Đồng bộ tiến độ vào danh sách Favorite (Mới)
+                    // Sử dụng series_Id thực tế và chapter_number vừa tải được
+                    await syncProgress(seriesData.series_Id, chapterData.chapter_number);
+                }
+                // === [KẾT THÚC SỬA ĐỔI] ===
+
             } catch (err: any) {
                 console.error("Failed to fetch chapter:", err);
                 setError(err.response?.data?.message || "Cannot load chapter.");
@@ -93,8 +140,9 @@ const ChapterDetailPage: React.FC = () => {
                 setLoading(false);
             }
         };
+
         fetchChapterData();
-    }, [seriesId, chapterId, numChapterId]);
+    }, [seriesId, chapterId, numChapterId, user]);
 
 
     useEffect(() => {
@@ -127,6 +175,8 @@ const ChapterDetailPage: React.FC = () => {
 
         fetchBookmarkStatus();
     }, [user, numChapterId]);
+
+
 
 
     const flatChapterList: ChapterDetailDto[] = useMemo(() => {

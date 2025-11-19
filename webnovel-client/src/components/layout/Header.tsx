@@ -22,7 +22,6 @@ interface UserMenuProps {
     user: any;
 }
 
-
 const UserDropdownMenu: React.FC<UserMenuProps> = ({ onLogout, onClose, user }) => {
     return (
         <div className="user-dropdown-menu">
@@ -45,10 +44,10 @@ const UserDropdownMenu: React.FC<UserMenuProps> = ({ onLogout, onClose, user }) 
                 <li>
                     <Link to="/bookmarks" onClick={onClose}>
                         <FaBookmark />
-                        <span> Book mark</span>
+                        <span> Bookmark</span>
                     </Link>
                 </li>
-                {/* SỬA LỖI: Link phải nằm trong <li> */}
+
                 <li>
                     <Link to="/create-series" onClick={onClose}>
                         <FaPencilAlt />
@@ -89,7 +88,6 @@ const UserDropdownMenu: React.FC<UserMenuProps> = ({ onLogout, onClose, user }) 
     );
 };
 
-
 const Header: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -97,7 +95,7 @@ const Header: React.FC = () => {
 
     const navigate = useNavigate();
 
-    const { user, isLoading, logout, unreadCount } = useAuth(); // Lấy unreadCount từ AuthContext
+    const { user, isLoading, logout, unreadGeneralCount, unreadChapterCount, clearChapterNotifications } = useAuth();
 
     const handleSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter' && searchQuery.trim() !== '') {
@@ -106,14 +104,14 @@ const Header: React.FC = () => {
         }
     };
 
-    //Chỉ cho phép toggle nếu đã đăng nhập
+    // Chỉ cho phép toggle nếu đã đăng nhập
     const handleToggleMenu = () => {
         if (user) {
             setIsMenuOpen(prev => !prev);
         }
     };
 
-    //Đóng menu khi click ra ngoài
+    // Đóng menu khi click ra ngoài
     const handleClickOutside = (event: MouseEvent) => {
         if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
             setIsMenuOpen(false);
@@ -154,7 +152,7 @@ const Header: React.FC = () => {
                 ) : user ? (
 
                     // ĐÃ ĐĂNG NHẬP
-                    <>                
+                    <>
                         <div
                             className="user-profile-wrapper"
                             onClick={handleToggleMenu}
@@ -176,16 +174,28 @@ const Header: React.FC = () => {
                             )}
                         </div>
 
+                        {/*ICON TIM */}
+                            <Link
+                                to="/favorites"
+                                className="header-icon-btn notification-icon-wrapper"
+                                title="Favorites - New Chapters"
+                                onClick={clearChapterNotifications} 
+                            >
+                                <FaHeart />
+                                {unreadChapterCount > 0 && (
+                                    <span className="notification-badge">
+                                        {unreadChapterCount > 99 ? '99+' : unreadChapterCount}
+                                    </span>
+                                )}
+                            </Link>
 
-                        <Link to="/favorites" className="header-icon-btn" title="Favorites">
-                            <FaHeart />
-                        </Link>
-
-                        {/* CẬP NHẬT ICON THÔNG BÁO */}
+                        {/* ICON CHUÔNG --- */}
                         <Link to="/notifications" className="header-icon-btn notification-icon-wrapper" title="Notifications">
                             <FaBell />
-                            {unreadCount > 0 && (
-                                <span className="notification-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
+                            {unreadGeneralCount > 0 && (
+                                <span className="notification-badge">
+                                    {unreadGeneralCount > 99 ? '99+' : unreadGeneralCount}
+                                </span>
                             )}
                         </Link>
                     </>

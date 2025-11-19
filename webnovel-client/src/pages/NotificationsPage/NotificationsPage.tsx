@@ -34,7 +34,6 @@ const NotificationsPage: React.FC = () => {
         setError(null);
 
         try {
-            // API bây gi? tr? v? PagedResult<NotificationDto>
             const response = await apiClient.get<PagedResult<NotificationDto>>(
                 API_ROUTES.USER.GET_NOTIFICATIONS,
                 {
