@@ -121,3 +121,42 @@
 .pagination-container {
     margin-top: 30px;
 }
+
+.favorite-progress-info {
+    margin: 8px 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.reading-status.text-primary {
+    color: #2563eb;
+}
+
+.reading-status.text-muted {
+    color: #6b7280;
+    font-style: italic;
+}
+
+.favorite-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+}
+
+.new-chapter-badge {
+    background-color: #ff4757; /* Màu đỏ nổi bật */
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+    display: inline-block;
+    animation: pulse 2s infinite; /* Hiệu ứng nhấp nháy nhẹ nếu muốn */
+}
+
+.total-chapter-info {
+    color: #666;
+    font-size: 0.9rem;
+    margin-left: 5px;
+}

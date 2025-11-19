@@ -741,7 +741,7 @@
 
     // 2.23 Get Series By Uploader (Xem truyện của người khác)
     {
-      "UpstreamPathTemplate": "/series/uploader/{uploaderId}",
+      "UpstreamPathTemplate": "/api/series/uploader/{uploaderId}",
       "UpstreamHttpMethod": [ "GET" ],
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
@@ -1147,6 +1147,24 @@
       }
     },
 
+    //5.4. Marked all Favorite
+    {
+      "UpstreamPathTemplate": "/api/user/notifications/mark-all-read/type/{type}",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7048
+        }
+      ],
+      "DownstreamPathTemplate": "/api/user/notifications/mark-all-read/type/{type}",
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
     // --- Notification ---
 
     // 6.1 Lấy danh sách thông báo 
@@ -1244,6 +1262,25 @@
       }
     },
 
+    // 6.6 Lấy tổng hợp số lượng thông báo 
+    {
+      "UpstreamPathTemplate": "/api/user/notifications/unread-summary",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7048
+        }
+      ],
+      "DownstreamPathTemplate": "/api/user/notifications/unread-summary",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
 
     // --- Reading History ---
     {
@@ -1304,6 +1341,8 @@
         "AllowedScopes": []
       }
     },
+
+
 
 
     // -- User Setting ---

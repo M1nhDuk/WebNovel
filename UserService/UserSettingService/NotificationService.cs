@@ -4,6 +4,8 @@ using UserService.Data;
 using UserService.Models;
 using UserService.Services.Interfaces;
 using Shareds.DTOs.NovelSeries;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 namespace UserService.UserSettingService
 {
     public class NotificationService : INotificationService
@@ -145,6 +147,40 @@ namespace UserService.UserSettingService
             _logger.LogInformation("User {UserId} delete notify {Count} successfully.", userId, deletedCount);
 
             return deletedCount; 
+        }
+
+        public async Task<UnreadSummaryDto> GetUnreadSummaryAsync(Guid userId)
+        {
+            var notifications = await _context.Notification
+                .Where(n => n.UserId == userId && !n.IsRead)
+                .ToListAsync();
+
+            // Tính toán logic phân loại
+            var chapterCount = notifications.Count(n => n.Type == NotificationType.NewChapter);
+            var generalCount = notifications.Count(n => n.Type != NotificationType.NewChapter);
+
+            // Trả về DTO
+            return new UnreadSummaryDto
+            {
+                GeneralCount = generalCount,
+                ChapterCount = chapterCount
+            };
+        }
+
+        public async Task MarkAllByTypeAsReadAsync(Guid userId, NotificationType type)
+        {
+            var notifications = await _context.Notification
+                .Where(n => n.UserId == userId && n.Type == type && !n.IsRead)
+                .ToListAsync();
+
+            if (notifications.Any())
+            {
+                foreach (var n in notifications)
+                {
+                    n.IsRead = true;
+                }
+                await _context.SaveChangesAsync();
+            }
         }
 
         private NotificationDto MapToDto(Notification n)

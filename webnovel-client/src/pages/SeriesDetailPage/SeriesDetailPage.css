@@ -609,6 +609,22 @@
                 color: var(--accent-color);
             }
 
+.chapter-list .chapter-item a {
+    color: #333;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+    .chapter-list .chapter-item a:hover {
+        color: #e74c3c;
+    }
+
+.chapter-list .chapter-item.is-read a {
+    color: #999; 
+    font-weight: normal;
+}
+
+
 .meta-item span {
     color: var(--text-secondary);
 }

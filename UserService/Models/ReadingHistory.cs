@@ -12,7 +12,9 @@ namespace UserService.Models
         public Guid UserId { get; set; }
 
         [Required]
-        public int SeriesId { get; set; } 
+        public int SeriesId { get; set; }
+
+        public int ChapterId { get; set; }
 
         [Required]
         public DateTime LastAccessedAt { get; set; } 

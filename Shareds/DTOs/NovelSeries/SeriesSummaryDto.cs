@@ -11,5 +11,6 @@ namespace Shareds.DTOs.NovelSeries
         public int SeriesId { get; set; }
         public string? Title { get; set; }
         public string? CoverImage { get; set; }
+        public int TotalChapterCount { get; set; }
     }
 }

@@ -4,28 +4,32 @@ using NovelService.Data;
 using NovelService.Models;
 using Shareds.DTOs.Novel;
 
+
 using AutoMapper;
 using Shareds.DTOs.Chapter;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore.Storage;
+using Shareds.DTOs.UserService;
 
 namespace NovelService.Service
 {
     public class ChapterService : IChapterService
     {
-
+        private readonly string _userServiceUrl;
         private readonly NovelDbContext _context;
         private readonly IUserService _userService;
         private readonly ILogger<IChapterService> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
 
-        public ChapterService(NovelDbContext context, ILogger<IChapterService> logger, IHttpClientFactory httpClientFactory)
+        public ChapterService(NovelDbContext context, ILogger<IChapterService> logger, IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _context = context;
             // _userService = userService;
             _logger = logger;
             _httpClientFactory = httpClientFactory;
+            _userServiceUrl = configuration["ServiceUrls:UserService"] ??
+                       throw new InvalidOperationException("ServiceUrls:UserService is not configured.");
         }
 
         //TẠO CHAPTER (liên kết đến novel tồn tại) + update counts
@@ -122,6 +126,10 @@ namespace NovelService.Service
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
 
+                if (parentSeries != null)
+                {
+                    _ = Task.Run(() => NotifyFollowersOfNewChapter(parentSeries.series_Id, chapter.title, uploader_id));
+                }
 
                 return new ChapterDetailDto 
                 {
@@ -453,6 +461,52 @@ namespace NovelService.Service
             {
                 await tx.RollbackAsync();
                 return false;
+            }
+        }
+
+
+        private async Task NotifyFollowersOfNewChapter(int seriesId, string chapterTitle, Guid uploaderId)
+        {
+            List<Guid> followerIds;
+            try
+            {
+                var httpClient = _httpClientFactory.CreateClient();
+
+                // Lấy danh sách người theo dõi series
+                var followersUrl = $"{_userServiceUrl}/api/internal/favorites/{seriesId}/followers";
+                followerIds = await httpClient.GetFromJsonAsync<List<Guid>>(followersUrl);
+
+                if (followerIds == null || !followerIds.Any()) return;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching followers for series {SeriesId}", seriesId);
+                return;
+            }
+
+            // Gửi thông báo cho từng follower
+            foreach (var followerId in followerIds)
+            {
+                if (followerId == uploaderId) continue; 
+
+                var notificationDto = new CreateNotificationDto
+                {
+                    UserId = followerId,
+                    Type = "NewChapter", 
+                    Message = $"New Chapter '{chapterTitle}' just uploaded!",
+                    LinkUrl = $"/series/{seriesId}"
+                };
+
+                try
+                {
+                    var httpClient = _httpClientFactory.CreateClient();
+                    var notificationUrl = $"{_userServiceUrl}/api/internal/notifications";
+                    await httpClient.PostAsJsonAsync(notificationUrl, notificationDto);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error sending notification to User {UserId}", followerId);
+                }
             }
         }
     }

@@ -4,6 +4,7 @@
     {
         SeriesUpdate = 0,   
         SeriesDeleted,  
-        NewComment,      
+        NewComment,
+        NewChapter
     }
 }

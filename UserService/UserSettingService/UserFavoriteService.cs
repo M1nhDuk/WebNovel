@@ -17,6 +17,8 @@ namespace UserService.UserSettingService
             public int SeriesId { get; set; }
             public string? Title { get; set; }
             public string? CoverImage { get; set; }
+
+            public int TotalChapterCount { get; set; }
         }
 
 
@@ -236,6 +238,7 @@ namespace UserService.UserSettingService
                         {
                             item.SeriesTitle = summary.Title;
                             item.SeriesCoverImage = summary.CoverImage;
+                            item.CurrentChapterCount = summary.TotalChapterCount;
                         }
                         else
                         {

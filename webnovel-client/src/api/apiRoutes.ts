@@ -55,6 +55,7 @@ export const API_ROUTES = {
         SETTINGS: '/api/user/settings',
         GET_FAVORITES: '/user/favorites',
         TOGGLE_FAVORITE: '/user/favorites/toggle',
+        SYNC_COUNTS: '/user/favorites/sync-counts',
 
         GET_BOOKMARKS: '/user/bookmarks',
         GET_BOOKMARK_FOR_CHAPTER: (chapterId: number | string) => `/user/bookmarks/chapter/${chapterId}`,
@@ -68,7 +69,10 @@ export const API_ROUTES = {
         GET_UNREAD_COUNT: '/user/notifications/unread-count',
         MARK_ALL_AS_READ: '/user/notifications/mark-all-read',
         MARK_AS_READ: (id: string) => `/user/notifications/${id}/mark-as-read`,
+        MARK_ALL_AS_READ_BY_TYPE: (type: number | string) => `/api/user/notifications/mark-all-read/type/${type}`,
         DELETE_NOTIFICATIONS: '/user/notifications/batch-delete',
+
+
     },
 
     COMMENTS: {

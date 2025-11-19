@@ -32,22 +32,19 @@ namespace UserService.Controllers
         }
 
 
-        [HttpPost("{seriesId:int}")]
-        public async Task<IActionResult> AddOrUpdateHistory(int seriesId)
+        [HttpPost] 
+        public async Task<IActionResult> AddOrUpdateHistory([FromBody] AddReadingHistoryDto dto)
         {
             try
             {
                 var userId = GetUserIdFromToken();
-                await _readingHistoryService.AddOrUpdateHistoryAsync(userId, seriesId);
-                return Ok(new { message = "Reading history updated successfully." });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new { message = ex.Message });
+                await _readingHistoryService.AddOrUpdateHistoryAsync(userId, dto);
+                return Ok(new { message = "Reading history updated." });
+
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error adding/updating reading history for User {UserId}, Series {SeriesId}", GetUserIdFromToken(), seriesId);
+                _logger.LogError(ex, "Error updating history");
                 return StatusCode(500, "Internal server error");
             }
         }

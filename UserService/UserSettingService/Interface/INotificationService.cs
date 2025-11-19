@@ -1,6 +1,7 @@
 ﻿
 using Shareds.DTOs.NovelSeries;
 using Shareds.DTOs.UserService;
+using UserService.Models;
 
 namespace UserService.Services.Interfaces
 {
@@ -12,5 +13,9 @@ namespace UserService.Services.Interfaces
         Task<bool> MarkAsReadAsync(Guid userId, Guid notificationId);
         Task<bool> MarkAllAsReadAsync(Guid userId);
         Task<int> RemoveNotificationsAsync(Guid userId, List<Guid> notificationIds);
+
+        Task<UnreadSummaryDto> GetUnreadSummaryAsync(Guid userId);
+
+        Task MarkAllByTypeAsReadAsync(Guid userId, NotificationType type);
     }
 }
