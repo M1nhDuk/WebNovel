@@ -57,6 +57,8 @@ function App() {
 
                     <Route path="/profile" element={<ProfilePage />} />
 
+                    <Route path="/user/:userId" element={<ProfilePage />} />
+
                     <Route path="/account-settings" element={<AccountSettingsPage />} />
 
                     <Route path="history" element={<ReadingHistoryPage />} />

@@ -211,8 +211,23 @@
       }
     },
 
+    // 1.13 Get Public User Profile (Xem hồ sơ người khác)
+    {
+      "UpstreamPathTemplate": "/user/{id}/public",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7154
+        }
+      ],
+      "DownstreamPathTemplate": "/api/User/{id}/public",
+      "DangerousAcceptAnyServerCertificateValidator": true
+    },
+
     // -----------------------------------------------------------------
-    // --- Interaction Service (ĐƯỢC DI CHUYỂN LÊN TRÊN) ---
+    // --- Interaction Service 
     // -----------------------------------------------------------------
 
     // 10.1 Xem comment của series
@@ -595,7 +610,7 @@
       }
     },
 
-    // 2.18 Sắp xếp Chapter
+    // 2.16 Sắp xếp Chapter
     {
       "UpstreamPathTemplate": "/novels/{novelId}/chapters/reorder",
       "UpstreamHttpMethod": [ "POST" ],
@@ -614,7 +629,7 @@
       }
     },
 
-    // 2.16 Xem Chapter
+    // 2.17 Xem Chapter
     {
       "UpstreamPathTemplate": "/novels/{novelId}/chapters/{chapterId}",
       "UpstreamHttpMethod": [ "GET" ],
@@ -630,7 +645,7 @@
     },
 
 
-    // 2.17 Cập nhật/Xóa Chapter
+    // 2.18 Cập nhật/Xóa Chapter
     {
       "UpstreamPathTemplate": "/novels/{novelId}/chapters/{chapterId}",
       "UpstreamHttpMethod": [ "PUT", "DELETE" ],
@@ -670,7 +685,7 @@
       }
     },
 
-    // 2.22 Sắp xếp Chapter
+    // 2.20 Sắp xếp Chapter
     {
       "UpstreamPathTemplate": "/series/{seriesId}/chapters/reorder",
       "UpstreamHttpMethod": [ "POST" ],
@@ -689,7 +704,7 @@
       }
     },
 
-    // 2.20 Xem Chapter
+    // 2.21 Xem Chapter
     {
       "UpstreamPathTemplate": "/series/{seriesId}/chapters/{chapterId}",
       "UpstreamHttpMethod": [ "GET" ],
@@ -705,7 +720,7 @@
     },
 
 
-    // 2.21 ập nhật/Xóa Chapter
+    // 2.22 Cập nhật/Xóa Chapter
     {
       "UpstreamPathTemplate": "/series/{seriesId}/chapters/{chapterId}",
       "UpstreamHttpMethod": [ "PUT", "DELETE" ],
@@ -722,6 +737,21 @@
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
       }
+    },
+
+    // 2.23 Get Series By Uploader (Xem truyện của người khác)
+    {
+      "UpstreamPathTemplate": "/series/uploader/{uploaderId}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7263
+        }
+      ],
+      "DownstreamPathTemplate": "/api/series/uploader/{uploaderId}",
+      "DangerousAcceptAnyServerCertificateValidator": true
     },
 
     // --- CATEGORY ---

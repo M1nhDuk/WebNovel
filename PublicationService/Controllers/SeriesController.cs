@@ -305,10 +305,34 @@ namespace NovelService.Controllers
                 return Ok(result);
             }
 
-//--------------------------------------------------------------------------------------------------------------------------------
-            //Classic Series
+        //API để lấy truyện của một tác giả bất kỳ
+        [HttpGet("series/uploader/{uploaderId:guid}")]
+        [AllowAnonymous] // Cho phép khách xem mà không cần login
+        public async Task<ActionResult<PagedResult<SeriesListDto>>> GetSeriesByUploaderPublic(
+            Guid uploaderId,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+                // Tận dụng hàm GetSeriesByUploaderAsync đã có trong Service
+                var result = await _seriesService.GetSeriesByUploaderAsync(uploaderId, pageNumber, pageSize);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving public series for uploader {UploaderId}", uploaderId);
+                return StatusCode(500, "Internal server error");
+            }
+        }
 
-            [HttpPost("series/classic")]
+
+
+
+        //--------------------------------------------------------------------------------------------------------------------------------
+        //Classic Series
+
+        [HttpPost("series/classic")]
             [Authorize]
             public async Task<ActionResult<ClassicSeriesDetailDto>> CreateClassicSeries([FromBody] CreateTraditionalSeriesDto dto)
             {
@@ -348,4 +372,6 @@ namespace NovelService.Controllers
 
 
         }
-    }
+
+
+}

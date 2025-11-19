@@ -15,6 +15,8 @@ export const API_ROUTES = {
         CHANGE_PASSWORD: '/user/change-password',
         CHANGE_USERNAME: '/user/change-username',
         GET_MY_PROFILE: '/user/me',
+
+        GET_PUBLIC_PROFILE: (id: string) => `/user/${id}/public`,
     },
 
     // --- NovelService Routes ---
@@ -43,6 +45,9 @@ export const API_ROUTES = {
         //Edit
         CHAPTER_FOR_NOVEL: (novelId: number | string, chapterId: number | string) => `/novels/${novelId}/chapters/${chapterId}`,
         CHAPTER_FOR_SERIES: (seriesId: number | string, chapterId: number | string) => `/series/${seriesId}/chapters/${chapterId}`,
+
+        GET_SERIES_BY_UPLOADER: (uploaderId: string) => `/series/uploader/${uploaderId}`,
+
     },
 
     USER: { 
