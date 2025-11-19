@@ -530,6 +530,7 @@ const SeriesDetailPage: React.FC = () => {
                             />
                             <span className="uploader-name">Uploader</span>
                         </div>
+
                         <div className="sidebar-box-content uploader-name-value">
                             <Link to={`/user/${series.uploader_id}`} title={`View ${series.uploader_name}'s profile`}>
                                 <strong>{series.uploader_name}</strong>

@@ -332,6 +332,41 @@ namespace AuthService.Controllers
 
             return Ok(new { url = user.BackgroundImage });
         }
+
+        //Xem profile user #
+        [HttpGet("{id:guid}/public")]
+        [AllowAnonymous] 
+        public async Task<ActionResult<UserProfileDto>> GetPublicProfile(Guid id)
+        {
+            try
+            {
+                var user = await _context.Users.FindAsync(id);
+
+                if (user == null)
+                {
+                    return NotFound(new { message = "User not found." });
+                }
+
+                var userProfile = new UserProfileDto
+                {
+                    UserId = user.UserId,
+                    Username = user.Username,
+                    Avatar = user.Avatar,
+                    AvatarThumbnail = user.AvatarThumbnail,
+                    BackgroundImage = user.BackgroundImage,
+                    Role = "User" 
+                };
+
+                return Ok(userProfile);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching public profile for user {UserId}", id);
+                return StatusCode(500, "Internal server error");
+            }
+        }
     }
+
+
 }
 
