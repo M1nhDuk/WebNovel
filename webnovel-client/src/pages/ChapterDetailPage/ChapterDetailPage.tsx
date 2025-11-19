@@ -55,9 +55,11 @@ const ChapterDetailPage: React.FC = () => {
         if (!user || !seriesId) return;
 
         try {
-            await apiClient.post(
-                `${API_ROUTES.USER.READING_HISTORY}/${seriesId}`
-            );
+            // SỬA LẠI ĐOẠN NÀY:
+            await apiClient.post(API_ROUTES.USER.READING_HISTORY, {
+                seriesId: Number(seriesId),
+                chapterId: numChapterId
+            });
             console.log(`Reading history updated for Series ID: ${seriesId}`);
         } catch (err) {
             console.warn("Failed to log reading history:", err);

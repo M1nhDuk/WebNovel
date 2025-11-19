@@ -32,6 +32,17 @@ namespace UserService.Controllers
         }
 
 
+        [HttpGet("series/{seriesId}/chapters")]
+        public async Task<IActionResult> GetReadChapters(int seriesId)
+        {
+            var userId = GetUserIdFromToken();
+
+            if (userId == Guid.Empty) return Unauthorized();
+
+            var chapterIds = await _readingHistoryService.GetReadChapterIdsAsync(userId, seriesId);
+            return Ok(chapterIds);
+        }
+
         [HttpPost] 
         public async Task<IActionResult> AddOrUpdateHistory([FromBody] AddReadingHistoryDto dto)
         {

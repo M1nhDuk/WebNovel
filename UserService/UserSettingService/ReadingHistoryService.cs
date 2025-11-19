@@ -35,13 +35,22 @@ namespace UserService.UserSettingService
             }
 
 
+        public async Task<List<int>> GetReadChapterIdsAsync(Guid userId, int seriesId)
+        {
+            return await _context.ReadingHistories
+                .Where(rh => rh.UserId == userId && rh.SeriesId == seriesId)
+                .Select(rh => rh.ChapterId)
+                .ToListAsync();
+        }
+
+
         public async Task AddOrUpdateHistoryAsync(Guid userId, AddReadingHistoryDto dto)
         {
             //Kiểm tra xem user đã đọc chương này chưa
             var existingChapterHistory = await _context.ReadingHistories
-                .FirstOrDefaultAsync(rh => rh.UserId == userId
-                                        && rh.SeriesId == dto.SeriesId
-                                        && rh.ChapterId == dto.ChapterId);
+                                .FirstOrDefaultAsync(rh => rh.UserId == userId
+                            && rh.SeriesId == dto.SeriesId
+                            && rh.ChapterId == dto.ChapterId);
 
             bool isNewChapter = false;
 

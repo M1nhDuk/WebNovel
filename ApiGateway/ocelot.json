@@ -1304,7 +1304,7 @@
 
     {
       // 7.2 Reading History (POST to Add/Update)
-      "UpstreamPathTemplate": "/user/reading-history/",
+      "UpstreamPathTemplate": "/user/reading-history",
       "UpstreamHttpMethod": [ "POST" ],
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
@@ -1313,7 +1313,7 @@
           "Port": 7048
         }
       ],
-      "DownstreamPathTemplate": "/api/user/reading-history/",
+      "DownstreamPathTemplate": "/api/user/reading-history",
       "DangerousAcceptAnyServerCertificateValidator": true,
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",

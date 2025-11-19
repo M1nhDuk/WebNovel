@@ -56,7 +56,6 @@ const SeriesDetailPage: React.FC = () => {
 
     // --- Xử lý khi click đọc chương ---
     const handleReadChapter = async (chapterId: number) => {
-        //Cập nhật
         setReadChapters(prev => new Set(prev).add(chapterId));
 
         if (!user || !id) return;
@@ -138,6 +137,23 @@ const SeriesDetailPage: React.FC = () => {
             return () => clearTimeout(timer);
         }
     }, [notification]);
+
+
+    // --- useEffect để load lịch sử đọc khi vào trang ---
+    useEffect(() => {
+        if (!user || !id) return;
+
+        const fetchReadHistory = async () => {
+            try {
+                const response = await apiClient.get<number[]>(`/user/reading-history/series/${id}/chapters`);
+                setReadChapters(new Set(response.data));
+            } catch (error) {
+                console.error("Failed to fetch read history", error);
+            }
+        };
+
+        fetchReadHistory();
+    }, [id, user]);
 
 
     const handleFavoriteClick = async () => {
@@ -408,7 +424,7 @@ const SeriesDetailPage: React.FC = () => {
                         })()}
                     </div>
 
-
+                    
                     {/* (Phần Volume & Chapter List) */}
                     <div className="chapter-list-section">
                         <h3>Volume & Chapter List</h3>
@@ -435,6 +451,7 @@ const SeriesDetailPage: React.FC = () => {
                                         <h4 className="volume-title">{volume.title}</h4>
                                         <ul className="chapter-list">
                                             {chaptersToShow.map(chapter => {
+
                                                 // Kiểm tra xem đã đọc chưa
                                                 const isRead = readChapters.has(chapter.chapter_id);
 
@@ -491,7 +508,7 @@ const SeriesDetailPage: React.FC = () => {
                                                     <Link
                                                         to={`/series/${series.series_Id}/chapter/${chapter.chapter_id}`}
                                                         className="chapter-title"
-                                                        onClick={() => handleReadChapter(chapter.chapter_id)} 
+                                                        onClick={() => handleReadChapter(chapter.chapter_id)}
                                                     >
                                                         {chapter.title}
                                                     </Link>
