@@ -19,8 +19,10 @@ import { ReaderSettingsProvider } from './context/ReaderSettingsContext'
 import FavoritesPage from './pages/FavoritesPage/FavoritesPage'
 import BookmarksPage from './pages/BookmarksPage/BookmarksPage';
 import NotificationsPage from './pages/NotificationsPage/NotificationsPage';
+import ContentNotFoundPage from './pages/ContentNotFoundPage';
 
 import ManageSeriesPage from './pages/ManageSeriesPage/ManageSeriesPage'
+
 
 
 import MainLayout from './components/layout/MainLayout'
@@ -71,6 +73,7 @@ function App() {
 
                     <Route path="bookmarks" element={<BookmarksPage />} />
 
+                    <Route path="/content-not-found" element={<ContentNotFoundPage />} />
                 </Route>
 
             </Routes>

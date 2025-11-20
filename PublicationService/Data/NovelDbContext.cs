@@ -61,7 +61,7 @@ namespace NovelService.Data
                 .WithMany(c => c.NovelSeries)
                 .HasForeignKey(n => n.status_id)
                 .OnDelete(DeleteBehavior.Restrict);
-
+            
             // NovelTag (join table) cấu hình
             modelBuilder.Entity<NovelTag>()
                 .HasKey(c => c.novelTagId);
@@ -95,6 +95,14 @@ namespace NovelService.Data
 
             // Map derived ClassicSeries -> separate table (TPT)
             modelBuilder.Entity<ClassicSeries>().ToTable("classic_series");
+
+            modelBuilder.Entity<ClassicSeries>()
+                .HasIndex(cs => cs.iSBN_13)
+                .IsUnique();
+
+            modelBuilder.Entity<ClassicSeries>()
+                .HasIndex(cs => cs.iSBN_10)
+                .IsUnique();
 
             // Indexes for uniqueness per parent
             modelBuilder.Entity<Chapter>()

@@ -71,14 +71,14 @@ const ProfilePage: React.FC = () => {
                 // Case 1: Xem của chính mình 
                 if (!currentUser) return;
                 response = await apiClient.get<PagedResult<SeriesListDto>>(
-                    API_ROUTES.SERIES.GET_SERIES_BY_UPLOADER(userId as string),
+                    API_ROUTES.SERIES.GET_MY_SERIES, 
                     { params: { pageNumber: pageToFetch, pageSize: PAGE_SIZE } }
                 );
             } else {
                 // Case 2: Xem của người khác (API public)
                 if (!userId) return;
                 response = await apiClient.get<PagedResult<SeriesListDto>>(
-                    `/api/series/uploader/${userId}`,
+                    API_ROUTES.SERIES.GET_SERIES_BY_UPLOADER(userId),
                     { params: { pageNumber: pageToFetch, pageSize: PAGE_SIZE } }
                 );
             }
@@ -129,7 +129,7 @@ const ProfilePage: React.FC = () => {
 
 
     if (isOwnProfile && !currentUser) return null;
-
+    
 
     if (!displayUser) return <div>Something went wrong.</div>;
 
