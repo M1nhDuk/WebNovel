@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import apiClient from '../../api/apiClient';
 import { API_ROUTES } from '../../api/apiRoutes';
 import { useAuth } from '../../hooks/useAuth';
-import type { PagedResult } from '../../types/series'; 
+import type { PagedResult } from '../../types/series';
 import type { NotificationDto, RemoveNotificationsDto } from '../../types/notifications';
 import Pagination from '../../components/common/Pagination';
 import { FaTrash, FaCheckDouble, FaRegEnvelope, FaRegEnvelopeOpen } from 'react-icons/fa';
@@ -24,7 +24,56 @@ const NotificationsPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  
+
+    const handleNotificationLinkClick = useCallback(async (item: NotificationDto, event: React.MouseEvent) => {
+        if (!item.linkUrl) return;
+
+        
+        if (!item.isRead) {
+            try {
+                await apiClient.post(API_ROUTES.USER.MARK_AS_READ(item.notificationId));
+                setNotifications(prev => prev.map(n =>
+                    n.notificationId === item.notificationId ? { ...n, isRead: true } : n
+                ));
+                refreshUnreadCount();
+            } catch (err) {
+                console.error("Failed to mark as read:", err);
+            }
+        }
+
+        if (item.linkUrl.startsWith('/series/')) {
+            event.preventDefault(); 
+
+            const parts = item.linkUrl.split('/');
+            const seriesId = parts.length > 2 ? parts[2] : null;
+
+            if (seriesId && !isNaN(Number(seriesId))) {
+                try {
+                    // G?i API GET Series Detail to check valid series
+                    await apiClient.get(API_ROUTES.SERIES.GET_BY_ID(seriesId));
+
+
+                    // Series valid (exsist) -> navigate
+                    navigate(item.linkUrl);
+                } catch (err: any) {
+
+                    //Series not found
+                    if (err.response?.status === 404) {
+
+                        //Navigate to 404 Not Found Page
+                        navigate('/content-not-found', { replace: true });
+                    } else {
+                        alert(`Error checking content existence. Navigating anyway. Error: ${err.response?.status || 'Network Error'}`);
+                        navigate(item.linkUrl);
+                    }
+                }
+            } else {
+                navigate(item.linkUrl);
+            }
+        }
+    }, [refreshUnreadCount, navigate, isLoading]);
+
+    // Hàm fetchNotifications 
     const fetchNotifications = useCallback(async (pageToFetch: number) => {
         if (!user) {
             setIsLoading(false);
@@ -43,11 +92,7 @@ const NotificationsPage: React.FC = () => {
                     }
                 }
             );
-
-
             setNotifications(response.data.items);
-
-
             setCurrentPage(response.data.pageNumber);
             setTotalPages(Math.ceil(response.data.totalRecords / PAGE_SIZE));
 
@@ -59,7 +104,7 @@ const NotificationsPage: React.FC = () => {
             setIsLoading(false);
         }
     }, [user]);
-    
+
 
     useEffect(() => {
         if (!userLoading && !user) {
@@ -68,15 +113,11 @@ const NotificationsPage: React.FC = () => {
         }
     }, [user, userLoading]);
 
-
-
     useEffect(() => {
         if (user) {
             fetchNotifications(currentPage);
         }
     }, [user, fetchNotifications, currentPage]);
-
-
 
     const handlePageChange = (page: number) => {
         if (page !== currentPage) {
@@ -84,8 +125,6 @@ const NotificationsPage: React.FC = () => {
             window.scrollTo(0, 0);
         }
     };
-
-
 
     const handleSelect = (id: string) => {
         setSelectedIds(prev => {
@@ -99,19 +138,15 @@ const NotificationsPage: React.FC = () => {
         });
     };
 
-
-
     const handleMarkAllAsRead = async () => {
         try {
             await apiClient.post(API_ROUTES.USER.MARK_ALL_AS_READ);
-            fetchNotifications(currentPage);      
-            refreshUnreadCount(); 
+            fetchNotifications(currentPage);
+            refreshUnreadCount();
         } catch (err) {
             setError("Failed to mark all as read.");
         }
     };
-
-
 
     const handleDeleteSelected = async () => {
         if (selectedIds.size === 0) return;
@@ -125,7 +160,7 @@ const NotificationsPage: React.FC = () => {
             await apiClient.delete(API_ROUTES.USER.DELETE_NOTIFICATIONS, { data: payload });
             setSelectedIds(new Set());
 
-           
+
             if (notifications.length === selectedIds.size && currentPage > 1) {
                 fetchNotifications(currentPage - 1);
             } else {
@@ -138,17 +173,13 @@ const NotificationsPage: React.FC = () => {
         }
     };
 
-
-
     const formatTime = (dateString: string) => {
         return formatDistanceToNow(new Date(dateString), { addSuffix: true, locale: vi });
     };
 
-
     if (userLoading || (isLoading && currentPage === 1)) {
         return <div className="notifications-page-container"><h1>Notifications</h1>Loading...</div>;
     }
-
 
     if (!user) {
         return (
@@ -158,8 +189,6 @@ const NotificationsPage: React.FC = () => {
             </div>
         );
     }
-
-
 
     return (
         <div className="notifications-page-container">
@@ -203,7 +232,12 @@ const NotificationsPage: React.FC = () => {
                             <div className="notification-details">
                                 <span className="notification-message">
                                     {item.linkUrl ? (
-                                        <Link to={item.linkUrl}>{item.message}</Link>
+                                        <Link
+                                            to={item.linkUrl}
+                                            onClick={(e) => handleNotificationLinkClick(item, e)}
+                                        >
+                                            {item.message}
+                                        </Link>
                                     ) : (
                                         <span>{item.message}</span>
                                     )}

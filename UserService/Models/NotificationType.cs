@@ -5,6 +5,7 @@
         SeriesUpdate = 0,   
         SeriesDeleted,  
         NewComment,
-        NewChapter
+        NewChapter,
+        CommentDeleted
     }
 }

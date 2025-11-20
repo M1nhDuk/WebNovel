@@ -34,6 +34,26 @@ namespace NovelService.Service
             if (string.IsNullOrEmpty(dto.author)) throw new InvalidOperationException("Author is required");
 
 
+            if (dto.iSBN_13.Length != 13 || (!dto.iSBN_13.StartsWith("978") && !dto.iSBN_13.StartsWith("979")))
+            {
+                throw new InvalidOperationException("ISBN-13 must be 13 digits and start with 978 or 979.");
+            }
+
+            if (!string.IsNullOrEmpty(dto.iSBN_10) && dto.iSBN_10.Length != 10)
+            {
+                throw new InvalidOperationException("ISBN-10 must be 10 characters.");
+            }
+
+            bool isbnExists = await _context.ClassicSeries.AnyAsync(
+                s => (s.iSBN_13 == dto.iSBN_13) ||
+                     (dto.iSBN_10 != null && s.iSBN_10 == dto.iSBN_10)
+            );
+
+            if (isbnExists)
+            {
+                throw new InvalidOperationException("ISBN-13 or ISBN-10 already exists for another series.");
+            }
+
             using var tx = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -111,11 +131,48 @@ namespace NovelService.Service
                 throw new UnauthorizedAccessException("You are not authorized to update this series.");
             }
 
+
+            if (dto.iSBN_13 != null && dto.iSBN_13 != series.iSBN_13)
+            {
+                if (dto.iSBN_13.Length != 13 || (!dto.iSBN_13.StartsWith("978") && !dto.iSBN_13.StartsWith("979")))
+                {
+                    throw new InvalidOperationException("ISBN-13 must be 13 digits and start with 978 or 979.");
+                }
+
+                //Unique Check
+                bool isbn13Exists = await _context.ClassicSeries.AnyAsync(
+                    s => s.series_Id != seriesId && s.iSBN_13 == dto.iSBN_13
+                );
+                if (isbn13Exists)
+                {
+                    throw new InvalidOperationException("ISBN-13 already exists for another series.");
+                }
+                series.iSBN_13 = dto.iSBN_13; 
+            }
+
+  
+            if (dto.iSBN_10 != null && dto.iSBN_10 != series.iSBN_10)
+            {
+
+                if (dto.iSBN_10.Length != 10)
+                {
+                    throw new InvalidOperationException("ISBN-10 must be 10 characters.");
+                }
+
+                bool isbn10Exists = await _context.ClassicSeries.AnyAsync(
+                    s => s.series_Id != seriesId && s.iSBN_10 == dto.iSBN_10
+                );
+                if (isbn10Exists)
+                {
+                    throw new InvalidOperationException("ISBN-10 already exists for another series.");
+                }
+                series.iSBN_10 = dto.iSBN_10;
+            }
+
+
             await _novelSeriesService.UpdateSeriesAsync(seriesId, dto, uploaderId, userRole);
 
             //Cập nhật các thuộc tính riêng của ClassicSeries
-            series.iSBN_10 = dto.iSBN_10 ?? series.iSBN_10;
-            series.iSBN_13 = dto.iSBN_13 ?? series.iSBN_13;
             series.publisher = dto.publisher ?? series.publisher;
             series.publish_date = dto.publish_date ?? series.publish_date;
             series.edition = dto.edition ?? series.edition;

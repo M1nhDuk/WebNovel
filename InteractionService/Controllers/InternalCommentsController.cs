@@ -42,22 +42,6 @@ namespace InteractionService.Controllers
             return Ok(new { message = $"Comments for ChapterId {chapterId} processed for deletion." });
         }
 
-
-
-        [HttpDelete("admin/comments/{id:guid}")]
-        [Authorize(Roles = "Admin")] 
-        public async Task<IActionResult> AdminDeleteComment(Guid id)
-        {
-            _logger.LogWarning("Admin executing delete for CommentId {CommentId}", id);
-
-            var success = await _commentService.AdminDeleteCommentAsync(id);
-
-            if (!success)
-            {
-                return NotFound(new { message = "Comment not found." });
-            }
-            return NoContent();
-        }
     }
 
 }

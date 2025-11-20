@@ -46,7 +46,7 @@ namespace InteractionService.Service
 
             //Build URL request
             var idsQueryParam = string.Join(",", userIds);
-            var requestUrl = $"api/internal/users/batch?ids={idsQueryParam}"; // Path tương đối nếu dùng BaseAddress
+            var requestUrl = $"api/internal/users/batch?ids={idsQueryParam}"; 
 
             //Gọi API nội bộ
             List<UserInfoDto>? usersInfo = null;
@@ -354,6 +354,26 @@ namespace InteractionService.Service
                 throw new UnauthorizedAccessException("You are not allowed to delete this comment.");
             }
 
+
+            if (comment.UserId != userId)
+            {
+                var commenterId = comment.UserId;
+                var contentTarget = comment.SeriesId.HasValue ? $"series '{comment.SeriesId}'" : $"chapter '{comment.ChapterId}'";
+                string message = $"Your comment on {contentTarget} was removed.";
+                string? linkUrl = comment.SeriesId.HasValue ? $"/series/{comment.SeriesId}" : null; 
+
+                var notificationDto = new CreateNotificationDto
+                {
+                    UserId = commenterId,
+                    Type = "CommentDeleted",
+                    Message = message,
+                    LinkUrl = linkUrl
+                };
+                await SendNotificationAsync(notificationDto);
+            }
+
+
+
             _context.Comments.Remove(comment);
             var result = await _context.SaveChangesAsync();
 
@@ -403,25 +423,7 @@ namespace InteractionService.Service
         }
 
 
-        public async Task<bool> AdminDeleteCommentAsync(Guid commentId)
-        {
-            var comment = await _context.Comments.FindAsync(commentId);
-            if (comment == null)
-            {
-                return false;
-            }
-
-            _context.Comments.Remove(comment);
-            var result = await _context.SaveChangesAsync();
-
-            if (result > 0)
-            {
-                _logger.LogWarning("ADMIN deleted comment {CommentId}", commentId);
-                return true;
-            }
-            return false;
-
-        }
+    
 
 
 

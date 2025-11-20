@@ -154,8 +154,8 @@ const NovelDetailPage: React.FC = () => {
                                         onClick={() => setIsChapterListExpanded(prev => !prev)}
                                     >
                                         {isChapterListExpanded
-                                            ? "Thu gọn"
-                                            : `Xem tiếp (${novel.chapters.length - CHAPTER_LIMIT} chương nữa)`
+                                            ? "Less"
+                                            : `More(${novel.chapters.length - CHAPTER_LIMIT} chương nữa)`
                                         }
                                     </button>
                                 </li>
@@ -184,13 +184,15 @@ const NovelDetailPage: React.FC = () => {
                             <span className="uploader-name">Uploader</span>
                         </div>
                         <div className="sidebar-box-content uploader-name-value">
-                            <strong>{series.uploader_name}</strong>
+                            <Link to={`/user/${series.uploader_id}`} title={`View ${series.uploader_name}'s profile`}>
+                                <strong>{series.uploader_name}</strong>
+                            </Link>
                         </div>
                     </div>
                     {series.note && (
                         <div className="sidebar-box">
                             <div className="sidebar-box-header">
-                                Chú thích thêm
+                                Note
                             </div>
                             <div className="sidebar-box-content">
                                 <p>{series.note}</p>
