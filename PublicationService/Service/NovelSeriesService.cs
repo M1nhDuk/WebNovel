@@ -23,7 +23,7 @@ namespace NovelService.Service
     {
         private readonly NovelDbContext _context;
         private readonly ILogger<NovelSeriesService> _logger;
-
+        private readonly IUserService _userService;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly string _userServiceUrl;
@@ -33,12 +33,14 @@ namespace NovelService.Service
             NovelDbContext context, 
             ILogger<NovelSeriesService> logger, 
             IHttpClientFactory httpClientFactory,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IUserService userService)
         {
             _context = context;
             _logger = logger;
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
+            _userService = userService;
 
             _userServiceUrl = configuration["ServiceUrls:UserService"] ??
                               throw new InvalidOperationException("ServiceUrls:UserService không được cấu hình");
@@ -259,17 +261,24 @@ namespace NovelService.Service
             }
 
             //Send noti
-            var notificationDto = new CreateNotificationDto
+            try
             {
-                UserId = series.uploader_id,
-                Type = "SeriesDeleted",
-                Message = $"Your series '{series.series_title}' has been deleted.",
-                LinkUrl = null
-            };
+                var notifyDto = new SeriesGeneralNotificationDto
+                {
+                    SeriesId = id,
+                    Message = $"Series {series.series_title} (ID: {id}) has been deleted.",
+                    Type = "SeriesDeleted", 
+                    LinkUrl = null 
+                };
 
-            _ = SendNotificationAsync(notificationDto);
+                _ = _userService.NotifySeriesGeneralAsync(notifyDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi gửi thông báo xóa Series {Id}", id);
+            }
 
-           
+
             _context.Novel_Series.Remove(series);
             await _context.SaveChangesAsync();
 

@@ -97,6 +97,12 @@ const Header: React.FC = () => {
 
     const { user, isLoading, logout, unreadGeneralCount, unreadChapterCount, clearChapterNotifications } = useAuth();
 
+    const handleLogout = () => {
+        logout();       
+        navigate('/');  
+        setIsMenuOpen(false); 
+    };
+
     const handleSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter' && searchQuery.trim() !== '') {
             navigate(`/browse?q=${encodeURIComponent(searchQuery.trim())}`);
@@ -170,26 +176,30 @@ const Header: React.FC = () => {
 
                             {/* Dropdown Menu */}
                             {isMenuOpen && (
-                                <UserDropdownMenu onLogout={logout} onClose={() => setIsMenuOpen(false)} user={user} />
+                                <UserDropdownMenu
+                                    onLogout={handleLogout}
+                                    onClose={() => setIsMenuOpen(false)}
+                                    user={user}
+                                />
                             )}
                         </div>
 
                         {/*ICON TIM */}
-                            <Link
-                                to="/favorites"
-                                className="header-icon-btn notification-icon-wrapper"
-                                title="Favorites - New Chapters"
-                                onClick={clearChapterNotifications} 
-                            >
-                                <FaHeart />
-                                {unreadChapterCount > 0 && (
-                                    <span className="notification-badge">
-                                        {unreadChapterCount > 99 ? '99+' : unreadChapterCount}
-                                    </span>
-                                )}
-                            </Link>
+                        <Link
+                            to="/favorites"
+                            className="header-icon-btn notification-icon-wrapper"
+                            title="Favorites - New Chapters"
+                            onClick={clearChapterNotifications}
+                        >
+                            <FaHeart />
+                            {unreadChapterCount > 0 && (
+                                <span className="notification-badge">
+                                    {unreadChapterCount > 99 ? '99+' : unreadChapterCount}
+                                </span>
+                            )}
+                        </Link>
 
-                        {/* ICON CHUÔNG --- */}
+                        {/* ICON CHUÔNG */}
                         <Link to="/notifications" className="header-icon-btn notification-icon-wrapper" title="Notifications">
                             <FaBell />
                             {unreadGeneralCount > 0 && (

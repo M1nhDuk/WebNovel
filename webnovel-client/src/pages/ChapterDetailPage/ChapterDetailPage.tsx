@@ -93,6 +93,7 @@ const ChapterDetailPage: React.FC = () => {
     }, [series]);
 
 
+    // -- FETCH DATA ---
     useEffect(() => {
         const fetchChapterData = async () => {
             if (!seriesId || !chapterId) return;
@@ -112,7 +113,9 @@ const ChapterDetailPage: React.FC = () => {
                     contentApiUrl = API_ROUTES.SERIES.CHAPTER_FOR_SERIES(seriesId, chapterId);
                     foundChapterMeta = seriesData.chapters?.find(c => c.chapter_id === numChapterId);
                 } else {
+
                     const sortedNovels = seriesData.novels.sort((a, b) => a.novel_number - b.novel_number);
+
                     for (const novel of sortedNovels) {
                         const sortedChapters = novel.chapters.sort((a, b) => a.chapter_number - b.chapter_number);
                         foundChapterMeta = sortedChapters.find(c => c.chapter_id === numChapterId);
@@ -132,28 +135,6 @@ const ChapterDetailPage: React.FC = () => {
                 const chapterData = chapterResponse.data;
                 setChapter(chapterData);
 
-                if (user) {                  
-                    logReadingHistory(seriesId);
-                    // --- TÍNH GLOBAL INDEX ---
-                    // Tạo danh sách phẳng tạm thời để tìm vị trí nếu flatChapterList chưa kịp update
-                    let allChapters: ChapterDetailDto[] = [];
-                    if (seriesData.type === 'TRADITIONAL') {
-                        allChapters = seriesData.chapters || [];
-                    } else {
-                        allChapters = seriesData.novels
-                            .sort((a, b) => a.novel_number - b.novel_number)
-                            .flatMap(n => n.chapters?.sort((c1, c2) => c1.chapter_number - c2.chapter_number) || []);
-                    }
-
-                    // Tìm vị trí (index) của chapter hiện tại trong toàn bộ series
-                    const globalIndex = allChapters.findIndex(c => c.chapter_id === chapterData.chapter_id);
-
-                    // Nếu tìm thấy, gửi (index + 1) làm tiến độ. Nếu không, dùng chapter_number
-                    const progressCount = globalIndex !== -1 ? globalIndex + 1 : chapterData.chapter_number;
-
-                    await syncProgress(seriesData.series_Id, progressCount);
-                }
-
             } catch (err: any) {
                 console.error("Failed to fetch chapter:", err);
                 setError(err.response?.data?.message || "Cannot load chapter.");
@@ -164,6 +145,33 @@ const ChapterDetailPage: React.FC = () => {
 
         fetchChapterData();
     }, [seriesId, chapterId, numChapterId, user]);
+
+
+    //DEBOUNCE LOG HISTORY
+    useEffect(() => {
+        if (!user || !series || !chapter) return;
+
+        // Thiết lập timer 
+        const timer = setTimeout(async () => {
+            console.log(`User stayed for 5s. Saving history for Chapter ${chapter.chapter_number}...`);
+
+            //Lưu lịch sử đọc
+            await logReadingHistory(series.series_Id.toString());
+
+            //Tính toán tiến độ
+            const globalIndex = flatChapterList.findIndex(c => c.chapter_id === chapter.chapter_id);
+            const progressCount = globalIndex !== -1 ? globalIndex + 1 : chapter.chapter_number;
+
+            //Đồng bộ tiến độ vào Favorite
+            await syncProgress(series.series_Id, progressCount);
+
+        }, 4000); // Thời gian Debounce: 5s
+
+        return () => {
+            clearTimeout(timer);
+        };
+
+    }, [user, series, chapter, flatChapterList]); 
 
 
     useEffect(() => {
@@ -196,7 +204,6 @@ const ChapterDetailPage: React.FC = () => {
 
         fetchBookmarkStatus();
     }, [user, numChapterId]);
-
 
 
     const navigationLinks = useMemo(() => {
@@ -514,11 +521,11 @@ const ChapterDetailPage: React.FC = () => {
                     </button>
 
 
-                    {/* === SỬA ĐỔI: Toggle Sidebar === */}
+                    {/* === Toggle Sidebar === */}
                     <button
                         className={`toolbar-button ${isSidebarOpen ? 'active' : ''}`}
                         title="Chapter List"
-                        onClick={() => setIsSidebarOpen(!isSidebarOpen)} // Logic toggle
+                        onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
                     >
                         <FaListUl />
                     </button>

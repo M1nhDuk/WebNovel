@@ -55,7 +55,9 @@ namespace UserService.Data
                
                 entity.HasIndex(rh => new { rh.UserId, rh.LastAccessedAt });
 
-                entity.HasIndex(rh => new { rh.UserId, rh.SeriesId }).IsUnique();
+                entity.HasIndex(e => new { e.UserId, e.SeriesId, e.ChapterId })
+                          .IsUnique()
+                          .HasDatabaseName("IX_ReadingHistory_User_Series_Chapter");
             });
         }
     }

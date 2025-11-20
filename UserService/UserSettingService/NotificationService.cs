@@ -39,8 +39,6 @@ namespace UserService.UserSettingService
             _context.Notification.Add(notification);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Created notification {NotificationId} for User {UserId}", notification.NotificationsId, notification.UserId);
-
             return MapToDto(notification);
         }
 
@@ -181,6 +179,45 @@ namespace UserService.UserSettingService
                 }
                 await _context.SaveChangesAsync();
             }
+        }
+
+        public async Task NotifySeriesFollowersAsync(int seriesId, string message, NotificationType type, string? linkUrl = null)
+        {
+            if (type == NotificationType.NewComment)
+            {
+                _logger.LogWarning("Không dùng hàm NotifySeriesFollowersAsync cho NewComment để tránh spam.");
+                return;
+            }
+
+            // Lấy danh sách người theo dõi
+            var followerIds = await _context.UserFavorite
+                .Where(f => f.seriesId == seriesId)
+                .Select(f => f.UserId)
+                .ToListAsync();
+
+            if (!followerIds.Any()) return;
+
+            var notifications = new List<Notification>();
+            var now = DateTime.UtcNow;
+
+            // Tạo thông báo cho từng follower
+            foreach (var userId in followerIds)
+            {
+                notifications.Add(new Notification
+                {
+                    UserId = userId,
+                    Type = type,
+                    Message = message,
+                    LinkUrl = linkUrl ?? $"/series/{seriesId}",
+                    CreatedDate = now,
+                    IsRead = false
+                });
+            }
+
+            await _context.Notification.AddRangeAsync(notifications);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Đã gửi thông báo {Type} cho {Count} người theo dõi Series {SeriesId}", type, notifications.Count, seriesId);
         }
 
         private NotificationDto MapToDto(Notification n)

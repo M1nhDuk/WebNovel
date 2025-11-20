@@ -16,6 +16,7 @@ namespace UserService.Services.Interfaces
 
         Task<UnreadSummaryDto> GetUnreadSummaryAsync(Guid userId);
 
+        Task NotifySeriesFollowersAsync(int seriesId, string message, NotificationType type, string? linkUrl = null);
         Task MarkAllByTypeAsReadAsync(Guid userId, NotificationType type);
     }
 }
