@@ -2,6 +2,25 @@
   "Routes": [
     //1. AuthService 
 
+    //7.4 Reading Histoy (check chapter)
+    {
+      "UpstreamPathTemplate": "/user/reading-history/series/{seriesId}/chapters",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7048
+        }
+      ],
+      "DownstreamPathTemplate": "/api/user/reading-history/series/{seriesId}/chapters",
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
     //1.1. Register
     {
       "UpstreamPathTemplate": "/auth/register",
@@ -1658,10 +1677,6 @@
         "AllowedScopes": []
       }
     },
-
-
-
-
 
     //Images publication base
     {

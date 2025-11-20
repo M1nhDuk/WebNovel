@@ -190,7 +190,8 @@ namespace UserService.UserSettingService
         {
             var seriesId = updates.Select(f => f.SeriesId).ToList();
 
-            var userFavorite = await _context.UserFavorite.Where(f => f.UserId == UserId && seriesId.Contains(f.seriesId))
+            var userFavorite = await _context.UserFavorite
+                .Where(f => f.UserId == UserId && seriesId.Contains(f.seriesId))
                 .ToListAsync();
 
             if (!userFavorite.Any()) return false;
@@ -201,10 +202,14 @@ namespace UserService.UserSettingService
             {
                 if (updatesDict.TryGetValue(favorite.seriesId, out var update))
                 {
-                    favorite.LastKnownChapterCount = update.LatestChapterCount;
+                    // Chỉ cập nhật nếu tiến độ mới cao hơn tiến độ cũ (tránh lùi tiến độ khi đọc lại)
+                    if (update.LatestChapterCount > favorite.LastKnownChapterCount)
+                    {
+                        favorite.LastKnownChapterCount = update.LatestChapterCount;
+                        favorite.TimeAdded = DateTime.UtcNow; 
+                    }
                 }
             }
-
             _context.UserFavorite.UpdateRange(userFavorite);
             await _context.SaveChangesAsync();
             _logger.LogInformation("User {UserId} synced chapter counts for {Count} favorites", UserId, userFavorite.Count);

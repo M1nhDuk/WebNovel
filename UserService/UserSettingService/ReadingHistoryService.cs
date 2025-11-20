@@ -48,11 +48,9 @@ namespace UserService.UserSettingService
         {
             //Kiểm tra xem user đã đọc chương này chưa
             var existingChapterHistory = await _context.ReadingHistories
-                                .FirstOrDefaultAsync(rh => rh.UserId == userId
-                            && rh.SeriesId == dto.SeriesId
-                            && rh.ChapterId == dto.ChapterId);
-
-            bool isNewChapter = false;
+                                 .FirstOrDefaultAsync(rh => rh.UserId == userId
+                             && rh.SeriesId == dto.SeriesId
+                             && rh.ChapterId == dto.ChapterId);
 
             if (existingChapterHistory != null)
             {
@@ -66,32 +64,11 @@ namespace UserService.UserSettingService
                 {
                     UserId = userId,
                     SeriesId = dto.SeriesId,
-                    ChapterId = dto.ChapterId, // Lưu ID chương
+                    ChapterId = dto.ChapterId,
                     LastAccessedAt = DateTime.UtcNow
                 };
                 _context.ReadingHistories.Add(newEntry);
-
-                isNewChapter = true; 
             }
-
-            //Nếu là chương mới -> Cập nhật UserFavorite để giảm Badge
-            if (isNewChapter)
-            {
-                var favorite = await _context.UserFavorite
-                    .FirstOrDefaultAsync(f => f.UserId == userId && f.seriesId == dto.SeriesId);
-
-                if (favorite != null)
-                {
-                    // Logic: Cộng thêm 1 vào số lượng chương đã biết
-                    // Badge = Tổng chương - LastKnown. 
-                    // LastKnown tăng 1 => Badge giảm 1.
-                    favorite.LastKnownChapterCount += 1;
-
-                    // Cập nhật thời gian tương tác
-                    favorite.TimeAdded = DateTime.UtcNow;
-                }
-            }
-
             await _context.SaveChangesAsync();
         }
 
