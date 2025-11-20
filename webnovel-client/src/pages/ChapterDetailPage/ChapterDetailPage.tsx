@@ -55,7 +55,6 @@ const ChapterDetailPage: React.FC = () => {
         if (!user || !seriesId) return;
 
         try {
-            // SỬA LẠI ĐOẠN NÀY:
             await apiClient.post(API_ROUTES.USER.READING_HISTORY, {
                 seriesId: Number(seriesId),
                 chapterId: numChapterId
@@ -83,6 +82,15 @@ const ChapterDetailPage: React.FC = () => {
         }
     };
 
+    const flatChapterList: ChapterDetailDto[] = useMemo(() => {
+        if (!series) return [];
+        if (series.type === 'TRADITIONAL') {
+            return series.chapters?.sort((a, b) => a.chapter_number - b.chapter_number) || [];
+        }
+        return series.novels
+            .sort((a, b) => a.novel_number - b.novel_number)
+            .flatMap(novel => novel.chapters?.sort((a, b) => a.chapter_number - b.chapter_number) || []);
+    }, [series]);
 
 
     useEffect(() => {
@@ -124,16 +132,27 @@ const ChapterDetailPage: React.FC = () => {
                 const chapterData = chapterResponse.data;
                 setChapter(chapterData);
 
-                // === [BẮT ĐẦU SỬA ĐỔI: GỌI SYNC PROGRESS] ===
-                if (user) {
-                    // 1. Lưu lịch sử đọc (như cũ)
+                if (user) {                  
                     logReadingHistory(seriesId);
+                    // --- TÍNH GLOBAL INDEX ---
+                    // Tạo danh sách phẳng tạm thời để tìm vị trí nếu flatChapterList chưa kịp update
+                    let allChapters: ChapterDetailDto[] = [];
+                    if (seriesData.type === 'TRADITIONAL') {
+                        allChapters = seriesData.chapters || [];
+                    } else {
+                        allChapters = seriesData.novels
+                            .sort((a, b) => a.novel_number - b.novel_number)
+                            .flatMap(n => n.chapters?.sort((c1, c2) => c1.chapter_number - c2.chapter_number) || []);
+                    }
 
-                    // 2. Đồng bộ tiến độ vào danh sách Favorite (Mới)
-                    // Sử dụng series_Id thực tế và chapter_number vừa tải được
-                    await syncProgress(seriesData.series_Id, chapterData.chapter_number);
+                    // Tìm vị trí (index) của chapter hiện tại trong toàn bộ series
+                    const globalIndex = allChapters.findIndex(c => c.chapter_id === chapterData.chapter_id);
+
+                    // Nếu tìm thấy, gửi (index + 1) làm tiến độ. Nếu không, dùng chapter_number
+                    const progressCount = globalIndex !== -1 ? globalIndex + 1 : chapterData.chapter_number;
+
+                    await syncProgress(seriesData.series_Id, progressCount);
                 }
-                // === [KẾT THÚC SỬA ĐỔI] ===
 
             } catch (err: any) {
                 console.error("Failed to fetch chapter:", err);
@@ -178,18 +197,6 @@ const ChapterDetailPage: React.FC = () => {
         fetchBookmarkStatus();
     }, [user, numChapterId]);
 
-
-
-
-    const flatChapterList: ChapterDetailDto[] = useMemo(() => {
-        if (!series) return [];
-        if (series.type === 'TRADITIONAL') {
-            return series.chapters?.sort((a, b) => a.chapter_number - b.chapter_number) || [];
-        }
-        return series.novels
-            .sort((a, b) => a.novel_number - b.novel_number)
-            .flatMap(novel => novel.chapters?.sort((a, b) => a.chapter_number - b.chapter_number) || []);
-    }, [series]);
 
 
     const navigationLinks = useMemo(() => {
