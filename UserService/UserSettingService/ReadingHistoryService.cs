@@ -46,20 +46,22 @@ namespace UserService.UserSettingService
 
         public async Task AddOrUpdateHistoryAsync(Guid userId, AddReadingHistoryDto dto)
         {
-            //Kiểm tra xem user đã đọc chương này chưa
-            var existingChapterHistory = await _context.ReadingHistories
-                                 .FirstOrDefaultAsync(rh => rh.UserId == userId
-                             && rh.SeriesId == dto.SeriesId
-                             && rh.ChapterId == dto.ChapterId);
+            //Tìm xem đã có lịch sử chưa
+            var existing = await _context.ReadingHistories
+                .FirstOrDefaultAsync(rh => rh.UserId == userId
+                                        && rh.SeriesId == dto.SeriesId
+                                        && rh.ChapterId == dto.ChapterId);
 
-            if (existingChapterHistory != null)
+            if (existing != null)
             {
-                existingChapterHistory.LastAccessedAt = DateTime.UtcNow;
-                _context.ReadingHistories.Update(existingChapterHistory);
+                existing.LastAccessedAt = DateTime.UtcNow;
+                // Đảm bảo EF đang theo dõi entity này
+                if (_context.Entry(existing).State == EntityState.Detached)
+                    _context.ReadingHistories.Attach(existing);
+                _context.Entry(existing).State = EntityState.Modified;
             }
             else
             {
-                // Chưa đọc bao giờ -> Thêm mới
                 var newEntry = new ReadingHistory
                 {
                     UserId = userId,
@@ -69,7 +71,29 @@ namespace UserService.UserSettingService
                 };
                 _context.ReadingHistories.Add(newEntry);
             }
-            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                //Bắt lỗi xung đột: Nếu bị trùng lặp do request song song
+                _context.ChangeTracker.Clear(); 
+
+                //Retry
+                var retryEntry = await _context.ReadingHistories
+                    .FirstOrDefaultAsync(rh => rh.UserId == userId
+                                            && rh.SeriesId == dto.SeriesId
+                                            && rh.ChapterId == dto.ChapterId);
+
+                if (retryEntry != null)
+                {
+                    retryEntry.LastAccessedAt = DateTime.UtcNow;
+                    _context.ReadingHistories.Update(retryEntry);
+                    await _context.SaveChangesAsync();
+                }
+            }
         }
 
 

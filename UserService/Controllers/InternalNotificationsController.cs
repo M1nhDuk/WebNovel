@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Shareds.DTOs.UserService;
-using UserService.Services.Interfaces;
+using UserService.UserSettingService.Interface; // Namespace chuẩn
 using System;
 using System.Threading.Tasks;
+using UserService.Models;
+using UserService.Services.Interfaces; 
 
 namespace UserService.Controllers
 {
@@ -19,24 +21,33 @@ namespace UserService.Controllers
             _logger = logger;
         }
 
-        [HttpPost]
-        public async Task<ActionResult<NotificationDto>> CreateNotification([FromBody] CreateNotificationDto dto)
+        // 1. API GỬI HÀNG LOẠT (Cho PublicationService: Update/Delete Series)
+        [HttpPost("series-general")]
+        public async Task<IActionResult> NotifySeriesGeneral([FromBody] SeriesGeneralNotificationDto dto)
         {
-            try
+
+            if (!Enum.TryParse<NotificationType>(dto.Type, true, out var notifType))
             {
-                var result = await _notificationService.CreateNotificationAsync(dto);
-                return CreatedAtAction(nameof(CreateNotification), new { id = result.NotificationId }, result);
+                return BadRequest($"Invalid Notification Type: {dto.Type}");
             }
-            catch (ArgumentException ex)
-            {
-                _logger.LogWarning(ex, "Không thể tạo thông báo do loại không hợp lệ: {Type}", dto.Type);
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Lỗi khi tạo thông báo nội bộ cho User {UserId}", dto.UserId);
-                return StatusCode(500, "Erro connection");
-            }
+
+            await _notificationService.NotifySeriesFollowersAsync(
+                dto.SeriesId,
+                dto.Message,
+                notifType,
+                dto.LinkUrl
+            );
+
+            return Ok(new { message = "Notification have been sent." });
+        }
+
+
+        //API gửi đơn lẻ cho user
+        [HttpPost("send-to-user")]
+        public async Task<IActionResult> SendToUser([FromBody] CreateNotificationDto dto)
+        {
+            await _notificationService.CreateNotificationAsync(dto);
+            return Ok(new { message = "Email have sent to user ." });
         }
     }
 }

@@ -133,6 +133,7 @@ namespace InteractionService.Service
             {
                 //lấy uploader_id từ NovelService
                 contentAuthorId = await GetContentAuthorId(seriesId, chapterId);
+
                 if (!contentAuthorId.HasValue)
                 {
                     _logger.LogWarning("Could not find author for SeriesId={SeriesId} or ChapterId={ChapterId}. Cannot send notification.", seriesId, chapterId);
@@ -477,7 +478,7 @@ namespace InteractionService.Service
             }
 
             var httpClient = _httpClientFactory.CreateClient();
-            var notificationUrl = $"{userServiceUrl}/api/internal/notifications";
+            var notificationUrl = $"{userServiceUrl}/api/internal/notifications/send-to-user";
 
             try
             {

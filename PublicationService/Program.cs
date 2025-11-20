@@ -12,6 +12,12 @@ using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddHttpClient<IUserService, UserServiceClient>(client =>
+{
+    var userServiceUrl = builder.Configuration["ServiceUrls:UserService"];
+    client.BaseAddress = new Uri(userServiceUrl ?? "https://localhost:7048"); 
+});
+
 
 builder.Services.AddHttpClient(Options.DefaultName)
     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
