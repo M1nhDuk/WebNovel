@@ -144,7 +144,7 @@ const Header: React.FC = () => {
                     <FaSearch className="search-icon" />
                     <input
                         type="text"
-                        placeholder="Search book, name, author..."
+                        placeholder="Search by book title..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onKeyDown={handleSearch}
