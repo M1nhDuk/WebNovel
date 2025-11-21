@@ -10,5 +10,7 @@ namespace Shareds.DTOs.UserService.ReadingHistory
     {
         public int SeriesId { get; set; }
         public int ChapterId { get; set; }
+
+        public DateTime? ChapterCreatedAt { get; set; }
     }
 }

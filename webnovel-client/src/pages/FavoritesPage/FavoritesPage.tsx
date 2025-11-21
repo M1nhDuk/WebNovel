@@ -152,9 +152,7 @@ const FavoritesPage: React.FC = () => {
                     </div>
                 ) : (
                     favoriteList.map(item => {
-                        {/* --- [CHANGED Logic] --- */ }
-                        // S? d?ng tr?c ti?p unreadCount t? Backend tr? v?
-                        // Không c?n tính toán current - last n?a
+
                         const unreadCount = item.unreadCount || 0;
                         const hasNewChapter = unreadCount > 0;
 
@@ -182,18 +180,8 @@ const FavoritesPage: React.FC = () => {
                                     </div>
 
                                     <div className="favorite-progress-info">
-                                        {/* Hi?n th? ti?n ?? ??c (ch? mang tính ch?t thông tin, ko ?nh h??ng logic ??m) */}
-                                        {item.lastKnowChapter > 0 ? (
-                                            <span className="reading-status text-primary">
-                                                Reading: Chapter {item.lastKnowChapter}
-                                            </span>
-                                        ) : (
-                                            <span className="reading-status text-muted">
-                                                Not started
-                                            </span>
-                                        )}
                                         <span className="total-chapter-info">
-                                            / {item.currentChapterCount} Chapters
+                                            {item.currentChapterCount} Chapters
                                         </span>
                                     </div>
 
