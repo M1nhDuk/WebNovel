@@ -54,6 +54,7 @@ namespace UserService.UserSettingService
 
             if (!hasRead)
             {
+                //Lưu vào lịch sử đã đọc(để tô xám chương)
                 _context.UserReadChapter.Add(new UserReadChapter
                 {
                     UserId = userId,
@@ -62,15 +63,28 @@ namespace UserService.UserSettingService
                     ReadAt = DateTime.UtcNow
                 });
 
-                
+                //LOGIC TRỪ THÔNG BÁO
                 var favorite = await _context.UserFavorite
                     .FirstOrDefaultAsync(f => f.UserId == userId && f.seriesId == dto.SeriesId);
 
                 if (favorite != null && favorite.UnreadCount > 0)
                 {
-                    favorite.UnreadCount -= 1;
+                    //Ngày tạo chương phải LỚN HƠN ngày bắt đầu Follow
+                    bool isNewChapter = false;
+                    if (dto.ChapterCreatedAt.HasValue)
+                    {
+                        isNewChapter = dto.ChapterCreatedAt.Value > favorite.TimeAdded;
+                    }
+                    else
+                    {
+                        isNewChapter = true;
+                    }
 
-                    if (favorite.UnreadCount < 0) favorite.UnreadCount = 0;
+                    if (isNewChapter)
+                    {
+                        favorite.UnreadCount -= 1;
+                        if (favorite.UnreadCount < 0) favorite.UnreadCount = 0;
+                    }
                 }
             }
 

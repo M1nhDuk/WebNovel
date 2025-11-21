@@ -168,7 +168,8 @@ namespace UserService.UserSettingService
                 {
                     SeriesId = f.seriesId,
                     AddedAt = f.TimeAdded,
-                    LastKnowChapter = f.LastKnownChapterCount
+                    LastKnowChapter = f.LastKnownChapterCount,
+                    UnreadCount = f.UnreadCount
                 })
                 .ToListAsync();
 

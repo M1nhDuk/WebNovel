@@ -44,22 +44,26 @@ const ChapterDetailPage: React.FC = () => {
     const { settings, isLoading: isSettingsLoading } = useReaderSettings();
     const numChapterId = chapterId ? parseInt(chapterId, 10) : 0;
 
-    // State cho bookmark (chỉ dùng để hiển thị icon trên dòng)
+    // State cho bookmark
     const [bookmarkedLocation, setBookmarkedLocation] = useState<string | null>(null);
     const [isLoadingBookmark, setIsLoadingBookmark] = useState(true);
 
-
     const chapterBodyRef = useRef<HTMLDivElement>(null);
 
-    const logReadingHistory = async (seriesId: string) => {
-        if (!user || !seriesId) return;
+
+    const logReadingHistory = async (seriesIdStr: string) => {
+        if (!user || !seriesIdStr || !chapter) return;
 
         try {
-            await apiClient.post(API_ROUTES.USER.READING_HISTORY, {
-                seriesId: Number(seriesId),
-                chapterId: numChapterId
+            await apiClient.post(API_ROUTES.USER.READING_HISTORY, { 
+                seriesId: Number(seriesIdStr),
+                chapterId: numChapterId,
+
+                // Gửi thời gian tạo chương để Backend so sánh
+                // Nếu chapter.created_at > UserFavorite.TimeAdded => Trừ thông báo
+                chapterCreatedAt: chapter.created_at
             });
-            console.log(`Reading history updated for Series ID: ${seriesId}`);
+            console.log(`Reading history updated for Series ID: ${seriesIdStr}, CreatedAt: ${chapter.created_at}`);
         } catch (err) {
             console.warn("Failed to log reading history:", err);
         }
@@ -74,7 +78,7 @@ const ChapterDetailPage: React.FC = () => {
                 latestChapterCount: currentChapterNumber
             }];
 
-            // Gọi API sync-counts
+            // Gọi API sync-counts 
             await apiClient.post(API_ROUTES.USER.SYNC_COUNTS, payload);
             console.log(`Synced progress for Series ${currentSeriesId}: Chapter ${currentChapterNumber}`);
         } catch (err) {
@@ -113,9 +117,7 @@ const ChapterDetailPage: React.FC = () => {
                     contentApiUrl = API_ROUTES.SERIES.CHAPTER_FOR_SERIES(seriesId, chapterId);
                     foundChapterMeta = seriesData.chapters?.find(c => c.chapter_id === numChapterId);
                 } else {
-
                     const sortedNovels = seriesData.novels.sort((a, b) => a.novel_number - b.novel_number);
-
                     for (const novel of sortedNovels) {
                         const sortedChapters = novel.chapters.sort((a, b) => a.chapter_number - b.chapter_number);
                         foundChapterMeta = sortedChapters.find(c => c.chapter_id === numChapterId);
@@ -147,31 +149,30 @@ const ChapterDetailPage: React.FC = () => {
     }, [seriesId, chapterId, numChapterId, user]);
 
 
-    //DEBOUNCE LOG HISTORY
     useEffect(() => {
         if (!user || !series || !chapter) return;
 
         // Thiết lập timer 
         const timer = setTimeout(async () => {
-            console.log(`User stayed for 5s. Saving history for Chapter ${chapter.chapter_number}...`);
+            console.log(`User stayed for 4s. Saving history for Chapter ${chapter.chapter_number}...`);
 
-            //Lưu lịch sử đọc
+            // Lưu lịch sử đọc + Trừ thông báo (Nếu là chương mới)
             await logReadingHistory(series.series_Id.toString());
 
-            //Tính toán tiến độ
+            // Tính toán tiến độ
             const globalIndex = flatChapterList.findIndex(c => c.chapter_id === chapter.chapter_id);
             const progressCount = globalIndex !== -1 ? globalIndex + 1 : chapter.chapter_number;
 
-            //Đồng bộ tiến độ vào Favorite
+            // Đồng bộ tiến độ vào Favorite (Update LastKnownChapter)
             await syncProgress(series.series_Id, progressCount);
 
-        }, 4000); // Thời gian Debounce: 5s
+        }, 4000);
 
         return () => {
             clearTimeout(timer);
         };
 
-    }, [user, series, chapter, flatChapterList]); 
+    }, [user, series, chapter, flatChapterList]);
 
 
     useEffect(() => {
@@ -525,7 +526,7 @@ const ChapterDetailPage: React.FC = () => {
                     <button
                         className={`toolbar-button ${isSidebarOpen ? 'active' : ''}`}
                         title="Chapter List"
-                        onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                     >
                         <FaListUl />
                     </button>
