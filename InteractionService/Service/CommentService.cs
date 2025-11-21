@@ -3,6 +3,7 @@ using InteractionService.Models;
 using InteractionService.Service.Inteface;
 using Microsoft.EntityFrameworkCore;
 using Shareds.DTOs.AuthService;
+using Shareds.DTOs.Chapter;
 using Shareds.DTOs.Comment;
 using Shareds.DTOs.NovelSeries;
 using Shareds.DTOs.UserService;
@@ -46,7 +47,7 @@ namespace InteractionService.Service
 
             //Build URL request
             var idsQueryParam = string.Join(",", userIds);
-            var requestUrl = $"api/internal/users/batch?ids={idsQueryParam}"; 
+            var requestUrl = $"api/internal/users/batch?ids={idsQueryParam}"; // Path tương đối nếu dùng BaseAddress
 
             //Gọi API nội bộ
             List<UserInfoDto>? usersInfo = null;
@@ -129,7 +130,7 @@ namespace InteractionService.Service
                 // Lấy UserId của người viết comment gốc để gửi thông báo
                 parentCommentUserId = parentComment.UserId;
             }
-            else 
+            else
             {
                 //lấy uploader_id từ NovelService
                 contentAuthorId = await GetContentAuthorId(seriesId, chapterId);
@@ -157,12 +158,37 @@ namespace InteractionService.Service
             _logger.LogInformation("User {UserId} created comment {CommentId} for {TargetType} {TargetId}",
                 userId, newComment.CommentId, seriesId.HasValue ? "Series" : "Chapter", seriesId ?? chapterId);
 
-            string? linkUrl = seriesId.HasValue ? $"/series/{seriesId}" : $"/chapters/{chapterId}";
+            //-
+            string? finalLinkUrl = null;
+            int? finalSeriesId = seriesId;
+
+            if (chapterId.HasValue && !seriesId.HasValue)
+            {
+                // Trường hợp comment chapter gọi service để lấy seriesId.
+                var routingInfo = await GetChapterRoutingInfoAsync(chapterId.Value);
+
+                if (routingInfo != null)
+                {
+                    finalSeriesId = routingInfo.SeriesId;
+                    finalLinkUrl = $"/series/{finalSeriesId.Value}/chapter/{chapterId.Value}";
+                }
+                else
+                {
+                    _logger.LogWarning("Chapter routing information not found for ChapterId {ChapterId}. Using fallback link.", chapterId.Value);
+                    finalLinkUrl = $"/chapters/{chapterId}";
+                }
+            }
+            else if (seriesId.HasValue)
+            {
+                // Trường hợp comment Series gốc
+                finalLinkUrl = $"/series/{seriesId.Value}";
+            }
+
+
 
             if (parentCommentUserId.HasValue && parentCommentUserId.Value != userId)
             {
-                // lấy UserName của người vừa reply bằng userId để đưa vào message
-                var commenterInfo = await GetUserInfo(userId); // Lấy thông tin người comment 
+                var commenterInfo = await GetUserInfo(userId); // Lấy thông tin người comment 
                 var commenterName = commenterInfo?.UserName ?? "Someone";
 
                 var notificationDto = new CreateNotificationDto
@@ -170,7 +196,7 @@ namespace InteractionService.Service
                     UserId = parentCommentUserId.Value,
                     Type = "NewComment",
                     Message = $"{commenterName} replied to your comment.",
-                    LinkUrl = linkUrl + $"#comment-{newComment.CommentId}" // Link tới comment mới
+                    LinkUrl = finalLinkUrl + $"#comment-{newComment.CommentId}" 
                 };
                 await SendNotificationAsync(notificationDto);
             }
@@ -180,17 +206,17 @@ namespace InteractionService.Service
             else if (contentAuthorId.HasValue && contentAuthorId.Value != userId) //comment gốc
             {
 
-                // Cần lấy UserName của người vừa comment 
-                var commenterInfo = await GetUserInfo(userId); 
+                // Cần lấy UserName của người vừa comment 
+                var commenterInfo = await GetUserInfo(userId);
                 var commenterName = commenterInfo?.UserName ?? "Someone";
                 var targetName = seriesId.HasValue ? "your series" : "your chapter";
 
                 var notificationDto = new CreateNotificationDto
                 {
-                    UserId = contentAuthorId.Value, 
+                    UserId = contentAuthorId.Value,
                     Type = "NewComment",
                     Message = $"{commenterName} commented on {targetName}.",
-                    LinkUrl = linkUrl + $"#comment-{newComment.CommentId}" 
+                    LinkUrl = finalLinkUrl + $"#comment-{newComment.CommentId}" 
                 };
                 await SendNotificationAsync(notificationDto);
             }
@@ -422,11 +448,6 @@ namespace InteractionService.Service
 
         }
 
-
-    
-
-
-
         //lấy Uploader ID từ NovelService
         private async Task<Guid?> GetContentAuthorId(int? seriesId, int? chapterId)
         {
@@ -514,6 +535,25 @@ namespace InteractionService.Service
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to get user info for UserId {UserId} from AuthService", userId);
+                return null;
+            }
+        }
+
+        private async Task<ChapterRoutingInfoDto?> GetChapterRoutingInfoAsync(int chapterId)
+        {
+            var novelServiceUrl = _configuration["ServiceUrls:NovelService"];
+            var httpClient = _httpClientFactory.CreateClient();
+            var requestUrl = $"{novelServiceUrl}/api/internal/publication/chapter-routing-info/{chapterId}";
+
+            try
+            {
+                var response = await httpClient.GetAsync(requestUrl);
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadFromJsonAsync<ChapterRoutingInfoDto>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get routing info for ChapterId {ChapterId}", chapterId);
                 return null;
             }
         }

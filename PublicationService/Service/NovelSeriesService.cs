@@ -266,7 +266,7 @@ namespace NovelService.Service
                 var notifyDto = new SeriesGeneralNotificationDto
                 {
                     SeriesId = id,
-                    Message = $"Series {series.series_title} (ID: {id}) has been deleted.",
+                    Message = $"Series {series.series_title} has been deleted.",
                     Type = "SeriesDeleted", 
                     LinkUrl = null 
                 };
@@ -732,3 +732,4 @@ namespace NovelService.Service
         }
     }
 }
+

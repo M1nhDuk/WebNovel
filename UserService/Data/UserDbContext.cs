@@ -18,6 +18,7 @@ namespace UserService.Data
 
         public DbSet<ReadingHistory> ReadingHistories { get; set; }
 
+        public DbSet<UserReadChapter> UserReadChapter { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -52,12 +53,21 @@ namespace UserService.Data
             modelBuilder.Entity<ReadingHistory>(entity =>
             {
                 entity.HasKey(rh => rh.HistoryId);
-               
+
                 entity.HasIndex(rh => new { rh.UserId, rh.LastAccessedAt });
 
+                entity.HasIndex(e => new { e.UserId, e.SeriesId })
+                      .IsUnique()
+                      .HasDatabaseName("IX_ReadingHistory_User_Series_Unique");
+            });
+
+            modelBuilder.Entity<UserReadChapter>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
                 entity.HasIndex(e => new { e.UserId, e.SeriesId, e.ChapterId })
-                          .IsUnique()
-                          .HasDatabaseName("IX_ReadingHistory_User_Series_Chapter");
+                      .IsUnique()
+                      .HasDatabaseName("IX_UserReadChapter_User_Series_Chapter_Unique");
             });
         }
     }

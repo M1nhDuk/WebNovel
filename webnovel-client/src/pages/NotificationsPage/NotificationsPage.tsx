@@ -194,7 +194,9 @@ const NotificationsPage: React.FC = () => {
         <div className="notifications-page-container">
             <h1>Notifications</h1>
 
+
             {error && <div className="notifications-error">{error}</div>}
+
 
             <div className="notifications-controls">
                 <button onClick={handleMarkAllAsRead} disabled={isLoading}>
@@ -208,6 +210,7 @@ const NotificationsPage: React.FC = () => {
                     <FaTrash /> Delete ({selectedIds.size})
                 </button>
             </div>
+
 
             <div className="notifications-list">
                 {notifications.length === 0 && !isLoading ? (

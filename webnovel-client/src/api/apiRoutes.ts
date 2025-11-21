@@ -72,6 +72,8 @@ export const API_ROUTES = {
         MARK_ALL_AS_READ_BY_TYPE: (type: number | string) => `/api/user/notifications/mark-all-read/type/${type}`,
         DELETE_NOTIFICATIONS: '/user/notifications/batch-delete',
 
+        GET_READ_CHAPTERS: (seriesId: string | number) => `/api/user/reading-history/read-chapters/${seriesId}`,
+
 
     },
 

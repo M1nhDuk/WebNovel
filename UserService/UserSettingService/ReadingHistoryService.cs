@@ -37,7 +37,7 @@ namespace UserService.UserSettingService
 
         public async Task<List<int>> GetReadChapterIdsAsync(Guid userId, int seriesId)
         {
-            return await _context.ReadingHistories
+            return await _context.UserReadChapter
                 .Where(rh => rh.UserId == userId && rh.SeriesId == seriesId)
                 .Select(rh => rh.ChapterId)
                 .ToListAsync();
@@ -46,94 +46,85 @@ namespace UserService.UserSettingService
 
         public async Task AddOrUpdateHistoryAsync(Guid userId, AddReadingHistoryDto dto)
         {
-            //Tìm xem đã có lịch sử chưa
-            var existing = await _context.ReadingHistories
-                .FirstOrDefaultAsync(rh => rh.UserId == userId
-                                        && rh.SeriesId == dto.SeriesId
-                                        && rh.ChapterId == dto.ChapterId);
+            var hasRead = await _context.UserReadChapter
+                .AnyAsync(x => x.UserId == userId && x.SeriesId == dto.SeriesId && x.ChapterId == dto.ChapterId);
 
-            if (existing != null)
+            if (!hasRead)
             {
-                existing.LastAccessedAt = DateTime.UtcNow;
-                // Đảm bảo EF đang theo dõi entity này
-                if (_context.Entry(existing).State == EntityState.Detached)
-                    _context.ReadingHistories.Attach(existing);
-                _context.Entry(existing).State = EntityState.Modified;
+                _context.UserReadChapter.Add(new UserReadChapter
+                {
+                    UserId = userId,
+                    SeriesId = dto.SeriesId,
+                    ChapterId = dto.ChapterId,
+                    ReadAt = DateTime.UtcNow
+                });
+            }
+
+            var existingProgress = await _context.ReadingHistories
+                .FirstOrDefaultAsync(rh => rh.UserId == userId && rh.SeriesId == dto.SeriesId);
+
+            if (existingProgress != null)
+            {
+                existingProgress.ChapterId = dto.ChapterId;
+                existingProgress.LastAccessedAt = DateTime.UtcNow;
+
+                _context.ReadingHistories.Update(existingProgress);
             }
             else
             {
-                var newEntry = new ReadingHistory
+                var newProgress = new ReadingHistory
                 {
                     UserId = userId,
                     SeriesId = dto.SeriesId,
                     ChapterId = dto.ChapterId,
                     LastAccessedAt = DateTime.UtcNow
                 };
-                _context.ReadingHistories.Add(newEntry);
+                _context.ReadingHistories.Add(newProgress);
             }
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                //Bắt lỗi xung đột: Nếu bị trùng lặp do request song song
-                _context.ChangeTracker.Clear(); 
-
-                //Retry
-                var retryEntry = await _context.ReadingHistories
-                    .FirstOrDefaultAsync(rh => rh.UserId == userId
-                                            && rh.SeriesId == dto.SeriesId
-                                            && rh.ChapterId == dto.ChapterId);
-
-                if (retryEntry != null)
-                {
-                    retryEntry.LastAccessedAt = DateTime.UtcNow;
-                    _context.ReadingHistories.Update(retryEntry);
-                    await _context.SaveChangesAsync();
-                }
-            }
+            await _context.SaveChangesAsync();
         }
 
 
 
         public async Task<PagedResult<ReadingHistoryDto>> GetHistoryAsync(Guid userId, int pageNumber, int pageSize)
-            {
-                if (pageNumber < 1) pageNumber = 1;
-                if (pageSize < 1) pageSize = 10;
-                if (pageSize > 20) pageSize = 20; 
+        {
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 20) pageSize = 20;
 
-                var query = _context.ReadingHistories
-                    .Where(rh => rh.UserId == userId)
-                    .OrderByDescending(rh => rh.LastAccessedAt);
+            var query = _context.ReadingHistories
+                .AsNoTracking()
+                .Where(rh => rh.UserId == userId)
+                .OrderByDescending(rh => rh.LastAccessedAt);
 
-                var totalCount = await query.CountAsync();
+            var totalCount = await query.CountAsync();
 
-                var historyEntries = await query
-                    .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize)
-                    .Select(rh => new ReadingHistoryDto
-                    {
-                        HistoryId = rh.HistoryId,
-                        SeriesId = rh.SeriesId,
-                        LastAccessedAt = rh.LastAccessedAt
-                    })
-                    .ToListAsync();
-
-                await EnrichHistoryItemsAsync(historyEntries);
-
-                return new PagedResult<ReadingHistoryDto>
+            var historyEntries = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(rh => new ReadingHistoryDto
                 {
-                    Items = historyEntries,
-                    TotalRecords = totalCount,
-                    PageNumber = pageNumber,
-                    PageSize = pageSize
-                };
-            }
+                    HistoryId = rh.HistoryId,
+                    SeriesId = rh.SeriesId,
+                    LastAccessedAt = rh.LastAccessedAt,
+                    ChapterId = rh.ChapterId 
+                })
+                .ToListAsync();
+
+            await EnrichHistoryItemsAsync(historyEntries);
+
+            return new PagedResult<ReadingHistoryDto>
+            {
+                Items = historyEntries,
+                TotalRecords = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+        }
 
 
-            public async Task<int> RemoveHistoryAsync(Guid userId, List<Guid> historyIds)
+        public async Task<int> RemoveHistoryAsync(Guid userId, List<Guid> historyIds)
             {
                 if (historyIds == null || !historyIds.Any())
                 {

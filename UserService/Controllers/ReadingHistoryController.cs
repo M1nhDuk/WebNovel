@@ -81,6 +81,7 @@ namespace UserService.Controllers
             }
         }
 
+
         [HttpDelete]
         [AllowAnonymous]
         public async Task<IActionResult> RemoveHistory([FromBody] RemoveReadingHistoryDto dto)
