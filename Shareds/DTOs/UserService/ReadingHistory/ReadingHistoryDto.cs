@@ -12,7 +12,7 @@ namespace Shareds.DTOs.UserService.ReadingHistory
         public int SeriesId { get; set; }
         public DateTime LastAccessedAt { get; set; }
 
-
+        public int ChapterId { get; set; }
         //Lấy từ novel service
         public string? SeriesTitle { get; set; }
         public string? SeriesCoverImage { get; set; }

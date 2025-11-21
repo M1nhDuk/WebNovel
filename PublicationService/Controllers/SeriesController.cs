@@ -295,19 +295,22 @@ namespace NovelService.Controllers
 
 
 
-            [HttpGet("series/search")]
-            public async Task<IActionResult> SearchSeries(
-           [FromQuery] string keyword,
-           [FromQuery] int pageNumber = 1,
-           [FromQuery] int pageSize = 10)
-            {
-                var result = await _seriesService.SearchSeries(keyword, pageNumber, pageSize);
-                return Ok(result);
-            }
+        [HttpGet("series/search")]
+        public async Task<IActionResult> SearchSeries(
+         [FromQuery(Name = "q")] string? keyword,
+         [FromQuery] int pageNumber = 1,
+         [FromQuery] int pageSize = 10)
+        {
+            var result = await _seriesService.SearchSeries(keyword ?? "", pageNumber, pageSize);
+            return Ok(result);
+        }
+
+
+
 
         //API để lấy truyện của một tác giả bất kỳ
         [HttpGet("series/uploader/{uploaderId:guid}")]
-        [AllowAnonymous] // Cho phép khách xem mà không cần login
+        [AllowAnonymous] 
         public async Task<ActionResult<PagedResult<SeriesListDto>>> GetSeriesByUploaderPublic(
             Guid uploaderId,
             [FromQuery] int pageNumber = 1,

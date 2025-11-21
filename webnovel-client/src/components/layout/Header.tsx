@@ -136,7 +136,7 @@ const Header: React.FC = () => {
         <header className="top-header">
 
             <div className="header-left">
-                <Link to="/" className="header-logo-link" title="Trang chủ">
+                <Link to="/" className="header-logo-link" title="Home Page">
                     <div className="header-logo">W</div>
                 </Link>
 
@@ -144,7 +144,7 @@ const Header: React.FC = () => {
                     <FaSearch className="search-icon" />
                     <input
                         type="text"
-                        placeholder="Search book, name, author..."
+                        placeholder="Search by book title, authot, artist ..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onKeyDown={handleSearch}

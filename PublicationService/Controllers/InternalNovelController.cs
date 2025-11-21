@@ -6,6 +6,7 @@ using NovelService.Data;
 using NovelService.Models;
 using NovelService.Service.Interfaces;
 using Shareds.DTOs;
+using Shareds.DTOs.Chapter;
 using Shareds.DTOs.NovelSeries;
 using System.Linq;
 using System.Net.Http;
@@ -238,6 +239,9 @@ namespace NovelService.Controllers
 
 
 
+
+
+
         //Helper gọi InteractionService để xóa comment
         private async Task<bool> DeleteCommentsForSeries(int seriesId)
         {
@@ -284,6 +288,38 @@ namespace NovelService.Controllers
                 return false;
             }
         }
+
+
+        [HttpGet("chapter-routing-info/{chapterId:int}")]
+        public async Task<ActionResult<ChapterRoutingInfoDto>> GetChapterRoutingInfo(int chapterId)
+        {
+            var chapter = await _context.Chapters
+                .Include(c => c.Novel)
+                    .ThenInclude(n => n.NovelSeries)
+                .Include(c => c.TS) // Cho ClassicSeries
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.chapter_id == chapterId);
+
+            if (chapter == null)
+            {
+                return NotFound();
+            }
+
+            var series = chapter.Novel?.NovelSeries ?? chapter.TS;
+
+            if (series == null)
+            {
+                return NotFound("Parent series not found.");
+            }
+
+            return Ok(new ChapterRoutingInfoDto
+            {
+                SeriesId = series.series_Id,
+                ChapterId = chapter.chapter_id
+            });
+        }
+
+
 
         // SERIES -- NOVEL -- CHAPTER 
 

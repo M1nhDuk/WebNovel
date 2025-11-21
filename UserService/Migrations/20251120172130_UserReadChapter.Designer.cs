@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UserService.Data;
 
@@ -11,9 +12,11 @@ using UserService.Data;
 namespace UserService.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-    partial class UserDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251120172130_UserReadChapter")]
+    partial class UserReadChapter
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -116,9 +119,9 @@ namespace UserService.Migrations
 
                     b.HasIndex("UserId", "LastAccessedAt");
 
-                    b.HasIndex("UserId", "SeriesId")
+                    b.HasIndex("UserId", "SeriesId", "ChapterId")
                         .IsUnique()
-                        .HasDatabaseName("IX_ReadingHistory_User_Series_Unique");
+                        .HasDatabaseName("IX_ReadingHistory_User_Series_Chapter");
 
                     b.ToTable("ReadingHistories");
                 });
@@ -172,10 +175,6 @@ namespace UserService.Migrations
                         .HasColumnType("char(36)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId", "SeriesId", "ChapterId")
-                        .IsUnique()
-                        .HasDatabaseName("IX_UserReadChapter_User_Series_Chapter_Unique");
 
                     b.ToTable("UserReadChapter");
                 });
