@@ -16,5 +16,7 @@ namespace UserService.Models
         [Required]
         public DateTime TimeAdded { get; set; }
         public int LastKnownChapterCount { get; set; } = 0;
+
+        public int UnreadCount { get; set; } = 0;
     }
 }

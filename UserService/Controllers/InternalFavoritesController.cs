@@ -35,5 +35,27 @@ namespace UserService.Controllers
                 return StatusCode(500, "Erro");
             }
         }
+
+        [HttpPost("increment-unread/{seriesId}")]
+        public async Task<IActionResult> IncrementUnreadCount(int seriesId)
+        {
+            try
+            {
+                await _context.UserFavorite
+                    .Where(f => f.seriesId == seriesId)
+                    .ExecuteUpdateAsync(s => s.SetProperty(
+                        f => f.UnreadCount,    
+                        f => f.UnreadCount + 1  
+                    ));
+
+                _logger.LogInformation("Incremented UnreadCount for SeriesId: {SeriesId}", seriesId);
+                return Ok(new { message = "Notification counts updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error incrementing UnreadCount for SeriesId: {SeriesId}", seriesId);
+                return StatusCode(500, "Error updating notifications");
+            }
+        }
     }
 }

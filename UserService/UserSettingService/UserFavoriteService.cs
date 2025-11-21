@@ -101,7 +101,7 @@ namespace UserService.UserSettingService
                     UserId = userId,
                     seriesId = dto.SeriesId,
                     TimeAdded = DateTime.UtcNow,
-                    LastKnownChapterCount = dto.CurrentChapterCount // Lưu số chương lúc bấm thích
+                    UnreadCount = 0
                 };
 
                 _context.UserFavorite.Add(favorite);
@@ -115,7 +115,7 @@ namespace UserService.UserSettingService
                     {
                         SeriesId = favorite.seriesId,
                         AddedAt = favorite.TimeAdded,
-                        LastKnowChapter = favorite.LastKnownChapterCount
+                        UnreadCount = 0
                     }
                 };
         }

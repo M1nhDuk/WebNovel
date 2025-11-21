@@ -23,12 +23,6 @@
     margin-bottom: 20px;
 }
 
-.report-link {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    margin-bottom: 10px;
-}
-
 .comment-editor textarea {
     width: 100%;
     min-height: 100px;
@@ -45,20 +39,39 @@
     display: flex;
     justify-content: flex-end;
     margin-top: 10px;
+    gap: 10px;
 }
 
     .comment-actions button {
         padding: 8px 15px;
         font-size: 0.9rem;
         font-weight: 600;
-        background-color: #27ae60; 
+        background-color: #27ae60;
         color: white;
         border: none;
+        cursor: pointer;
+        border-radius: 4px;
     }
 
         .comment-actions button:hover:not(:disabled) {
             background-color: #2ecc71;
         }
+
+        .comment-actions button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .comment-actions button.comment-cancel-btn {
+            background-color: #ecf0f1;
+            color: #7f8c8d;
+            border: 1px solid #bdc3c7;
+        }
+
+            .comment-actions button.comment-cancel-btn:hover:not(:disabled) {
+                background-color: #bdc3c7;
+                color: #fff;
+            }
 
 .comment-login-prompt {
     padding: 15px;
@@ -69,7 +82,8 @@
     text-align: center;
 }
 
-/* Danh sách Bình luận */
+/* --- CẤU TRÚC COMMENT MỚI (Avatar + Name cùng dòng) --- */
+
 .comment-list-header {
     font-weight: 700;
     font-size: 1.1rem;
@@ -80,137 +94,148 @@
 .comment-list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 15px;
 }
 
+/* Container cho 1 comment (Root hoặc Reply) */
 .comment-item {
-    background-color: rgba(0,0,0,0.05);
+    background-color: rgba(0,0,0,0.02); /* Màu nền nhẹ */
     padding: 15px;
     border-radius: 8px;
-    margin-bottom: 15px;
-    border: 1px solid #333;
+    border: 1px solid #e0e0e0;
+    display: block; /* Quan trọng: Không dùng Flex ở root container nữa */
 }
 
-    .comment-item:last-child {
-        border-bottom: none;
+    .comment-item.is-reply {
+        background-color: transparent; /* Reply không cần nền xám nếu muốn clean hơn */
+        border: none;
+        border-bottom: 1px solid #f0f0f0;
+        padding: 10px 0;
+        margin-bottom: 0;
     }
 
-.comment-avatar {
+/* HEADER ROW: Chứa Avatar và Info (Tên + Ngày) nằm ngang */
+.comment-header-row {
+    display: flex;
+    align-items: center; /* Căn giữa theo trục dọc */
+    margin-bottom: 8px;
+}
+
+.comment-header-avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    margin-right: 15px;
-    flex-shrink: 0;
+    margin-right: 12px;
     object-fit: cover;
+    flex-shrink: 0;
 }
 
-.comment-content-wrapper {
-    flex-grow: 1;
+/* Avatar nhỏ hơn cho reply */
+.is-reply .comment-header-avatar {
+    width: 32px;
+    height: 32px;
 }
 
-.comment-author {
+.comment-header-info {
+    display: flex;
+    flex-direction: column; /* Tên trên, ngày dưới (hoặc ngang tùy ý) */
+    justify-content: center;
+}
+
+.comment-header-author-name {
     font-weight: 700;
-    color: var(--text-primary);
     font-size: 0.95rem;
-    margin-bottom: 2px;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.comment-header-date {
+    font-size: 0.75rem;
+    color: #95a5a6;
+    margin-top: 2px;
+}
+
+/* BODY WRAPPER: Chứa nội dung và nút hành động */
+.comment-body-wrapper {
+    margin-left: 52px; /* Thụt vào bằng width avatar (40) + margin (12) */
+}
+
+.is-reply .comment-body-wrapper {
+    margin-left: 44px; /* Thụt vào cho reply avatar nhỏ hơn (32+12) */
 }
 
 .comment-text {
-    margin: 0 0 5px 0;
-    color: #000000;
-    white-space: pre-wrap;
+    margin: 0 0 8px 0;
+    color: var(--text-primary);
     white-space: pre-wrap;
     font-size: 0.95rem;
-
-    word-break: break-word; 
-    overflow-wrap: anywhere; 
     line-height: 1.5;
+    word-break: break-word;
 }
 
+    .comment-text .comment-mention {
+        font-weight: 700;
+        color: #0d6efd;
+        margin-right: 4px;
+        cursor: pointer;
+    }
+
 .comment-toggle-btn {
-    background: transparent; 
-    border: none; 
-    padding: 0; 
-    font-size: 0.9rem;
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
-    color: #000000;
-    margin-top: 5px;
-    display: inline-block;
-    border-radius: 0;
-    box-shadow: none;
+    color: #7f8c8d;
+    margin-top: 4px;
 }
 
     .comment-toggle-btn:hover {
-        background: transparent !important; 
-        color: #0056b3; 
-        text-decoration: underline; 
+        color: #0d6efd;
+        text-decoration: underline;
     }
 
+/* META / ACTIONS: Nút Reply, Edit, Delete */
 .comment-meta {
     font-size: 0.8rem;
     color: #999;
     display: flex;
     gap: 15px;
     align-items: center;
+    margin-top: 5px;
 }
 
 .comment-action-link {
     cursor: pointer;
     font-weight: 600;
-    color: var(--accent-color);
+    color: #7f8c8d;
+    transition: color 0.2s;
 }
 
     .comment-action-link:hover {
+        color: #0d6efd;
         text-decoration: underline;
     }
 
-.comment-actions button.comment-cancel-btn {
-    background-color: var(--bg-surface);
-    color: var(--text-secondary);
-    border: 1px solid var(--border-color);
-}
-
-    .comment-actions button.comment-cancel-btn:hover:not(:disabled) {
-        background-color: var(--bg-main);
+    .comment-action-link.delete-action {
+        color: #e74c3c;
     }
 
+        .comment-action-link.delete-action:hover {
+            color: #c0392b;
+        }
+
+/* REPLIES CONTAINER */
 .comment-replies-container {
-    margin-left: 40px;
-    border-left: 2px solid var(--border-color);
-    padding-left: 15px;
+    margin-left: 52px; /* Thụt đầu dòng cho cả khối reply */
     margin-top: 10px;
-}
-
-.comment-item.is-reply {
-    border-bottom: none; 
-    padding-top: 8px;
-    padding-bottom: 8px;
-}
-
-.comment-text .comment-mention {
-    font-weight: 700;
-    color: #0d6efd; 
-    margin-right: 4px;
-    cursor: pointer;
-}
-
-    .comment-text .comment-mention:hover {
-        text-decoration: underline;
-    }
-
-.comment-actions button.comment-cancel-btn {
-    background-color: var(--bg-surface);
-    color: var(--text-secondary);
-    border: 1px solid var(--border-color);
-}
-
-    .comment-actions button.comment-cancel-btn:hover:not(:disabled) {
-        background-color: var(--bg-main);
-    }
-
-.comment-reply-list {
-    margin-top: 10px;
-    border-left: 2px solid #444;
+    border-left: 2px solid #f0f0f0; /* Đường kẻ dọc chỉ thị reply */
     padding-left: 15px;
+}
+
+/* Pagination controls in replies */
+.comment-reply-pagination {
+    margin-top: 10px;
+    font-size: 0.9rem;
 }

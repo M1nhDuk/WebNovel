@@ -32,5 +32,28 @@ namespace NovelService.Service
                 _logger.LogError(ex, "Error connecting to UserService for general notification.");
             }
         }
+
+        public async Task IncrementUnreadCountAsync(int seriesId)
+        {
+            try
+            {             
+                var response = await _httpClient.PostAsync($"/api/internal/favorites/increment-unread/{seriesId}", null);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var error = await response.Content.ReadAsStringAsync();
+                    _logger.LogError($"Failed to increment unread count for Series {seriesId}. Status: {response.StatusCode}, Error: {error}");
+                }
+                else
+                {
+                    _logger.LogInformation($"Successfully incremented unread count for Series {seriesId}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error calling UserService to increment unread count for Series {seriesId}");
+                
+            }
+        }
     }
 }

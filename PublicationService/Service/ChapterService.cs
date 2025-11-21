@@ -18,14 +18,12 @@ namespace NovelService.Service
     {
         private readonly string _userServiceUrl;
         private readonly NovelDbContext _context;
-        private readonly IUserService _userService;
         private readonly ILogger<IChapterService> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
 
         public ChapterService(NovelDbContext context, ILogger<IChapterService> logger, IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _context = context;
-            // _userService = userService;
             _logger = logger;
             _httpClientFactory = httpClientFactory;
             _userServiceUrl = configuration["ServiceUrls:UserService"] ??
@@ -128,7 +126,20 @@ namespace NovelService.Service
 
                 if (parentSeries != null)
                 {
-                    _ = Task.Run(() => NotifyFollowersOfNewChapter(parentSeries.series_Id, chapter.title, uploader_id));
+                    // Chạy ngầm (Fire-and-forget) để API phản hồi nhanh cho Admin
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await CallIncrementUnreadCountAsync(parentSeries.series_Id);
+
+                            await NotifyFollowersOfNewChapter(parentSeries.series_Id, chapter.title, uploader_id);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Background task for notification/increment failed.");
+                        }
+                    });
                 }
 
                 return new ChapterDetailDto 
@@ -507,6 +518,32 @@ namespace NovelService.Service
                 {
                     _logger.LogError(ex, "Error sending notification to User {UserId}", followerId);
                 }
+            }
+        }
+
+        private async Task CallIncrementUnreadCountAsync(int seriesId)
+        {
+            try
+            {
+                var client = _httpClientFactory.CreateClient();
+              
+                var url = $"{_userServiceUrl.TrimEnd('/')}/api/internal/favorites/increment-unread/{seriesId}";
+
+               
+                var response = await client.PostAsync(url, null);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError($"Failed to increment unread count. Status: {response.StatusCode}");
+                }
+                else
+                {
+                    _logger.LogInformation($"Successfully sent increment request for Series {seriesId}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Exception when calling UserService to increment unread count for Series {seriesId}");              
             }
         }
     }

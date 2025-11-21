@@ -7,6 +7,8 @@ export interface UserFavoriteDto {
     seriesCoverImage?: string;
 
     currentChapterCount: number;
+
+    unreadCount: number;
 }
 
 export interface AddFavoriteDto {
