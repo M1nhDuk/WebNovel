@@ -16,6 +16,7 @@ namespace Shareds.DTOs.UserService
         public string? SeriesCoverImage { get; set; }
         public int CurrentChapterCount { get; set; }
 
+        public int UnreadCount { get; set; } = 0;
 
     }
 }

@@ -39,3 +39,15 @@ export interface CommentReplyInputProps {
 export interface UpdateCommentDto {
     content: string;
 }
+
+
+export interface ReplyState {
+    items: CommentDto[];
+    nextPage: number;
+    isLoading: boolean;
+    isFullyLoaded: boolean;
+}
+
+export interface CommentContentProps {
+    content: string;
+}

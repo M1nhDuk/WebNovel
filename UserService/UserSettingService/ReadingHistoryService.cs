@@ -46,8 +46,11 @@ namespace UserService.UserSettingService
 
         public async Task AddOrUpdateHistoryAsync(Guid userId, AddReadingHistoryDto dto)
         {
+            
             var hasRead = await _context.UserReadChapter
-                .AnyAsync(x => x.UserId == userId && x.SeriesId == dto.SeriesId && x.ChapterId == dto.ChapterId);
+                .AnyAsync(x => x.UserId == userId
+                            && x.SeriesId == dto.SeriesId
+                            && x.ChapterId == dto.ChapterId);
 
             if (!hasRead)
             {
@@ -58,8 +61,20 @@ namespace UserService.UserSettingService
                     ChapterId = dto.ChapterId,
                     ReadAt = DateTime.UtcNow
                 });
+
+                
+                var favorite = await _context.UserFavorite
+                    .FirstOrDefaultAsync(f => f.UserId == userId && f.seriesId == dto.SeriesId);
+
+                if (favorite != null && favorite.UnreadCount > 0)
+                {
+                    favorite.UnreadCount -= 1;
+
+                    if (favorite.UnreadCount < 0) favorite.UnreadCount = 0;
+                }
             }
 
+            
             var existingProgress = await _context.ReadingHistories
                 .FirstOrDefaultAsync(rh => rh.UserId == userId && rh.SeriesId == dto.SeriesId);
 
@@ -67,19 +82,17 @@ namespace UserService.UserSettingService
             {
                 existingProgress.ChapterId = dto.ChapterId;
                 existingProgress.LastAccessedAt = DateTime.UtcNow;
-
                 _context.ReadingHistories.Update(existingProgress);
             }
             else
             {
-                var newProgress = new ReadingHistory
+                _context.ReadingHistories.Add(new ReadingHistory
                 {
                     UserId = userId,
                     SeriesId = dto.SeriesId,
                     ChapterId = dto.ChapterId,
                     LastAccessedAt = DateTime.UtcNow
-                };
-                _context.ReadingHistories.Add(newProgress);
+                });
             }
 
             await _context.SaveChangesAsync();

@@ -3,14 +3,14 @@ import { Link } from 'react-router-dom';
 import apiClient from '../../api/apiClient';
 import { API_ROUTES } from '../../api/apiRoutes';
 import { useAuth } from '../../hooks/useAuth';
-import type { PagedResult } from '../../types/series'; 
+import type { PagedResult } from '../../types/series';
 import type { UserFavoriteDto, AddFavoriteDto, FavoriteToggleResult } from '../../types/userActions';
 import Pagination from '../../components/common/Pagination';
 import { FaHeartBroken } from 'react-icons/fa';
 import './FavoritesPage.css';
 
 const GATEWAY_URL = 'https://localhost:8000';
-const PAGE_SIZE = 12; 
+const PAGE_SIZE = 12;
 
 const FavoritesPage: React.FC = () => {
     const { user, isLoading: userLoading } = useAuth();
@@ -30,13 +30,11 @@ const FavoritesPage: React.FC = () => {
         return `${GATEWAY_URL}${formattedPath}`;
     };
 
-
-
     // Hàm fetchFavorites 
     const fetchFavorites = useCallback(async (pageToFetch: number) => {
         if (!user) {
             setIsLoading(false);
-            return; 
+            return;
         }
 
         setIsLoading(true);
@@ -65,7 +63,7 @@ const FavoritesPage: React.FC = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [user]); 
+    }, [user]);
 
     useEffect(() => {
         if (!userLoading && !user) {
@@ -81,11 +79,11 @@ const FavoritesPage: React.FC = () => {
         }
     }, [user, fetchFavorites, currentPage]);
 
-  
+
     const handlePageChange = (page: number) => {
         if (page !== currentPage) {
             setCurrentPage(page);
-            window.scrollTo(0, 0); 
+            window.scrollTo(0, 0);
         }
     };
 
@@ -108,11 +106,11 @@ const FavoritesPage: React.FC = () => {
                 API_ROUTES.USER.TOGGLE_FAVORITE,
                 dto
             );
-  
+
             if (favoriteList.length === 1 && currentPage > 1) {
                 setCurrentPage(currentPage - 1);
             } else {
-                fetchFavorites(currentPage); 
+                fetchFavorites(currentPage);
             }
 
         } catch (err: any) {
@@ -123,10 +121,7 @@ const FavoritesPage: React.FC = () => {
         }
     };
 
-
-
-
-    if (userLoading || (isLoading && currentPage === 1)) { 
+    if (userLoading || (isLoading && currentPage === 1)) {
         return <div className="favorites-page-container"><h1>My Favorites</h1>Loading...</div>;
     }
 
@@ -157,9 +152,11 @@ const FavoritesPage: React.FC = () => {
                     </div>
                 ) : (
                     favoriteList.map(item => {
-                        {/* --- LOGIC CHECK NEW CHAPTER --- */ }
-                        const hasNewChapter = item.currentChapterCount > item.lastKnowChapter;
-                        const newChapterCount = item.currentChapterCount - item.lastKnowChapter;
+                        {/* --- [CHANGED Logic] --- */ }
+                        // S? d?ng tr?c ti?p unreadCount t? Backend tr? v?
+                        // Không c?n tính toán current - last n?a
+                        const unreadCount = item.unreadCount || 0;
+                        const hasNewChapter = unreadCount > 0;
 
                         return (
                             <div key={item.seriesId} className="favorite-item">
@@ -176,15 +173,16 @@ const FavoritesPage: React.FC = () => {
                                             {item.seriesTitle || '[Series Deleted/Not Found]'}
                                         </Link>
 
-                                        {/* Badge báo ch??ng m?i */}
+                                        {/* Badge báo ch??ng m?i d?a trên unreadCount */}
                                         {hasNewChapter && (
-                                            <span className="new-chapter-badge" title={`${newChapterCount} new unread chapter`}>
-                                                New (+{newChapterCount}) 
+                                            <span className="new-chapter-badge" title={`${unreadCount} new unread chapter(s)`}>
+                                                New (+{unreadCount > 99 ? '99+' : unreadCount})
                                             </span>
                                         )}
                                     </div>
 
                                     <div className="favorite-progress-info">
+                                        {/* Hi?n th? ti?n ?? ??c (ch? mang tính ch?t thông tin, ko ?nh h??ng logic ??m) */}
                                         {item.lastKnowChapter > 0 ? (
                                             <span className="reading-status text-primary">
                                                 Reading: Chapter {item.lastKnowChapter}
@@ -225,7 +223,7 @@ const FavoritesPage: React.FC = () => {
                     totalPages={totalPages}
                     onPageChange={handlePageChange}
                 />
-            )}          
+            )}
         </div>
     );
 };

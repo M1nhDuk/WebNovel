@@ -234,7 +234,6 @@ namespace InteractionService.Service
                 throw new ArgumentException("Must specify either SeriesId OR ChapterId.");
             }
 
-            
             var query = _context.Comments.AsQueryable();
 
             if (seriesId.HasValue)
@@ -246,60 +245,44 @@ namespace InteractionService.Service
                 query = query.Where(c => c.ChapterId == chapterId.Value);
             }
 
-            
-            var allComments = await query.ToListAsync();
+            //Chỉ lấy Root Comment tải trang ban đầu cực nhanh nếu có hàng nghìn reply
+            query = query.Where(c => c.ParentCommentId == null);
 
-            
-            var allCommentDtos = allComments.Select(c => MapToDto(c)).ToList();
-            
+            //Đếm tổng số root comment để phân trang
+            var totalCount = await query.CountAsync();
 
-            await EnrichCommentsWithUserInfo(allCommentDtos);
-
-          
-            var commentDict = allCommentDtos.ToDictionary(c => c.CommentId);
-            var rootComments = new List<CommentDto>();
-
-            foreach (var comment in allCommentDtos)
-            {
-                if (comment.ParentCommentId.HasValue && commentDict.TryGetValue(comment.ParentCommentId.Value, out var parent))
-                {
-                    
-                    parent.Replies.Add(comment);
-                }
-                else
-                {
-                    
-                    rootComments.Add(comment);
-                }
-            }
-
-           
-            foreach (var comment in allCommentDtos)
-            {
-                if (comment.Replies.Any())
-                {
-                    comment.Replies = comment.Replies.OrderBy(r => r.CreatedAt).ToList();
-                }
-            }
-
-            
-            var totalCount = rootComments.Count;
-
-            var paginatedRootComments = rootComments
+            //Lấy dữ liệu phân trang
+            var rootComments = await query
                 .OrderByDescending(c => c.CreatedAt)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
-                .ToList();
+                .Select(c => new CommentDto
+                {
+                    CommentId = c.CommentId,
+                    UserId = c.UserId,
+                    Content = c.CommentText,
+                    CreatedAt = c.CreatedAt,
+                    UpdatedAt = c.UpdatedAt,
+                    SeriesId = c.SeriesId,
+                    ChapterId = c.ChapterId,
+                    ParentCommentId = c.ParentCommentId,
 
-            
+                    ReplyCount = _context.Comments.Count(r => r.ParentCommentId == c.CommentId),
+                    Replies = new List<CommentDto>() 
+                })
+                .ToListAsync();
+
+            await EnrichCommentsWithUserInfo(rootComments);
+
             return new PagedResult<CommentDto>
             {
-                Items = paginatedRootComments,
+                Items = rootComments,
                 TotalRecords = totalCount,
                 PageNumber = pageNumber,
                 PageSize = pageSize
             };
         }
+
 
         public async Task<PagedResult<CommentDto>> GetRepliesAsync(Guid parentCommentId, int pageNumber = 1, int pageSize = 10)
         {
