@@ -58,7 +58,6 @@ const ChapterDetailPage: React.FC = () => {
             await apiClient.post(API_ROUTES.USER.READING_HISTORY, { 
                 seriesId: Number(seriesIdStr),
                 chapterId: numChapterId,
-
                 // Gửi thời gian tạo chương để Backend so sánh
                 // Nếu chapter.created_at > UserFavorite.TimeAdded => Trừ thông báo
                 chapterCreatedAt: chapter.created_at
@@ -379,7 +378,7 @@ const ChapterDetailPage: React.FC = () => {
             </div>
         );
     };
-
+    
     const mainContentStyles: React.CSSProperties = {
         backgroundColor: settings.backgroundColor,
     };

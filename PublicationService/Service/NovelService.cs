@@ -17,12 +17,14 @@ namespace NovelService.Service
         private readonly IUserService _userService;
         private readonly ILogger<INovelService> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
-        public NovelService(NovelDbContext context, ILogger<INovelService> logger, IHttpClientFactory httpClientFactory)
+        private readonly IWebHostEnvironment _environment;
+        public NovelService(NovelDbContext context, ILogger<INovelService> logger, IHttpClientFactory httpClientFactory, IWebHostEnvironment environment)
         {
             _context = context;
             // _userService = userService;
             _logger = logger;
             _httpClientFactory = httpClientFactory;
+            _environment = environment;
         }
 
 
@@ -168,7 +170,6 @@ namespace NovelService.Service
         //Delete
         public async Task<bool> DeleteNovelAsync(int id, Guid uploader_Id, string userRole, int series_Id)
         {
-
             var novel = await _context.Novels
                 .Include(n => n.Chapters)
                 .Include(n => n.NovelSeries)
@@ -185,7 +186,17 @@ namespace NovelService.Service
                 throw new UnauthorizedAccessException("You are not authorized to delete this novel.");
             }
 
-            //XÓA COMMENT 
+            //LƯU ĐƯỜNG DẪN ẢNH CẦN XÓA 
+            string? coverPathToDelete = null;
+            var defaultCoverPath = "/images/covers/default_cover.jpg";
+
+            // Chỉ đánh dấu xóa nếu có ảnh và không phải ảnh mặc định
+            if (!string.IsNullOrEmpty(novel.cover_images) && novel.cover_images != defaultCoverPath)
+            {
+                coverPathToDelete = novel.cover_images;
+            }
+
+            // XÓA COMMENT (Logic cũ giữ nguyên)
             try
             {
                 var chapterIds = novel.Chapters.Select(c => c.chapter_id).ToList();
@@ -194,7 +205,6 @@ namespace NovelService.Service
                 {
                     var httpClient = _httpClientFactory.CreateClient("InteractionServiceClient");
 
-                    
                     foreach (var chapId in chapterIds)
                     {
                         var response = await httpClient.DeleteAsync($"api/internal/comments/by-chapter/{chapId}");
@@ -207,19 +217,18 @@ namespace NovelService.Service
             }
             catch (Exception ex)
             {
-    
                 _logger.LogError(ex, "Error calling InteractionService while deleting NovelId {NovelId}", id);
             }
 
             int deletedWordCount = novel.Chapters?.Sum(c => c.word_count) ?? 0;
 
-            // Xóa Chapters
+            // Xóa Chapters trong DB
             if (novel.Chapters != null && novel.Chapters.Any())
             {
                 _context.Chapters.RemoveRange(novel.Chapters);
             }
 
-            // Xóa Novel
+            // Xóa Novel trong DB
             _context.Novels.Remove(novel);
 
             // Cập nhật Word Count cho Series cha
@@ -230,7 +239,33 @@ namespace NovelService.Service
                 _context.Novel_Series.Update(novel.NovelSeries);
             }
 
+
             await _context.SaveChangesAsync();
+
+            // XÓA FILE ẢNH VẬT LÝ (Chỉ chạy khi DB đã xóa xong)
+            if (!string.IsNullOrEmpty(coverPathToDelete))
+            {
+                try
+                {
+                    // Lấy tên file từ đường dẫn URL 
+                    var fileName = Path.GetFileName(coverPathToDelete);
+
+                    // Tạo đường dẫn vật lý
+                    var filePath = Path.Combine(_environment.WebRootPath, "images", "covers", fileName);
+
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                        _logger.LogInformation("Deleted cover image for NovelId {NovelId}: {FilePath}", id, filePath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                 
+                    _logger.LogWarning(ex, "Novel deleted successfully but failed to delete cover image file: {Path}", coverPathToDelete);
+                }
+            }
+
             return true;
         }
 
