@@ -72,6 +72,21 @@ const SeriesDetailPage: React.FC = () => {
         }
     };
 
+
+    const isChapterNew = (createdDate: string, daysToExpire: number = 3): boolean => {
+        if (!createdDate) return false;
+
+        const created = new Date(createdDate);
+        const now = new Date();
+
+        const diffInMs = now.getTime() - created.getTime();
+
+        const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+
+        return diffInDays < daysToExpire;
+    };
+
+
     useEffect(() => {
         if (!id) return;
 
@@ -169,7 +184,7 @@ const SeriesDetailPage: React.FC = () => {
 
         const dto: AddFavoriteDto = {
             seriesId: Number(id),
-            currentChapterCount: 0 
+            currentChapterCount: 0
         };
 
         try {
@@ -424,7 +439,7 @@ const SeriesDetailPage: React.FC = () => {
                         })()}
                     </div>
 
-                    
+
                     {/* (Phần Volume & Chapter List) */}
                     <div className="chapter-list-section">
                         <h3>Volume & Chapter List</h3>
@@ -454,6 +469,8 @@ const SeriesDetailPage: React.FC = () => {
 
                                                 // Kiểm tra xem đã đọc chưa
                                                 const isRead = readChapters.has(chapter.chapter_id);
+                                                // Kiểm tra xem có phải chương mới không (mặc định 3 ngày)
+                                                const isNew = isChapterNew(chapter.created_at, 3);
 
                                                 return (
                                                     <li key={chapter.chapter_id} className={`chapter-item ${isRead ? 'is-read' : ''}`}>
@@ -464,6 +481,10 @@ const SeriesDetailPage: React.FC = () => {
                                                         >
                                                             {chapter.title}
                                                         </Link>
+
+                                                        {/* HIỂN THỊ BADGE MỚI */}
+                                                        {isNew && <span className="new-badge">Mới</span>}
+
                                                         <span className="chapter-date">{formatDate(chapter.created_at)}</span>
                                                     </li>
                                                 );
@@ -502,6 +523,7 @@ const SeriesDetailPage: React.FC = () => {
                                     <ul className="chapter-list">
                                         {series.chapters.map(chapter => {
                                             const isRead = readChapters.has(chapter.chapter_id);
+                                            const isNew = isChapterNew(chapter.created_at, 3);
 
                                             return (
                                                 <li key={chapter.chapter_id} className={`chapter-item ${isRead ? 'is-read' : ''}`}>
@@ -512,6 +534,10 @@ const SeriesDetailPage: React.FC = () => {
                                                     >
                                                         {chapter.title}
                                                     </Link>
+
+                                                    {/* HIỂN THỊ BADGE MỚI */}
+                                                    {isNew && <span className="new-badge">Mới</span>}
+
                                                     <span className="chapter-date">{formatDate(chapter.created_at)}</span>
                                                 </li>
                                             );

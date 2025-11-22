@@ -185,8 +185,6 @@ namespace NovelService.Controllers
                                       .Include(n => n.NovelSeries) 
                                       .FirstOrDefaultAsync(n => n.novel_Id == id);
 
-     
-
                 if ( novel == null)
                 {
                     return NotFound(new { message = "Novel not found" });

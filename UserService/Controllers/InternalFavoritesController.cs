@@ -58,25 +58,5 @@ namespace UserService.Controllers
             }
         }
 
-        //Delete new chapter --> reduce noti
-        [HttpPost("decrement-unread/{seriesId}")]
-        public async Task<IActionResult> DecrementUnreadCount(int seriesId)
-        {
-            try
-            {
-                await _context.UserFavorite
-                    .Where(f => f.seriesId == seriesId && f.UnreadCount > 0)
-                    .ExecuteUpdateAsync(s => s.SetProperty(
-                        f => f.UnreadCount,
-                        f => f.UnreadCount - 1
-                    ));
-
-                return Ok(new { message = "Notification counts adjusted successfully." });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Error updating notifications");
-            }
-        }
     }
 }

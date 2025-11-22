@@ -28,13 +28,15 @@ namespace NovelService.Service
         private readonly IConfiguration _configuration;
         private readonly string _userServiceUrl;
         private readonly string _authServiceUrl;
+        private readonly IWebHostEnvironment _environment;
 
         public NovelSeriesService(
             NovelDbContext context, 
             ILogger<NovelSeriesService> logger, 
             IHttpClientFactory httpClientFactory,
             IConfiguration configuration,
-            IUserService userService)
+            IUserService userService,
+            IWebHostEnvironment environment)
         {
             _context = context;
             _logger = logger;
@@ -46,6 +48,7 @@ namespace NovelService.Service
                               throw new InvalidOperationException("ServiceUrls:UserService không được cấu hình");
             _authServiceUrl = _configuration.GetValue<string>("ServiceUrls:AuthService") ??
                               throw new InvalidOperationException("ServiceUrls:AuthService không được cấu hình");
+            _environment = environment;
 
         }
 
@@ -210,7 +213,6 @@ namespace NovelService.Service
             if (series.uploader_id != uploader_Id && userRole != "Admin")
                 throw new UnauthorizedAccessException("You are not allowed to delete this series");
 
-
             try
             {
                 var httpClient = _httpClientFactory.CreateClient("InteractionServiceClient");
@@ -281,6 +283,32 @@ namespace NovelService.Service
 
             _context.Novel_Series.Remove(series);
             await _context.SaveChangesAsync();
+
+            try
+            {
+                var coverPath = series.cover_images;
+                var defaultPath = "/images/covers/default_cover.jpg";
+
+                // Chỉ xóa nếu đường dẫn tồn tại và KHÔNG phải là ảnh mặc định
+                if (!string.IsNullOrEmpty(coverPath) &&
+                    !coverPath.Trim().Equals(defaultPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    var relativePath = coverPath.TrimStart('/', '\\');
+
+                    var absolutePath = Path.Combine(_environment.WebRootPath, relativePath);
+
+                    if (System.IO.File.Exists(absolutePath))
+                    {
+                        System.IO.File.Delete(absolutePath);
+                        _logger.LogInformation("Deleted physical cover image: {Path}", absolutePath);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+               
+                _logger.LogError(ex, "Error deleting cover image for SeriesId {SeriesId}", id);
+            }
 
             return true;
         }

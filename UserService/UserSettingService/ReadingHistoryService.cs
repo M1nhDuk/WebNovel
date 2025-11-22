@@ -46,7 +46,7 @@ namespace UserService.UserSettingService
 
         public async Task AddOrUpdateHistoryAsync(Guid userId, AddReadingHistoryDto dto)
         {
-            
+            //Kiểm tra xem user đã từng đọc chương này chưa 
             var hasRead = await _context.UserReadChapter
                 .AnyAsync(x => x.UserId == userId
                             && x.SeriesId == dto.SeriesId
@@ -54,7 +54,7 @@ namespace UserService.UserSettingService
 
             if (!hasRead)
             {
-                //Lưu vào lịch sử đã đọc(để tô xám chương)
+                //Lưu vào lịch sử đã đọc 
                 _context.UserReadChapter.Add(new UserReadChapter
                 {
                     UserId = userId,
@@ -63,21 +63,22 @@ namespace UserService.UserSettingService
                     ReadAt = DateTime.UtcNow
                 });
 
-                //LOGIC TRỪ THÔNG BÁO
+                //LOGIC TRỪ THÔNG BÁO 
                 var favorite = await _context.UserFavorite
                     .FirstOrDefaultAsync(f => f.UserId == userId && f.seriesId == dto.SeriesId);
 
+                // Chỉ thực hiện trừ nếu đang có thông báo (> 0)
                 if (favorite != null && favorite.UnreadCount > 0)
                 {
-                    //Ngày tạo chương phải LỚN HƠN ngày bắt đầu Follow
                     bool isNewChapter = false;
+
                     if (dto.ChapterCreatedAt.HasValue)
                     {
+                        //Chỉ tính là chương mới nếu nó được tạo SAU khi user Follow
                         isNewChapter = dto.ChapterCreatedAt.Value > favorite.TimeAdded;
-                    }
-                    else
+                    } else
                     {
-                        isNewChapter = true;
+                        isNewChapter = false;
                     }
 
                     if (isNewChapter)
@@ -88,7 +89,6 @@ namespace UserService.UserSettingService
                 }
             }
 
-            
             var existingProgress = await _context.ReadingHistories
                 .FirstOrDefaultAsync(rh => rh.UserId == userId && rh.SeriesId == dto.SeriesId);
 

@@ -328,15 +328,6 @@ namespace NovelService.Service
                     );
 
                 await tx.CommitAsync();
-
-                if (parentSeries != null)
-                {
-                    _ = Task.Run(async () =>
-                    {
-                        await CallDecrementUnreadCountAsync(parentSeries.series_Id);
-                    });
-                }
-
                 return true;
             }
             catch (Exception ex)
@@ -553,27 +544,6 @@ namespace NovelService.Service
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Exception when calling UserService to increment unread count for Series {seriesId}");              
-            }
-        }
-
-        //Call method API from User service
-        private async Task CallDecrementUnreadCountAsync(int seriesId)
-        {
-            try
-            {
-                var client = _httpClientFactory.CreateClient();
-                var url = $"{_userServiceUrl.TrimEnd('/')}/api/internal/favorites/decrement-unread/{seriesId}";
-
-                var response = await client.PostAsync(url, null);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogError($"Failed to decrement unread count via UserService. Status: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error calling UserService to decrement count.");
             }
         }
     }
