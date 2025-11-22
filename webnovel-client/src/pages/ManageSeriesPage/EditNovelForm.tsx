@@ -2,14 +2,14 @@
 import apiClient from '../../api/apiClient';
 import { API_ROUTES, GATEWAY_URL } from '../../api/apiRoutes';
 import type { NovelDetailDto, NovelUpdateDto } from '../../types/series';
-import '../CreateSeriesPage/CreateSeriesPage.css'; 
+import '../CreateSeriesPage/CreateSeriesPage.css';
 import { FaUpload } from 'react-icons/fa';
 
 interface EditNovelFormProps {
     seriesId: number;
     novel: NovelDetailDto;
     onNovelUpdated: () => void;
-    onCancel: () => void; 
+    onCancel: () => void;
 }
 
 const EditNovelForm: React.FC<EditNovelFormProps> = ({ seriesId, novel, onNovelUpdated, onCancel }) => {
@@ -44,7 +44,7 @@ const EditNovelForm: React.FC<EditNovelFormProps> = ({ seriesId, novel, onNovelU
         setSelectedFile(null);
         setError(null);
         setSuccess(null);
-    }, [novel]); 
+    }, [novel]);
 
 
     // Xử lý khi người dùng chọn file
@@ -52,8 +52,8 @@ const EditNovelForm: React.FC<EditNovelFormProps> = ({ seriesId, novel, onNovelU
         const file = e.target.files?.[0];
         if (file) {
             if (file.type === "image/jpeg" || file.type === "image/png") {
-                setSelectedFile(file); 
-                setCoverPreview(URL.createObjectURL(file)); 
+                setSelectedFile(file);
+                setCoverPreview(URL.createObjectURL(file));
                 setError(null);
             } else {
                 setError("Invalid file type. Please select a JPG or PNG image.");
@@ -82,11 +82,10 @@ const EditNovelForm: React.FC<EditNovelFormProps> = ({ seriesId, novel, onNovelU
 
         const updatePayload: NovelUpdateDto = {
             title: title.trim(),
-            cover_images: novel.cover_images 
+            cover_images: novel.cover_images
         };
 
         try {
-
             await apiClient.put(
                 `/series/${seriesId}/novels/${novel.novel_Id}`,
                 updatePayload
@@ -98,7 +97,7 @@ const EditNovelForm: React.FC<EditNovelFormProps> = ({ seriesId, novel, onNovelU
             return;
         }
 
-        //Nếu có file mới, upload file đó
+        // Nếu có file mới, upload file đó
         if (selectedFile) {
             setSuccess(`Details saved. Now uploading new cover...`);
             const uploadData = new FormData();
@@ -107,23 +106,21 @@ const EditNovelForm: React.FC<EditNovelFormProps> = ({ seriesId, novel, onNovelU
             try {
                 await apiClient.post(
                     API_ROUTES.SERIES.UPLOAD_NOVEL_COVER(seriesId, novel.novel_Id),
-                    uploadData,
-                    { headers: { 'Content-Type': 'multipart/form-data' } }
+                    uploadData
                 );
             } catch (err: any) {
                 console.error("Failed to upload cover:", err);
-                setError(`Volume details saved, but cover upload failed: ${err.response?.data?.message}`);
+                setError(`Volume details saved, but cover upload failed: ${err.response?.data?.message || err.message}`);
                 setLoading(false);
-                onNovelUpdated(); 
+                onNovelUpdated();
                 return;
             }
         }
 
- 
         setLoading(false);
         setSuccess(`Volume "${title.trim()}" updated successfully!`);
-        setSelectedFile(null); 
-        onNovelUpdated(); 
+        setSelectedFile(null);
+        onNovelUpdated();
     };
 
     // Đảm bảo cover images không bao giờ null
@@ -143,7 +140,7 @@ const EditNovelForm: React.FC<EditNovelFormProps> = ({ seriesId, novel, onNovelU
                     id="volumeTitle"
                     name="title"
                     value={title}
-                    onChange={handleTitleChange} 
+                    onChange={handleTitleChange}
                     disabled={loading}
                     autoFocus
                 />
@@ -162,7 +159,7 @@ const EditNovelForm: React.FC<EditNovelFormProps> = ({ seriesId, novel, onNovelU
                         <FaUpload /> {selectedFile ? 'Change Image' : 'Choose Image'}
                     </label>
                     <input
-                        id="cover-upload-input-edit" 
+                        id="cover-upload-input-edit"
                         type="file"
                         accept="image/png, image/jpeg"
                         style={{ display: 'none' }}

@@ -156,13 +156,12 @@ namespace NovelService.Controllers
         [HttpPost("{id:int}/cover")]
         [Authorize]
         [RequestSizeLimit(MaxFileSize + 1024 * 1024)]
-        public async Task<IActionResult> UploadNovelCover(int id, IFormFile file)
+        public async Task<IActionResult> UploadNovelCover(int id, [FromForm] IFormFile file)
         {
             if (file == null || file.Length == 0)
             {
                 return BadRequest(new { message = "No Upload File Found" });
             }
-
 
             if (file.Length > MaxFileSize)
             {
@@ -182,15 +181,15 @@ namespace NovelService.Controllers
                 var currentUserId = GetUserIdFromToken();
 
                 var novel = await _context.Novels
-                                      .Include(n => n.NovelSeries) 
+                                      .Include(n => n.NovelSeries)
                                       .FirstOrDefaultAsync(n => n.novel_Id == id);
 
-                if ( novel == null)
+                if (novel == null)
                 {
                     return NotFound(new { message = "Novel not found" });
                 }
 
-                if(novel.NovelSeries == null)
+                if (novel.NovelSeries == null)
                 {
                     return BadRequest(new { message = "Novel not belong to any series" });
                 }
@@ -200,14 +199,20 @@ namespace NovelService.Controllers
                     return Forbid("You do not have permit to change");
                 }
 
-               
-                var uploadsFolderPath = Path.Combine(_environment.WebRootPath, "images", "covers");
-             
+                // --- FIX: Ki?m tra WebRootPath ?? tránh l?i null ---
+                string webRootPath = _environment.WebRootPath;
+                if (string.IsNullOrWhiteSpace(webRootPath))
+                {
+                    webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                }
+
+                var uploadsFolderPath = Path.Combine(webRootPath, "images", "covers");
+                // ---------------------------------------------------
+
                 if (!Directory.Exists(uploadsFolderPath))
                     Directory.CreateDirectory(uploadsFolderPath);
 
                 var uniqueFileName = $"{Guid.NewGuid()}{extension}";
-
                 var filePath = Path.Combine(uploadsFolderPath, uniqueFileName);
 
                 using (var stream = new FileStream(filePath, FileMode.Create))
@@ -215,41 +220,38 @@ namespace NovelService.Controllers
                     await file.CopyToAsync(stream);
                 }
 
+                // Xóa ?nh c? n?u không ph?i ?nh m?c ??nh
                 var oldRelativePath = novel.cover_images;
-
                 var defaultPath = "/images/covers/default_cover.jpg";
 
                 if (!string.IsNullOrEmpty(oldRelativePath) && oldRelativePath.Trim() != defaultPath)
                 {
+                    // C?n ??m b?o l?y ?úng tên file t? ???ng d?n c?
                     var oldFileName = Path.GetFileName(oldRelativePath);
                     var oldFilePath = Path.Combine(uploadsFolderPath, oldFileName);
                     if (System.IO.File.Exists(oldFilePath))
                     {
-                        try { System.IO.File.Delete(oldFilePath); }
-                        catch (IOException ex) { _logger.LogWarning(ex, "Cannot remove novel cover_image novel: {OldFilePath}", oldFilePath); }
+                        try
+                        {
+                            System.IO.File.Delete(oldFilePath);
+                        }
+                        catch (IOException ex)
+                        {
+                            _logger.LogWarning(ex, "Cannot remove novel cover_image novel: {OldFilePath}", oldFilePath);
+                        }
                     }
                 }
 
-
-                //Update database
+                // Update database
                 var relativePath = $"/images/covers/{uniqueFileName}";
-
                 novel.cover_images = relativePath;
-                
-               
 
                 _context.Novels.Update(novel);
-
-              
-                _context.Novel_Series.Update(novel.NovelSeries);
-
 
                 await _context.SaveChangesAsync();
 
                 var fullUrl = $"{Request.Scheme}://{Request.Host}{relativePath}";
                 return Ok(new { coverUrl = fullUrl });
-
-
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -257,7 +259,9 @@ namespace NovelService.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Erro when uploading file " });
+                // --- FIX: Thêm log ?? bi?t l?i gì ---
+                _logger.LogError(ex, "Error uploading cover for novelId: {Id}", id);
+                return StatusCode(500, new { message = "Error when uploading file: " + ex.Message });
             }
         }
     }
