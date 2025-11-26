@@ -214,7 +214,7 @@ namespace AuthService.Controllers
                 if (!string.IsNullOrEmpty(oldAvatarUrl))
                 {
                     // Trích xuất tên file từ URL đầy đủ
-                    var oldAvatarFileName = Path.GetFileName(new Uri(oldAvatarUrl).LocalPath);
+                    var oldAvatarFileName = Path.GetFileName(oldAvatarUrl);
                     var oldAvatarPath = Path.Combine(uploads, oldAvatarFileName);
                     if (System.IO.File.Exists(oldAvatarPath))
                     {
@@ -225,7 +225,7 @@ namespace AuthService.Controllers
                 // Xóa file thumbnail cũ
                 if (!string.IsNullOrEmpty(oldThumbnailUrl))
                 {
-                    var oldThumbnailFileName = Path.GetFileName(new Uri(oldThumbnailUrl).LocalPath);
+                    var oldThumbnailFileName = Path.GetFileName(oldThumbnailUrl);
                     var oldThumbnailPath = Path.Combine(uploads, oldThumbnailFileName);
                     if (System.IO.File.Exists(oldThumbnailPath))
                     {
@@ -318,7 +318,7 @@ namespace AuthService.Controllers
                 if (!string.IsNullOrEmpty(oldBackgroundUrl))
                 {
                     // Trích xuất tên file từ URL đầy đủ
-                    var oldBackgroundFileName = Path.GetFileName(new Uri(oldBackgroundUrl).LocalPath);
+                    var oldBackgroundFileName = Path.GetFileName(oldBackgroundUrl);
                     var oldBackgroundPath = Path.Combine(uploads, oldBackgroundFileName);
                     if (System.IO.File.Exists(oldBackgroundPath))
                     {

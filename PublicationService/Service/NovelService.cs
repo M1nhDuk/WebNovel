@@ -196,7 +196,7 @@ namespace NovelService.Service
                 coverPathToDelete = novel.cover_images;
             }
 
-            // XÓA COMMENT (Logic cũ giữ nguyên)
+            // XÓA COMMENT
             try
             {
                 var chapterIds = novel.Chapters.Select(c => c.chapter_id).ToList();

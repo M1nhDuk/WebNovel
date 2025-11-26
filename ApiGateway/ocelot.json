@@ -773,6 +773,8 @@
       "DangerousAcceptAnyServerCertificateValidator": true
     },
 
+   
+
     // --- CATEGORY ---
 
     // 3.1 View Categories
@@ -1592,85 +1594,6 @@
         }
       ],
       "DownstreamPathTemplate": "/api/admin/publication/statuses/{id}",
-      "DangerousAcceptAnyServerCertificateValidator": true,
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer",
-        "AllowedScopes": []
-      }
-    },
-
-    //12.7. Delete Series
-    {
-      "UpstreamPathTemplate": "/api/admin/publication/series/{id}",
-      "UpstreamHttpMethod": [ "DELETE" ],
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7189
-        }
-      ],
-      "DownstreamPathTemplate": "/api/admin/publication/series/{id}",
-      "DangerousAcceptAnyServerCertificateValidator": true,
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer",
-        "AllowedScopes": []
-      }
-    },
-
-    // 12.8 Delete Novels
-    {
-      "UpstreamPathTemplate": "/api/admin/publication/novels/{id}",
-      "UpstreamHttpMethod": [ "DELETE" ],
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7189
-        }
-      ],
-      "DownstreamPathTemplate": "/api/admin/publication/novels/{id}",
-      "DangerousAcceptAnyServerCertificateValidator": true,
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer",
-        "AllowedScopes": []
-      }
-    },
-
-    // 12.9 Delete Chapters
-    {
-      "UpstreamPathTemplate": "/api/admin/publication/chapters/{id}",
-      "UpstreamHttpMethod": [ "DELETE" ],
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7189
-        }
-      ],
-      "DownstreamPathTemplate": "/api/admin/publication/chapters/{id}",
-      "DangerousAcceptAnyServerCertificateValidator": true,
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer",
-        "AllowedScopes": []
-      }
-    },
-
-
-    // --- ADMIN INTERACTION MANAGEMENT ---
-
-    // 13.1.Delete Comment
-    {
-      "UpstreamPathTemplate": "/api/admin/interaction/comments/{id}",
-      "UpstreamHttpMethod": [ "DELETE" ],
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7189
-        }
-      ],
-      "DownstreamPathTemplate": "/api/admin/interaction/comments/{id}",
       "DangerousAcceptAnyServerCertificateValidator": true,
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",

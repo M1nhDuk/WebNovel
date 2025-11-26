@@ -204,50 +204,5 @@ namespace AdminService.Controllers
         }
 
 
-
-        //SERIES -- NOVEL -- CHAPTER
-
-        [HttpDelete("series/{id:int}")]
-        public async Task<IActionResult> DeleteSeries(int id)
-        {
-            var client = GetNovelClient();
-
-            var response = await client.DeleteAsync($"api/internal/publication/admin/series/{id}");
-
-            if (response.IsSuccessStatusCode)
-                return NoContent();
-
-            return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
-        }
-
-
-
-        [HttpDelete("novels/{id:int}")]
-        public async Task<IActionResult> DeleteNovel(int id)
-        {
-
-            var client = GetNovelClient();
-            var response = await client.DeleteAsync($"api/internal/publication/admin/novels/{id}");
-
-            if (response.IsSuccessStatusCode)
-                return NoContent();
-
-            return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
-        }
-
-
-
-        [HttpDelete("chapters/{id:int}")]
-        public async Task<IActionResult> DeleteChapter(int id)
-        {
-            var client = GetNovelClient();
-
-            var response = await client.DeleteAsync($"api/internal/publication/admin/chapters/{id}");
-
-            if (response.IsSuccessStatusCode)
-                return NoContent();
-
-            return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
-        }
     }
 }

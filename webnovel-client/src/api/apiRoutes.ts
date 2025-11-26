@@ -98,11 +98,6 @@ export const API_ROUTES = {
         CREATE_STATUS: '/api/admin/publication/statuses',
         UPDATE_STATUS: (id: number | string) => `/api/admin/publication/statuses/${id}`,
         DELETE_STATUS: (id: number | string) => `/api/admin/publication/statuses/${id}`,
-
-        // Content Deletion
-        DELETE_SERIES: (id: number | string) => `/api/admin/publication/series/${id}`,
-        DELETE_NOVEL: (id: number | string) => `/api/admin/publication/novels/${id}`,
-        DELETE_CHAPTER: (id: number | string) => `/api/admin/publication/chapters/${id}`,
     },
 
 

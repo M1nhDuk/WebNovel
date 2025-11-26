@@ -199,7 +199,7 @@ namespace NovelService.Controllers
                     return Forbid("You do not have permit to change");
                 }
 
-                // --- FIX: Ki?m tra WebRootPath ?? tránh l?i null ---
+                //Check root path
                 string webRootPath = _environment.WebRootPath;
                 if (string.IsNullOrWhiteSpace(webRootPath))
                 {
@@ -207,7 +207,6 @@ namespace NovelService.Controllers
                 }
 
                 var uploadsFolderPath = Path.Combine(webRootPath, "images", "covers");
-                // ---------------------------------------------------
 
                 if (!Directory.Exists(uploadsFolderPath))
                     Directory.CreateDirectory(uploadsFolderPath);
@@ -220,13 +219,13 @@ namespace NovelService.Controllers
                     await file.CopyToAsync(stream);
                 }
 
-                // Xóa ?nh c? n?u không ph?i ?nh m?c ??nh
+                //Delet images if not default images
                 var oldRelativePath = novel.cover_images;
                 var defaultPath = "/images/covers/default_cover.jpg";
 
                 if (!string.IsNullOrEmpty(oldRelativePath) && oldRelativePath.Trim() != defaultPath)
                 {
-                    // C?n ??m b?o l?y ?úng tên file t? ???ng d?n c?
+                    //Ensure file link is right to delete
                     var oldFileName = Path.GetFileName(oldRelativePath);
                     var oldFilePath = Path.Combine(uploadsFolderPath, oldFileName);
                     if (System.IO.File.Exists(oldFilePath))
@@ -259,7 +258,6 @@ namespace NovelService.Controllers
             }
             catch (Exception ex)
             {
-                // --- FIX: Thêm log ?? bi?t l?i gì ---
                 _logger.LogError(ex, "Error uploading cover for novelId: {Id}", id);
                 return StatusCode(500, new { message = "Error when uploading file: " + ex.Message });
             }
