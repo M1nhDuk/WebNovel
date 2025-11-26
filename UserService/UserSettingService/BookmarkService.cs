@@ -30,32 +30,30 @@ namespace UserService.UserSettingService
 
         public async Task<BookmarkToggleResultDto> ToggleBookmarkAsync(Guid userId, ToggleBookmarkDto dto)
         {
- 
             var existingBookmark = await _context.UserBookmarks
                     .FirstOrDefaultAsync(b => b.UserId == userId && b.ChapterId == dto.ChapterId);
 
             UserBookmark bookmarkToReturn;
 
-            if (existingBookmark != null) 
+            if (existingBookmark != null)
             {
-                
+                //Đã bookmark chương này -> Cập nhật lại vị trí/ghi chú
                 existingBookmark.LocationIdentifier = dto.LocationIdentifier;
                 existingBookmark.ContextSnippet = dto.ContextSnippet;
-                existingBookmark.CreatedAt = DateTime.UtcNow; 
+                existingBookmark.CreatedAt = DateTime.UtcNow;
                 existingBookmark.SeriesId = dto.SeriesId; 
 
-                _context.UserBookmarks.Update(existingBookmark); 
+                _context.UserBookmarks.Update(existingBookmark);
                 bookmarkToReturn = existingBookmark;
-                _logger.LogInformation("User {UserId} updated bookmark for Chapter {ChapterId} to location {Location}", userId, dto.ChapterId, dto.LocationIdentifier);
+
             }
-            else 
+            else
             {
+                // Chưa bookmark chương này -> Tạo mới
                 bool isValidReference = await ValidatePublicationReference(dto.SeriesId, dto.ChapterId);
-
-
                 if (!isValidReference)
                 {
-                    throw new KeyNotFoundException("Referenced Series or Chapter does not exist or do not belong together.");
+                    throw new KeyNotFoundException("Referenced Series or Chapter does not exist.");
                 }
 
                 var newBookmark = new UserBookmark
@@ -67,13 +65,11 @@ namespace UserService.UserSettingService
                     ContextSnippet = dto.ContextSnippet,
                     CreatedAt = DateTime.UtcNow
                 };
-                _context.UserBookmarks.Add(newBookmark); 
+                _context.UserBookmarks.Add(newBookmark);
                 bookmarkToReturn = newBookmark;
-        
-                _logger.LogInformation("User {UserId} added new bookmark for Chapter {ChapterId} at location {Location}", userId, dto.ChapterId, dto.LocationIdentifier);
             }
 
-            await _context.SaveChangesAsync(); 
+            await _context.SaveChangesAsync();
 
             var resultDto = MapToDto(bookmarkToReturn);
 
@@ -87,6 +83,7 @@ namespace UserService.UserSettingService
 
         public async Task<bool> RemoveBookmarkForChapterAsync(Guid userId, int chapterId)
         {
+            // Tìm bookmark của đúng chương này
             var bookmark = await _context.UserBookmarks
                 .FirstOrDefaultAsync(b => b.UserId == userId && b.ChapterId == chapterId);
 
@@ -96,14 +93,15 @@ namespace UserService.UserSettingService
                 return false;
             }
 
+            //Xóa Bookmark trg db
             _context.UserBookmarks.Remove(bookmark);
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("User {UserId} removed bookmark for Chapter {ChapterId}", userId, chapterId);
+
             return true;
         }
 
-        
 
         public async Task<bool> RemoveBookmarkByIdAsync(Guid userId, Guid bookmarkId)
         {

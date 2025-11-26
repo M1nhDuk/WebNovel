@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Shareds.DTOs.AuthService;
 using Shareds.DTOs.NovelSeries;
+using System.IO;
 
 namespace AuthService.Controllers
 {
@@ -13,10 +14,12 @@ namespace AuthService.Controllers
     public class InternalAdminController : ControllerBase
     {
         private readonly AuthDbContext _context;
+        private readonly IWebHostEnvironment _environment;
 
-        public InternalAdminController(AuthDbContext context)
+        public InternalAdminController(AuthDbContext context, IWebHostEnvironment environment)
         {
             _context = context;
+            _environment = environment;
         }
 
 
@@ -158,9 +161,46 @@ namespace AuthService.Controllers
             var user = await _context.Users.FindAsync(id);
             if (user == null) return NotFound();
 
-            _context.Users.Remove(user);
+            //Default images link
+            var defaultImages = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "/uploads/default_avatar.png",
+                "/uploads/default_avatar_thumb.png",
+                "/uploads/default_background.jpg"
+            };
 
+            //Gom các đường dẫn ảnh của user cần xóa
+            var imagesToDelete = new List<string?>
+            {
+                user.Avatar,
+                user.AvatarThumbnail,
+                user.BackgroundImage
+            };
+
+            //Duyệt và xóa file vật lý
+            foreach (var relativePath in imagesToDelete)
+            {
+                // Chỉ xóa nếu đường dẫn tồn tại và KHÔNG phải là ảnh mặc định
+                if (!string.IsNullOrEmpty(relativePath) && !defaultImages.Contains(relativePath))
+                {
+                    try
+                    {
+                        var filePath = Path.Combine(_environment.WebRootPath, relativePath.TrimStart('/'));
+
+                        if (System.IO.File.Exists(filePath))
+                        {
+                            System.IO.File.Delete(filePath);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+            }
+
+            _context.Users.Remove(user);
             await _context.SaveChangesAsync();
+
             return NoContent();
         }
     }

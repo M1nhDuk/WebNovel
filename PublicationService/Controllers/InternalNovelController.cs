@@ -238,58 +238,6 @@ namespace NovelService.Controllers
         }
 
 
-
-
-
-
-        //Helper gọi InteractionService để xóa comment
-        private async Task<bool> DeleteCommentsForSeries(int seriesId)
-        {
-            try
-            {           
-                var client = _httpClientFactory.CreateClient("InteractionServiceClient");
-     
-                var response = await client.DeleteAsync($"api/internal/comments/by-series/{seriesId}");
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogError("Failed to delete comments for SeriesId {SeriesId} from InteractionService. Status: {StatusCode}", seriesId, response.StatusCode);
-                    return false;
-                }
-                _logger.LogInformation("Successfully triggered comment deletion for SeriesId {SeriesId}", seriesId);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error calling InteractionService to delete comments for SeriesId {SeriesId}", seriesId);
-                return false; 
-            }
-        }
-
- 
-        private async Task<bool> DeleteCommentsForChapter(int chapterId)
-        {
-            try
-            {
-                var client = _httpClientFactory.CreateClient("InteractionServiceClient");
-                var response = await client.DeleteAsync($"api/internal/comments/by-chapter/{chapterId}");
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogError("Failed to delete comments for ChapterId {ChapterId} from InteractionService. Status: {StatusCode}", chapterId, response.StatusCode);
-                    return false;
-                }
-                _logger.LogInformation("Successfully triggered comment deletion for ChapterId {ChapterId}", chapterId);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error calling InteractionService to delete comments for ChapterId {ChapterId}", chapterId);
-                return false;
-            }
-        }
-
-
         [HttpGet("chapter-routing-info/{chapterId:int}")]
         public async Task<ActionResult<ChapterRoutingInfoDto>> GetChapterRoutingInfo(int chapterId)
         {
@@ -317,64 +265,6 @@ namespace NovelService.Controllers
                 SeriesId = series.series_Id,
                 ChapterId = chapter.chapter_id
             });
-        }
-
-
-
-        // SERIES -- NOVEL -- CHAPTER 
-
-        [HttpDelete("admin/series/{id:int}")]
-        [Authorize(Roles = "Admin")] 
-        public async Task<IActionResult> AdminDeleteSeries(int id)
-        {
-            _logger.LogWarning("Admin executing delete for SeriesId {SeriesId}", id);
-            var series = await _context.Novel_Series.FindAsync(id);
-            if (series == null) return NotFound();
-
-            await DeleteCommentsForSeries(id);
-
-            _context.Novel_Series.Remove(series);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-
-
-        [HttpDelete("admin/novels/{id:int}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> AdminDeleteNovel(int id)
-        {
-            var novel = await _context.Novels.FindAsync(id);
-            if (novel == null) return NotFound();
-
-            foreach (var chapter in novel.Chapters)
-            {
-                await DeleteCommentsForChapter(chapter.chapter_id);
-            }
-
-            _context.Novels.Remove(novel);
-
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        [HttpDelete("admin/chapters/{id:int}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> AdminDeleteChapter(int id)
-        {
-
-            var chapter = await _context.Chapters.FindAsync(id);
-            if (chapter == null) return NotFound();
-
-            await DeleteCommentsForChapter(id);
-
-            _context.Chapters.Remove(chapter);
-
-            await _context.SaveChangesAsync();
-
-            return NoContent();
         }
 
     }

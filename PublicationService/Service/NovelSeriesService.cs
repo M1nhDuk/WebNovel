@@ -131,7 +131,7 @@ namespace NovelService.Service
             var oldNote = series.note;
             var oldDescription = series.description;
 
-
+            
             // Update các field nếu có giá trị
             if (!string.IsNullOrWhiteSpace(dto.series_title))
                 series.series_title = dto.series_title;
@@ -180,8 +180,6 @@ namespace NovelService.Service
                 }
             }
 
-         //   series.updated_at = DateTime.UtcNow;
-
             _context.Novel_Series.Update(series);
             await _context.SaveChangesAsync();
 
@@ -202,9 +200,9 @@ namespace NovelService.Service
         public async Task<bool> DeleteSeriesById(int id, Guid uploader_Id, string userRole)
         {
             var series = await _context.Novel_Series
-                .Include(s => s.Chapters)             
-                .Include(s => s.Novel)
-                    .ThenInclude(n => n.Chapters)     
+                .Include(s => s.Chapters)
+                .Include(s => s.Novel) 
+                    .ThenInclude(n => n.Chapters)
                 .FirstOrDefaultAsync(s => s.series_Id == id);
 
             if (series == null)
@@ -213,101 +211,97 @@ namespace NovelService.Service
             if (series.uploader_id != uploader_Id && userRole != "Admin")
                 throw new UnauthorizedAccessException("You are not allowed to delete this series");
 
+            //COLLECT ALL IMAGES TO DELETE
+            var imagesToDelete = new List<string>();
+            var defaultPath = "/images/covers/default_cover.jpg";
+
+            // Add Series Cover
+            if (!string.IsNullOrEmpty(series.cover_images) &&
+                !series.cover_images.Trim().Equals(defaultPath, StringComparison.OrdinalIgnoreCase))
+            {
+                imagesToDelete.Add(series.cover_images);
+            }
+
+            // Add Novel Covers (Loop through all novels in the series)
+            if (series.Novel != null)
+            {
+                foreach (var novel in series.Novel)
+                {
+                    if (!string.IsNullOrEmpty(novel.cover_images) &&
+                        !novel.cover_images.Trim().Equals(defaultPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        imagesToDelete.Add(novel.cover_images);
+                    }
+                }
+            }
+
             try
             {
                 var httpClient = _httpClientFactory.CreateClient("InteractionServiceClient");
 
-                //Xóa comment của chính Series
                 var responseSeries = await httpClient.DeleteAsync($"api/internal/comments/by-series/{id}");
-                if (!responseSeries.IsSuccessStatusCode)
-                {
-                    _logger.LogError("Failed to delete comments for SeriesId {SeriesId}", id);
-                }
+                if (!responseSeries.IsSuccessStatusCode) _logger.LogError("Failed to delete comments for SeriesId {SeriesId}", id);
 
-                //Lấy tất cả Chapter ID con
                 var chapterIds = new List<int>();
-
-                //Traditional Series 
-                if (series.Chapters != null)
-                {
-                    chapterIds.AddRange(series.Chapters.Select(c => c.chapter_id));
-                }
-
-                //Web Novels (Series -> Novels -> Chapters)
+                if (series.Chapters != null) chapterIds.AddRange(series.Chapters.Select(c => c.chapter_id));
                 if (series.Novel != null)
                 {
                     foreach (var vol in series.Novel)
                     {
-                        if (vol.Chapters != null)
-                        {
-                            chapterIds.AddRange(vol.Chapters.Select(c => c.chapter_id));
-                        }
+                        if (vol.Chapters != null) chapterIds.AddRange(vol.Chapters.Select(c => c.chapter_id));
                     }
                 }
 
                 foreach (var chapId in chapterIds)
                 {
                     var responseChap = await httpClient.DeleteAsync($"api/internal/comments/by-chapter/{chapId}");
-                    if (!responseChap.IsSuccessStatusCode)
-                    {
-                        _logger.LogWarning("Failed to delete comments for ChapterId {ChapterId}", chapId);
-                    }
+                    if (!responseChap.IsSuccessStatusCode) _logger.LogWarning("Failed to delete comments for ChapterId {ChapterId}", chapId);
                 }
-
-                _logger.LogInformation("Cleanup comments process finished for SeriesId {SeriesId}", id);
             }
             catch (Exception ex)
             {
-              
                 _logger.LogError(ex, "Error calling InteractionService during cleanup for SeriesId {SeriesId}", id);
             }
 
-            //Send noti
+            
+            _context.Novel_Series.Remove(series);
+            await _context.SaveChangesAsync();
+
+            //DELETE Images
+            foreach (var relativePath in imagesToDelete)
+            {
+                try
+                {
+                    var cleanPath = relativePath.TrimStart('/', '\\');
+                    var absolutePath = Path.Combine(_environment.WebRootPath, cleanPath);
+
+                    if (System.IO.File.Exists(absolutePath))
+                    {
+                        System.IO.File.Delete(absolutePath);
+                        _logger.LogInformation("Deleted image: {Path}", absolutePath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to delete image file: {Path}", relativePath);
+                }
+            }
+
+            //SEND NOTIFICATION 
             try
             {
                 var notifyDto = new SeriesGeneralNotificationDto
                 {
                     SeriesId = id,
                     Message = $"Series {series.series_title} has been deleted.",
-                    Type = "SeriesDeleted", 
-                    LinkUrl = null 
+                    Type = "SeriesDeleted",
+                    LinkUrl = null
                 };
-
                 _ = _userService.NotifySeriesGeneralAsync(notifyDto);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi gửi thông báo xóa Series {Id}", id);
-            }
-
-
-            _context.Novel_Series.Remove(series);
-            await _context.SaveChangesAsync();
-
-            try
-            {
-                var coverPath = series.cover_images;
-                var defaultPath = "/images/covers/default_cover.jpg";
-
-                // Chỉ xóa nếu đường dẫn tồn tại và KHÔNG phải là ảnh mặc định
-                if (!string.IsNullOrEmpty(coverPath) &&
-                    !coverPath.Trim().Equals(defaultPath, StringComparison.OrdinalIgnoreCase))
-                {
-                    var relativePath = coverPath.TrimStart('/', '\\');
-
-                    var absolutePath = Path.Combine(_environment.WebRootPath, relativePath);
-
-                    if (System.IO.File.Exists(absolutePath))
-                    {
-                        System.IO.File.Delete(absolutePath);
-                        _logger.LogInformation("Deleted physical cover image: {Path}", absolutePath);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-               
-                _logger.LogError(ex, "Error deleting cover image for SeriesId {SeriesId}", id);
+                _logger.LogError(ex, "Erro deleteting series {Id}", id);
             }
 
             return true;
@@ -708,7 +702,7 @@ namespace NovelService.Service
             try
             {
                 var httpClient = _httpClientFactory.CreateClient();
-                var notificationUrl = $"{_userServiceUrl}/api/internal/notifications";
+                var notificationUrl = $"{_userServiceUrl}/api/internal/notifications/send-to-user";
 
                 var response = await httpClient.PostAsJsonAsync(notificationUrl, dto);
 

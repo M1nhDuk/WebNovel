@@ -106,7 +106,12 @@ const EditNovelForm: React.FC<EditNovelFormProps> = ({ seriesId, novel, onNovelU
             try {
                 await apiClient.post(
                     API_ROUTES.SERIES.UPLOAD_NOVEL_COVER(seriesId, novel.novel_Id),
-                    uploadData
+                    uploadData,
+                    {
+                        headers: {
+                            'Content-Type': undefined
+                        }
+                    }
                 );
             } catch (err: any) {
                 console.error("Failed to upload cover:", err);

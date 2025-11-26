@@ -16,12 +16,14 @@ namespace AdminService.Controllers
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<AdminUsersController> _logger;
+        private readonly IWebHostEnvironment _environment;
 
-        public AdminUsersController(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ILogger<AdminUsersController> logger)
+        public AdminUsersController(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ILogger<AdminUsersController> logger, IWebHostEnvironment environment)
         {
             _httpClientFactory = httpClientFactory;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
+            _environment = environment;
         }
 
 

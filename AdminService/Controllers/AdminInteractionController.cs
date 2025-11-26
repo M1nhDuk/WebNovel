@@ -30,20 +30,5 @@ namespace AdminService.Controllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             return client;
         }
-
-
-        [HttpDelete("comments/{id:guid}")]
-        public async Task<IActionResult> DeleteComment(Guid id)
-        {
-            _logger.LogWarning("Admin (via AdminService) is deleting comment {CommentId}", id);
-            var client = GetInteractionClient();
-
-            var response = await client.DeleteAsync($"api/internal/comments/admin/comments/{id}");
-
-            if (response.IsSuccessStatusCode)
-                return NoContent(); 
-
-            return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
-        }
     }
 }
