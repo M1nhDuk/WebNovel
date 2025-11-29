@@ -148,13 +148,13 @@ const BookmarksPage: React.FC = () => {
     };
 
     if (userLoading || (isLoading && currentPage === 1)) {
-        return <div className="bookmarks-page-container"><h1>Danh sách đánh dấu</h1>Loading...</div>;
+        return <div className="bookmarks-page-container"><h1>Bookmark list</h1>Loading...</div>;
     }
 
     if (!user) {
         return (
             <div className="bookmarks-page-container">
-                <h1>Danh sách đánh dấu</h1>
+                <h1>Bookmark list</h1>
                 <div className="bookmarks-error">
                     {error || "Login to view your bookmarks."}
                 </div>
@@ -167,7 +167,7 @@ const BookmarksPage: React.FC = () => {
 
     return (
         <div className="bookmarks-page-container">
-            <h1>Danh sách đánh dấu</h1>
+            <h1>Bookmark list</h1>
 
             {error && <div className="bookmarks-error">{error}</div>}
 

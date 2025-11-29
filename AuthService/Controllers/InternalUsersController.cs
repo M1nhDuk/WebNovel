@@ -20,7 +20,7 @@ using System.Threading.Tasks;
                 _logger = logger;
             }
 
-            [HttpGet("batch")] // Endpoint: /api/internal/users/batch?ids=guid1,guid2,...
+            [HttpGet("batch")] 
             public async Task<ActionResult<List<UserInfoDto>>> GetUsersBatch([FromQuery] string ids)
             {
                 if (string.IsNullOrEmpty(ids))

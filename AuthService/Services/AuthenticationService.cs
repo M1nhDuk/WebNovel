@@ -215,7 +215,7 @@ namespace AuthService.Services
             var emailBody = $"<p>CLick on the link:</p>" +
                             $"<p><a href='{confirmationLink}'>to confirm your account</a></p>";
 
-            await emailService.SendEmailAsync(user.Email, "Xác thực tài khoản", emailBody);
+            await emailService.SendEmailAsync(user.Email, "Account confirmatio", emailBody);
 
             return user;
         }
@@ -317,8 +317,6 @@ namespace AuthService.Services
             }
 
             return user;
-
-         
         }
 
 
@@ -342,7 +340,7 @@ namespace AuthService.Services
 
             else
             {
-                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(2); // Thời hạn ngắn
+                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(1); // Thời hạn ngắn
             }
             await context.SaveChangesAsync();
             return refreshToken;

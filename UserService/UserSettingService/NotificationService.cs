@@ -185,7 +185,6 @@ namespace UserService.UserSettingService
         {
             if (type == NotificationType.NewComment)
             {
-                _logger.LogWarning("Không dùng hàm NotifySeriesFollowersAsync cho NewComment để tránh spam.");
                 return;
             }
 

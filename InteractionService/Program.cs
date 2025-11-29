@@ -11,7 +11,6 @@ using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// C?u hình HttpClient M?C ??NH ?? b? qua l?i SSL (n?u có)
 builder.Services.AddHttpClient(Options.DefaultName)
     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
     {
@@ -28,7 +27,6 @@ builder.Services.AddHttpClient(Options.DefaultName)
 
 var connectionString = builder.Configuration.GetConnectionString("MySqlConnection");
 
-// L?y URL t? appsettings
 var authServiceUrl = builder.Configuration["ServiceUrls:AuthService"] ??
                     throw new InvalidOperationException("ServiceUrls:AuthService is not configured.");
 

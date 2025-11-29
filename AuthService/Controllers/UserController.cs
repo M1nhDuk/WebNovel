@@ -191,7 +191,7 @@ namespace AuthService.Controllers
                     await mainAvatarImage.SaveAsync(mainAvatarFilePath);
                 }
 
-                // Xử lý và lưu avatar thumbnail (46x46)
+                // Xử lý và lưu avatar thumbnail 
                 using (var thumbnailAvatarImage = originalImage.Clone(x => x.Resize(new ResizeOptions
                 {
                     Size = new Size(46, 46),
@@ -333,7 +333,7 @@ namespace AuthService.Controllers
             return Ok(new { url = user.BackgroundImage });
         }
 
-        //Xem profile user #
+        //Xem profile user 
         [HttpGet("{id:guid}/public")]
         [AllowAnonymous] 
         public async Task<ActionResult<UserProfileDto>> GetPublicProfile(Guid id)

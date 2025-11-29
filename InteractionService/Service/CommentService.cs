@@ -245,7 +245,7 @@ namespace InteractionService.Service
                 query = query.Where(c => c.ChapterId == chapterId.Value);
             }
 
-            //Chỉ lấy Root Comment tải trang ban đầu cực nhanh nếu có hàng nghìn reply
+            //Chỉ lấy Root Comment tải trang ban đầu
             query = query.Where(c => c.ParentCommentId == null);
 
             //Đếm tổng số root comment để phân trang

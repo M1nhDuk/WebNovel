@@ -44,7 +44,7 @@ const SeriesSection: React.FC<SeriesSectionProps> = ({ title, subTitle, seriesLi
         };
     }, [seriesList, isOverflowing]);
 
-    // HÀM X? LÝ MOUSE INTERACTION
+    //MOUSE INTERACTION
     const handleMouseDown = (e: React.MouseEvent) => {
         if (!mainRowRef.current) return;
         setIsDown(true);

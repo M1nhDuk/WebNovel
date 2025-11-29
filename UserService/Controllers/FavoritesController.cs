@@ -43,7 +43,7 @@ namespace UserService.Controllers
                    
                     return Ok(new
                     {
-                        message = "Đã yêu thích series này.",
+                        message = "Đã yêu thích series này/Unfollow this series.",
                         isFavorited = result.IsFavorited, 
                         data = result.Data
                     });
