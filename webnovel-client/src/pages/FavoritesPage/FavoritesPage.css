@@ -145,14 +145,14 @@
 }
 
 .new-chapter-badge {
-    background-color: #ff4757; /* Màu đỏ nổi bật */
+    background-color: #ff4757; 
     color: white;
     font-size: 0.75rem;
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 12px;
     display: inline-block;
-    animation: pulse 2s infinite; /* Hiệu ứng nhấp nháy nhẹ nếu muốn */
+    animation: pulse 2s infinite; 
 }
 
 .total-chapter-info {

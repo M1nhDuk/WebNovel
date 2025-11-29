@@ -95,7 +95,6 @@ const EditChapterForm: React.FC<EditChapterFormProps> = ({
             await apiClient.put(endpoints.put, updatePayload);
             setSuccess(`Chapter "${title.trim()}" updated successfully!`);
 
-            //Callback để ManageSeriesPage tải lại dữ liệu
             onChapterUpdated();
 
         } catch (err: any) {

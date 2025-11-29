@@ -4,6 +4,7 @@ import apiClient from '../../api/apiClient';
 import { API_ROUTES } from '../../api/apiRoutes';
 import type { NovelSeriesDetailDto, NovelDetailDto } from '../../types/series';
 import '../SeriesDetailPage/SeriesDetailPage.css';
+import './NovelDetailPage.css'
 
 const GATEWAY_URL = 'https://localhost:8000';
 

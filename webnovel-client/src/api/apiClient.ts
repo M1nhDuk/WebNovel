@@ -68,7 +68,7 @@ apiClient.interceptors.response.use(
 
         if (error.response?.status === 401 && !originalRequest._retry) {
 
-            // N?u ?ang có m?t ti?n trình refresh token khác ?ang ch?y
+            //If another refresh token is running
             if (isRefreshing) {
                 return new Promise(function (resolve, reject) {
                     failedQueue.push({ resolve, reject });
@@ -89,7 +89,7 @@ apiClient.interceptors.response.use(
             //logout if does not have refresh or access token 
             if (!refreshToken || !accessToken) {
                 isRefreshing = false;
-                window.location.href = '/login';
+                window.location.href = '/';
                 return Promise.reject(error);
             }
 
@@ -133,7 +133,7 @@ apiClient.interceptors.response.use(
                 console.error("Session expired. Please login again.");
                 localStorage.removeItem('accessToken');
                 localStorage.removeItem('refreshToken');
-                window.location.href = '/login';
+                window.location.href = '/';
 
                 return Promise.reject(refreshError);
             }

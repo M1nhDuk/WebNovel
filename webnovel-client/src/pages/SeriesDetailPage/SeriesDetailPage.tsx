@@ -483,7 +483,7 @@ const SeriesDetailPage: React.FC = () => {
                                                         </Link>
 
                                                         {/* HIỂN THỊ BADGE MỚI */}
-                                                        {isNew && <span className="new-badge">Mới</span>}
+                                                        {isNew && <span className="new-badge">New</span>}
 
                                                         <span className="chapter-date">{formatDate(chapter.created_at)}</span>
                                                     </li>
@@ -497,8 +497,8 @@ const SeriesDetailPage: React.FC = () => {
                                                         onClick={() => toggleVolumeExpand(volume.novel_Id)}
                                                     >
                                                         {isExpanded
-                                                            ? "Thu gọn"
-                                                            : `Xem tiếp (${volume.chapters.length} chương)`
+                                                            ? "Less"
+                                                            : `More)`
                                                         }
                                                     </button>
                                                 </li>

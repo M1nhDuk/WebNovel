@@ -38,7 +38,9 @@ namespace NovelService.Service
             if (string.IsNullOrWhiteSpace(dto.title)) throw new InvalidOperationException("Title required");
 
             var hasNovelParent = dto.novelID.HasValue;
+
             var hasSeriesParent = dto.series_id.HasValue;
+
             if (hasNovelParent == hasSeriesParent) 
             {
                 throw new InvalidOperationException("Chapter must belong to exactly one Novel OR one Series.");
@@ -91,6 +93,7 @@ namespace NovelService.Service
                     var max = await _context.Chapters.Where(c => c.series_Id == dto.series_id.Value).MaxAsync(c => (int?)c.chapter_number) ?? 0;
                     chapterNumber = max + 1;
                 }
+
 
                 if (parentSeries == null)
                 {
@@ -342,6 +345,7 @@ namespace NovelService.Service
         public async Task<bool> ReorderChapterAsync(ReorderChaptersRequest request, Guid uploaderId, string userRole)
         {
             var hasNovelParent = request.novel_Id.HasValue;
+
             var hasSeriesParent = request.series_Id.HasValue;
 
             if (hasNovelParent == hasSeriesParent)
@@ -381,6 +385,7 @@ namespace NovelService.Service
             if (!chapters.Any()) return false;
 
             if (parentSeries == null) return false;
+
             if (parentSeries.uploader_id != uploaderId && userRole != "Admin")
             {
                 throw new UnauthorizedAccessException("You are not authorized to reorder these chapters.");

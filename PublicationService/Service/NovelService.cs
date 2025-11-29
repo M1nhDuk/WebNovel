@@ -283,7 +283,9 @@ namespace NovelService.Service
             if(!novels.Any()) return false;
 
             var parentSeries = novels.FirstOrDefault()?.NovelSeries;
+
             if (parentSeries == null) return false;
+
             if (parentSeries.uploader_id != uploader_Id && userRole != "Admin") 
             {
                 throw new UnauthorizedAccessException("You are not authorized to reorder these novels.");

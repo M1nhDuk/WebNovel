@@ -210,6 +210,7 @@ namespace NovelService.Controllers
                 try
                 {
                     var uploaderId = GetUserIdFromToken();
+                    var userRole = GetUserRoleFromToken();
 
                    
                     var series = await _context.Novel_Series.FindAsync(id);
@@ -217,7 +218,7 @@ namespace NovelService.Controllers
                     {
                         return NotFound(new { message = "Series not found." });
                     }
-                    if (series.uploader_id != uploaderId)
+                    if (series.uploader_id != uploaderId && userRole != "Admin")
                     {
                        
                         return Forbid("You do not have permit to change.");
@@ -318,7 +319,6 @@ namespace NovelService.Controllers
         {
             try
             {
-                // Tận dụng hàm GetSeriesByUploaderAsync đã có trong Service
                 var result = await _seriesService.GetSeriesByUploaderAsync(uploaderId, pageNumber, pageSize);
                 return Ok(result);
             }

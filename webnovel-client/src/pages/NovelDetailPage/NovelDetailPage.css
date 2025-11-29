@@ -1,1 +1,60 @@
 ﻿
+.novel-page-list {
+    background-color: #ffffff;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); 
+    padding: 20px; 
+    margin-top: 20px;
+}
+
+
+    .novel-page-list h3 {
+        margin-top: 0;
+        margin-bottom: 15px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #333;
+        border-bottom: 1px solid #f0f0f0; 
+        padding-bottom: 10px;
+    }
+
+/* List Styling to match the clean look */
+.chapter-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Individual Chapter Items */
+.chapter-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px dashed #eaeaea; 
+    transition: background-color 0.2s;
+}
+
+    /* Remove border from the last item */
+    .chapter-item:last-child {
+        border-bottom: none;
+    }
+
+/* Link Styling */
+.chapter-title {
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+    .chapter-title:hover {
+        color: #007bff; 
+    }
+
+/* Date Styling */
+.chapter-date {
+    color: #999;
+    font-size: 0.9rem;
+    min-width: 80px;
+    text-align: right;
+}

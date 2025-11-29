@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { Key } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import apiClient from '../../api/apiClient';
@@ -133,12 +133,34 @@ const ReorderableList: React.FC<ReorderableListProps> = ({ items, listTitle, onS
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
 
+  
+    const listContainerRef = useRef<HTMLUListElement>(null);
+
     const handleDragStart = (index: number) => {
         setDraggingItemIndex(index);
     };
 
     const handleDragOver = (e: React.DragEvent, index: number) => {
         e.preventDefault();
+
+        if (listContainerRef.current) {
+            const container = listContainerRef.current;
+            const { top, bottom } = container.getBoundingClientRect();
+            const mouseY = e.clientY;
+
+            const threshold = 60; // Khoảng cách từ mép để bắt đầu cuộn 
+            const scrollSpeed = 15; // Tốc độ cuộn
+
+            // Nếu chuột gần mép trên -> cuộn lên
+            if (mouseY < top + threshold) {
+                container.scrollTop -= scrollSpeed;
+            }
+            // Nếu chuột gần mép dưới -> cuộn xuống
+            else if (mouseY > bottom - threshold) {
+                container.scrollTop += scrollSpeed;
+            }
+        }
+
         if (draggingItemIndex === null || draggingItemIndex === index) {
             return;
         }
@@ -167,7 +189,7 @@ const ReorderableList: React.FC<ReorderableListProps> = ({ items, listTitle, onS
         try {
             await onSave(orderedIds);
             setSuccess('Order saved successfully!');
-            setTimeout(onCancel, 1000); 
+            setTimeout(onCancel, 1000);
         } catch (err: any) {
             setError(err.response?.data?.message || "Could not save new order.");
             setLoading(false);
@@ -182,7 +204,10 @@ const ReorderableList: React.FC<ReorderableListProps> = ({ items, listTitle, onS
             {error && <div className="form-message error">{error}</div>}
             {success && <div className="form-message success">{success}</div>}
 
-            <ul className="reorder-list">
+            <ul
+                className="reorder-list"
+                ref={listContainerRef} 
+            >
                 {currentItems.map((item, index) => (
                     <li
                         key={item.id}
@@ -572,10 +597,10 @@ const ManageSeriesPage: React.FC = () => {
                 return <ReorderableList
                     key={key}
                     listTitle="Reorder Volumes"
-                    items={series.novels 
+                    items={series.novels
                         .map(n => ({ id: n.novel_Id, title: n.title }))
                     }
-                    onCancel={handleRefreshData} 
+                    onCancel={handleRefreshData}
                     onSave={async (orderedIds) => {
                         const payload = {
                             series_Id: series.series_Id,
@@ -610,10 +635,10 @@ const ManageSeriesPage: React.FC = () => {
                 return <ReorderableList
                     key={key}
                     listTitle={listTitle}
-                    items={chapters 
+                    items={chapters
                         .map(c => ({ id: c.chapter_id, title: c.title }))
                     }
-                    onCancel={handleRefreshData} 
+                    onCancel={handleRefreshData}
                     onSave={async (orderedIds) => {
                         const payload = {
                             [isTraditional ? 'series_Id' : 'novel_Id']: parentId,

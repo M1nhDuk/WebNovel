@@ -112,6 +112,7 @@ namespace NovelService.Service
             }
 
             bool isInUse = await _context.Novel_Tags.AnyAsync(nt => nt.tagID == id);
+
             if (isInUse)
             {
                 throw new InvalidOperationException("Cannot delete this tag because it is in use by one or more series.");

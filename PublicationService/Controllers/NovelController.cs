@@ -179,6 +179,7 @@ namespace NovelService.Controllers
             try
             {
                 var currentUserId = GetUserIdFromToken();
+                var userRole = GetUserRoleFromToken();
 
                 var novel = await _context.Novels
                                       .Include(n => n.NovelSeries)
@@ -194,7 +195,7 @@ namespace NovelService.Controllers
                     return BadRequest(new { message = "Novel not belong to any series" });
                 }
 
-                if (novel.NovelSeries.uploader_id != currentUserId)
+                if (novel.NovelSeries.uploader_id != currentUserId && userRole != "Admin")
                 {
                     return Forbid("You do not have permit to change");
                 }

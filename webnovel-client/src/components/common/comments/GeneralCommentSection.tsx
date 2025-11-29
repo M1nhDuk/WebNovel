@@ -365,7 +365,7 @@ const GeneralCommentSection: React.FC<CommentSectionProps> = ({
                         const isLoadingReply = replyState?.isLoading;
                         const isFullyLoaded = replyState?.isFullyLoaded;
 
-                        // Tổng số reply (Backend cần trả về field này trong CommentDto)
+                        // Tổng số reply 
                         const totalRepliesInDB = comment.replyCount || 0;
 
                         const isReplyingToRoot = replyingToId === comment.commentId;
