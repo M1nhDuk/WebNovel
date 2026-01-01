@@ -33,6 +33,7 @@ namespace NovelService.Service
             }
         }
 
+
         public async Task IncrementUnreadCountAsync(int seriesId)
         {
             try

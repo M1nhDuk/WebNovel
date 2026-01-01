@@ -368,7 +368,7 @@ namespace InteractionService.Service
             {
                 var commenterId = comment.UserId;
                 var contentTarget = comment.SeriesId.HasValue ? $"series '{comment.SeriesId}'" : $"chapter '{comment.ChapterId}'";
-                string message = $"Your comment on {contentTarget} was removed.";
+                string message = $"Your comment was removed.";
                 string? linkUrl = comment.SeriesId.HasValue ? $"/series/{comment.SeriesId}" : null; 
 
                 var notificationDto = new CreateNotificationDto

@@ -200,7 +200,7 @@ namespace UserService.UserSettingService
                         foreach (var item in historyItems)
                         {
                             if (summaryLookup.TryGetValue(item.SeriesId, out var summary))
-                            {
+                            {                                
                                 item.SeriesTitle = summary.Title;
                                 item.SeriesCoverImage = summary.CoverImage;
                             }

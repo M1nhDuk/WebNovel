@@ -20,6 +20,7 @@ namespace UserService.Controllers
             _favoriteService = favoriteService;
             _logger = logger;
         }
+
         private Guid GetUserIdFromToken()
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);

@@ -40,8 +40,6 @@ namespace NovelService.Controllers
         }
 
         [HttpGet("series/{seriesId:int}/uploader")]
-
-
         public async Task<ActionResult<Guid>> GetSeriesUploader(int seriesId)
         {
             try

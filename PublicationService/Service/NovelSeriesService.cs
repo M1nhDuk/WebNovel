@@ -183,14 +183,28 @@ namespace NovelService.Service
             _context.Novel_Series.Update(series);
             await _context.SaveChangesAsync();
 
-            bool hasAnnouncement = (dto.note != null && dto.note != oldNote) ||
+        /*    bool hasAnnouncement = (dto.note != null && dto.note != oldNote) ||
                                      (dto.description != null && dto.description != oldDescription);
 
             if (hasAnnouncement)
             {
                 _logger.LogInformation("Series {SeriesId} có cập nhật. Gửi thông báo cho followers...", seriesId);
                 await NotifyFollowersOfUpdate(seriesId, series.series_title, uploaderId);
-            }
+            } */
+
+
+
+            var notifyDto = new SeriesGeneralNotificationDto
+            {
+                SeriesId = seriesId,
+                Message = $"Series '{series.series_title}' bạn theo dõi vừa cập nhật thông tin.",
+                Type = "SeriesUpdate",
+                LinkUrl = $"/series/{seriesId}"
+            };
+
+            await _userService.NotifySeriesGeneralAsync(notifyDto);
+
+
 
             return await GetByIdAsync(series.series_Id);
         }
@@ -263,7 +277,9 @@ namespace NovelService.Service
                 _logger.LogError(ex, "Error calling InteractionService during cleanup for SeriesId {SeriesId}", id);
             }
 
-            
+            var seriesTitle = series.series_title;
+            var ownerId = series.uploader_id;
+
             _context.Novel_Series.Remove(series);
             await _context.SaveChangesAsync();
 
@@ -290,19 +306,39 @@ namespace NovelService.Service
             //SEND NOTIFICATION 
             try
             {
-                var notifyDto = new SeriesGeneralNotificationDto
+                var generalNotifyDto = new SeriesGeneralNotificationDto
                 {
                     SeriesId = id,
-                    Message = $"Series {series.series_title} has been deleted.",
+                    Message = $"Series {seriesTitle} has been deleted.",
                     Type = "SeriesDeleted",
                     LinkUrl = null
                 };
-                _ = _userService.NotifySeriesGeneralAsync(notifyDto);
+                await _userService.NotifySeriesGeneralAsync(generalNotifyDto);
+
+                
+                if (ownerId != Guid.Empty && ownerId != uploader_Id) 
+                {
+                    var ownerNotifyDto = new CreateNotificationDto
+                    {
+                        UserId = ownerId,
+                        Type = "SeriesDeleted", 
+                        Message = $"Your series '{seriesTitle}' has been deleted by Administrator.",
+                        LinkUrl = null
+                    };
+
+                    var httpClient = _httpClientFactory.CreateClient();
+                    var userServiceUrl = _configuration["ServiceUrls:UserService"];
+
+    
+                    await httpClient.PostAsJsonAsync($"{userServiceUrl}/api/internal/notifications/send-to-user", ownerNotifyDto);
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro deleteting series {Id}", id);
+                _logger.LogError(ex, "Error sending delete notifications for series {Id}", id);
             }
+
+
 
             return true;
         }
@@ -623,8 +659,6 @@ namespace NovelService.Service
             {
                 keyword = keyword.ToLower();
                 query = query.Where(s =>
-                    s.series_title.ToLower().Contains(keyword) ||
-                    (s.author != null && s.author.ToLower().Contains(keyword)) ||
                     (s.artist != null && s.artist.ToLower().Contains(keyword))
                 );
             }

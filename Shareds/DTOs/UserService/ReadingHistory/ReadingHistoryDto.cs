@@ -11,10 +11,10 @@ namespace Shareds.DTOs.UserService.ReadingHistory
         public Guid HistoryId { get; set; }
         public int SeriesId { get; set; }
         public DateTime LastAccessedAt { get; set; }
+        public string SeriesTitle { get; set; } = string.Empty;
 
         public int ChapterId { get; set; }
         //Lấy từ novel service
-        public string? SeriesTitle { get; set; }
         public string? SeriesCoverImage { get; set; }
     }
 }

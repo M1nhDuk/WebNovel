@@ -18,8 +18,9 @@ namespace InteractionService.Controllers
             _logger = logger;
         }
 
+        //Delete all comment, 
 
-
+        //When Delete Series
         [HttpDelete("by-series/{seriesId:int}")]
         public async Task<IActionResult> DeleteCommentsBySeries(int seriesId)
         {
@@ -31,7 +32,7 @@ namespace InteractionService.Controllers
         }
 
 
-
+        //When Delete chapter
         [HttpDelete("by-chapter/{chapterId:int}")]
         public async Task<IActionResult> DeleteCommentsByChapter(int chapterId)
         {

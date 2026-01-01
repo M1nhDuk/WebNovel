@@ -47,6 +47,10 @@ namespace UserService.Controllers
                         .Where(r => r.UserId == id)
                         .ExecuteDeleteAsync();
 
+                    await _context.UserReadChapter
+                        .Where(r => r.UserId == id)
+                        .ExecuteDeleteAsync();
+
                     await transaction.CommitAsync();
 
                     return NoContent();

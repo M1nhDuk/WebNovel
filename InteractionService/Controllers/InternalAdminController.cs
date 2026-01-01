@@ -19,6 +19,7 @@ namespace InteractionService.Controllers
             _logger = logger;
         }
 
+        //Delete user comment when delete user
         [HttpDelete("users/{id:guid}")]
         public async Task<IActionResult> DeleteUserComment(Guid id)
         {
